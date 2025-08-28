@@ -50,6 +50,10 @@ class Settings(BaseSettings):
 
     DB_CONN: str  # строка соединения с базой
 
+    # OAUTH2 аутентификация
+    OAUTH2_GOOGLE_CLIENT_ID: str | None = None
+    OAUTH2_GOOGLE_CLIENT_SECRET: str | None = None
+
     @property
     def db_url(self):
         return f"postgresql+asyncpg://{self.DB_CONN}"
