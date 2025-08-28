@@ -5,7 +5,7 @@ import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
-from app.api.routes.auth import auth_router
+from app.api import router
 from app.api.routes.local import index_local_router
 from app.core.config import settings, AppMode
 from app.core.logs import logger
@@ -31,7 +31,7 @@ app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
 # Установка CORS
 if settings.get_cors:
     app.add_middleware(
-        CORSMiddleware,
+        CORSMiddleware,  # noqa
         allow_origins=settings.get_cors,
         allow_credentials=True,
         allow_methods=["*"],
@@ -43,7 +43,7 @@ if settings.get_cors:
 if settings.APP_MODE == AppMode.local:
     app.include_router(index_local_router)
 
-app.include_router(auth_router)
+app.include_router(router)
 
 
 if __name__ == "__main__":
