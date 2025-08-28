@@ -21,14 +21,14 @@ class OAuth2Services:
             Генерация URL перенаправления для Google-аутентификации
             """
 
-            random_state = secrets.token_urlsafe(16)
+            state = secrets.token_urlsafe(16)  # TODO: сделать хранение state в базе
             query_params = {
                 "client_id": settings.OAUTH2_GOOGLE_CLIENT_ID,
                 "redirect_uri": OAUTH2_GOOGLE_REDIRECT_URL,
                 "response_type": "code",
                 "scope": "openid profile email",
                 # "access_type": "offline",  # по умолчанию online
-                "state": random_state,
+                "state": state,
             }
             query_string = urllib.parse.urlencode(query_params, quote_via=urllib.parse.quote)
 
@@ -40,6 +40,8 @@ class OAuth2Services:
             Получение данных о пользователе
             """
 
+            # TODO: сделать проверку state из базы
+
             data = {
                 "client_id": settings.OAUTH2_GOOGLE_CLIENT_ID,
                 "client_secret": settings.OAUTH2_GOOGLE_CLIENT_SECRET,
@@ -50,7 +52,7 @@ class OAuth2Services:
 
             # TODO: вынести сессию
             async with aiohttp.ClientSession() as session, session.post(
-                    url=OAUTH2_GOOGLE_TOKEN_URL, data=data, ssl=False
+                    url=OAUTH2_GOOGLE_TOKEN_URL, data=data, ssl=False  # TODO: убрать ssl=False при production
             ) as response:
 
                 if response.status != 200:
@@ -68,10 +70,11 @@ class OAuth2Services:
 
                     id_token = result.get("id_token")
                     # access_token = result.get("access_token")
+                    # refresh_token = result.get("refresh_token")
                     user_data = jwt.decode(
                         id_token,
                         algorithms=["RS256"],
-                        options={"verify_signature": False},
+                        options={"verify_signature": False},  # TODO: сделать запрос public key для проверки токена
                     )
 
                 except (ContentTypeError, json.JSONDecodeError) as ex:
