@@ -42,9 +42,9 @@ class Settings(BaseSettings):
     APP_NAME: str = "Franken Jet"  # название приложения
     APP_MODE: AppMode = AppMode.local  # режим работы приложения
 
-    VERSION: str = "0"  # версия приложения
+    VERSION: str = "0"  # версия приложения  # TODO: добавить получение версии из файла в режиме local
 
-    JWT_ALGORITHM: str = "HS256"
+    JWT_ALGORITHM: str = "HS256"  # TODO: переделать на RS256
     JWT_SECRET_KEY: str = "secret key"  # TODO: добавить возможность использования сертификатов
     JWT_EXPIRE_MINUTES: int = 60 * 24 * 30  # время жизни jwt-токена (в минутах)
 
@@ -53,6 +53,8 @@ class Settings(BaseSettings):
     # OAUTH2 аутентификация
     OAUTH2_GOOGLE_CLIENT_ID: str | None = None
     OAUTH2_GOOGLE_CLIENT_SECRET: str | None = None
+    OAUTH2_VK_CLIENT_ID: str | None = None
+    OAUTH2_VK_CLIENT_SECRET: str | None = None
 
     @property
     def db_url(self):
