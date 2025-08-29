@@ -1,3 +1,6 @@
+import base64
+import hashlib
+
 import aiohttp
 import json
 import jwt
@@ -9,16 +12,44 @@ from typing import Dict
 
 from app.api.types import ABody
 from app.core.config import settings
-from app.core.config_const import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL
+from app.core.config_const import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
+    OAUTH2_VK_URL, OAUTH2_VK_REDIRECT_URL, OAUTH2_VK_TOKEN_URL
 
 
 class OAuth2Services:
 
+    @staticmethod
+    async def generate_code_verifier(length: int = 64) -> str:
+        """
+        Генерация случайной строки code_verifier
+        """
+
+        token = secrets.token_urlsafe(length)
+        # длина строки token должна быть кратной 4 для корректной работы base64url
+        while len(token) % 4 != 0:
+            token += '='
+
+        # обрезаем до необходимой длины, т.к. secrets.token_urlsafe может вернуть строку, превышающую запрошенную длину
+        return token[:length]
+
+    @staticmethod
+    async def generate_code_challenge(code_verifier: str) -> str:
+        """
+        Генерация строки code_challenge из code_verifier, используя метод S256
+        """
+
+        code_verifier_bytes = code_verifier.encode('ascii')
+        hashed = hashlib.sha256(code_verifier_bytes).digest()
+        encoded = base64.urlsafe_b64encode(hashed).decode('ascii').rstrip('=')
+
+        return encoded
+
     class Google:
+
         @staticmethod
         async def get_oauth2_redirect_url():
             """
-            Генерация URL перенаправления для Google-аутентификации
+            Генерация URL перенаправления для Google OAuth2-аутентификации
             """
 
             state = secrets.token_urlsafe(16)  # TODO: сделать хранение state в базе
@@ -50,7 +81,7 @@ class OAuth2Services:
                 "code": code,
             }
 
-            # TODO: вынести сессию
+            # TODO: сделать менеджер сессий
             async with aiohttp.ClientSession() as session, session.post(
                     url=OAUTH2_GOOGLE_TOKEN_URL, data=data, ssl=False  # TODO: убрать ssl=False при production
             ) as response:
@@ -95,3 +126,32 @@ class OAuth2Services:
             }
 
             return ret
+
+    class VK:
+
+        @staticmethod
+        async def get_oauth2_redirect_url():
+            """
+            Генерация URL перенаправления для VK OAuth2-аутентификации
+            """
+
+            # https://tonyxu-io.github.io/pkce-generator/
+            code_verifier = await OAuth2Services.generate_code_verifier()
+            code_challenge = await OAuth2Services.generate_code_challenge(code_verifier)
+            state = secrets.token_urlsafe(16)
+            # TODO: сделать хранение значений в базе для дальнейшей проверки
+
+            query_params = {
+                "client_id": settings.OAUTH2_VK_CLIENT_ID,
+                "redirect_uri": OAUTH2_VK_REDIRECT_URL,
+                "response_type": "code",
+                "state": state,
+                "code_challenge": code_challenge,
+                "code_challenge_method": "S256",
+                "scope": "email",  # phone vkid.personal_info (по умолчанию)
+                # "lang_id": 3,  # RUS = 0 (по умолчанию), ENG = 3
+                # "scheme": "dark",  # light (по умолчанию), dark
+            }
+            query_string = urllib.parse.urlencode(query_params, quote_via=urllib.parse.quote)
+
+            return f"{OAUTH2_VK_URL}?{query_string}"
