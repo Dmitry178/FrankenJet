@@ -3,6 +3,6 @@
 from fastapi import Body
 from typing import Annotated
 
-status_ok = {"status": "OK"}
+status_ok = {"status": "ok"}
 
 ABody = Annotated[str, Body()]
