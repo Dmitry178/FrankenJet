@@ -1,7 +1,6 @@
+import aiohttp
 import base64
 import hashlib
-
-import aiohttp
 import json
 import jwt
 import secrets
@@ -10,10 +9,10 @@ import urllib.parse
 from aiohttp import ContentTypeError
 from typing import Dict
 
-from app.api.types import ABody
 from app.core.config import settings
 from app.core.config_const import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
     OAUTH2_VK_URL, OAUTH2_VK_REDIRECT_URL, OAUTH2_VK_TOKEN_URL
+from app.types import ABody
 
 
 class OAuth2Services:
@@ -135,10 +134,11 @@ class OAuth2Services:
             Генерация URL перенаправления для VK OAuth2-аутентификации
             """
 
-            # https://tonyxu-io.github.io/pkce-generator/
+            state = secrets.token_urlsafe(16)
+
+            # параметры, необходимые для OAuth 2.0 с PKCE (онлайн-генератор https://tonyxu-io.github.io/pkce-generator/)
             code_verifier = await OAuth2Services.generate_code_verifier()
             code_challenge = await OAuth2Services.generate_code_challenge(code_verifier)
-            state = secrets.token_urlsafe(16)
             # TODO: сделать хранение значений в базе для дальнейшей проверки
 
             query_params = {

@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from starlette.responses import RedirectResponse
 
-from app.api.auth.services.oauth import OAuth2Services
-from app.api.types import ABody
+from app.services.oauth import OAuth2Services
+from app.types import ABody
 
 oauth_router = APIRouter(prefix="/oauth", tags=["Auth"])
 
@@ -10,7 +10,7 @@ oauth_router = APIRouter(prefix="/oauth", tags=["Auth"])
 @oauth_router.get("/google")
 async def get_google_oauth2_redirect():
     """
-    Генерация URL перенаправления для Google-аутентификации
+    Генерация перенаправления для Google-аутентификации
     """
 
     url = await OAuth2Services.Google.get_oauth2_redirect_url()
@@ -30,7 +30,7 @@ async def process_google_callback(code: ABody, state: ABody):
 @oauth_router.get("/vk")
 async def get_vk_oauth2_redirect():
     """
-    Генерация URL перенаправления для VK-аутентификации
+    Генерация перенаправления для VK-аутентификации
     """
 
     url = await OAuth2Services.VK.get_oauth2_redirect_url()
