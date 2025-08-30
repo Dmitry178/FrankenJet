@@ -9,14 +9,16 @@ class BaseAuthException(Exception):
         super().__init__(self.detail, *args)
 
 
-class EUserNotFound(BaseAuthException):
+class UserNotFoundEx(BaseAuthException):
     detail = "Пользователь не найден"
     status_code = 404
 
 
-class EPasswordIncorrect(BaseAuthException):
+class PasswordIncorrectEx(BaseAuthException):
     detail = "Пароль пользователя неверный"
     status_code = 401
 
 
-user_or_password_incorrect_ex = HTTPException(status_code=401, detail="Пользователь или пароль неверный")
+class UserExistsEx(BaseAuthException):
+    detail = "Пользователь уже зарегистрирован"
+    status_code = 409
