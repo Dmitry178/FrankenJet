@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, Response, HTTPException
 
-from app.db.deps import DDB
-from app.exceptions import EUserNotFound, EPasswordIncorrect, user_or_password_incorrect_ex
-from app.schemas.auth import SUserLogin
+from app.dependencies.auth import UserIdDep
+from app.dependencies.db import DDB
+from app.exceptions import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx
+from app.schemas.auth import SLoginUser
 from app.services.auth import AuthServices
 from app.types import status_ok
 
@@ -10,18 +11,20 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @auth_router.post("/login", summary="Аутентификация пользователя по email и паролю")
-async def user_login(response: Response, data: SUserLogin, db: DDB):
+async def user_login(response: Response, data: SLoginUser, db: DDB):
     """
     Аутентификация пользователя
     """
 
     try:
-        access_token = await AuthServices(db).login(data)
-        response.set_cookie(key="access_token", value=access_token)
-        return access_token
+        tokens = await AuthServices(db).login(data)
+        response.set_cookie(key="access", value=tokens.access_token)
+        response.set_cookie(key="refresh", value=tokens.refresh_token)
 
-    except (EUserNotFound, EPasswordIncorrect) as ex:
-        raise user_or_password_incorrect_ex
+        return {**status_ok, "data": tokens.model_dump(exclude_none=True)}
+
+    except (UserNotFoundEx, PasswordIncorrectEx) as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
 
 @auth_router.post("/logout", summary="Выход из аккаунта")
@@ -46,18 +49,26 @@ async def user_logout(response: Response):
 
 
 @auth_router.post("/register", summary="Регистрация пользователя")
-async def user_register(db: DDB):
+async def user_register(data: SLoginUser, db: DDB):
     """
     Регистрация пользователя
     """
 
-    return {"status": "coming soon"}
+    try:
+        await AuthServices(db).register_user(data)
+        return status_ok
+
+    except UserExistsEx as ex:
+        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
 
 @auth_router.get("/info", summary="Получение информации о пользователе")
-async def user_info(db: DDB):
+async def get_user_info(user_id: UserIdDep, db: DDB):
     """
-    Получение информации об аутентифицированном пользователе
+    Получение информации о текущем аутентифицированном пользователе
     """
 
-    return {"status": "coming soon"}
+    # TODO: обернуть в try/except
+    user_info = await AuthServices(db).get_user_info(user_id)
+
+    return {**status_ok, "data": user_info.model_dump(exclude_none=True)}
