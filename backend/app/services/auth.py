@@ -5,8 +5,8 @@ from passlib.context import CryptContext
 
 from app.core.config import settings
 from app.db.db_manager import DBManager
-from app.exceptions import EUserNotFound, EPasswordIncorrect
-from app.schemas.auth import SUserLogin
+from app.exceptions import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx
+from app.schemas.auth import SLoginUser, SRegisterUser, SAuthTokens, SUserInfo
 
 
 class AuthTokenService:
@@ -57,19 +57,50 @@ class AuthServices:
     def __init__(self, db: DBManager | None = None) -> None:
         self.db = db
 
-    async def login(self, data: SUserLogin) -> str:
+    async def login(self, data: SLoginUser) -> SAuthTokens:
         """
-        Проверка пользователя и пароля, выпуск access-токена
+        Проверка пользователя и пароля, выпуск access и refresh токенов
         """
 
-        user = await self.db.users.get_user_with_hashed_password(email=data.email)
+        user = await self.db.users.select_one_or_none(email=data.email)
         if not user:
-            raise EUserNotFound
+            raise UserNotFoundEx
 
         if not AuthTokenService().verify_password(data.password, user.hashed_password):
-            raise EPasswordIncorrect
+            raise PasswordIncorrectEx
 
         payload_data = {"id": user.id}
         access_token = AuthTokenService().create_access_token(payload_data)
+        refresh_token = None  # TODO: добавить refresh token
 
-        return access_token
+        return SAuthTokens(access_token=access_token, refresh_token=refresh_token)
+
+    async def register_user(self, data: SLoginUser) -> None:
+        """
+        Регистрация пользователя
+        """
+
+        hashed_password = AuthTokenService().hash_password(data.password)
+        new_user_data = SRegisterUser(email=data.email, hashed_password=hashed_password)
+
+        # TODO: добавить отправку и валидацию кода подтверждения на email
+        # TODO: добавить try/except
+
+        if await self.db.users.is_exists(email=data.email):
+            raise UserExistsEx()
+
+        await self.db.users.insert_model_data(new_user_data)
+        await self.db.commit()
+
+        return None
+
+    async def get_user_info(self, user_id: int) -> SUserInfo:
+        """
+        Получение информации о пользователе по его id
+        """
+
+        user = await self.db.users.select_one_or_none(id=user_id)
+        if not user:
+            raise UserNotFoundEx
+
+        return SUserInfo.model_validate(user)
