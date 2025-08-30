@@ -1,12 +1,13 @@
+import uvicorn
+
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-import uvicorn
 from fastapi import FastAPI
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api import router
-from app.api.routes.local import index_local_router
+from app.api.local import index_local_router
 from app.core.config import settings, AppMode
 from app.core.logs import logger
 
