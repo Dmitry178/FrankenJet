@@ -10,6 +10,12 @@ import Login from './components/Login.vue';
 // import AuthGoogle from './components/AuthGoogle.vue';
 // import AuthVK from './components/AuthVK.vue';
 
+function getCookie(name) {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+}
+
 const routes = [
   { path: '/', component: Home, meta: { requiresAuth: true } },
   { path: '/login', component: Login },
@@ -35,6 +41,42 @@ app.use(pinia);
 import { useAuthStore } from '@/stores/auth';
 const authStore = useAuthStore();
 
+// перевыпуск токенов
+async function refreshAccessToken() {
+  const refreshToken = getCookie('refresh_token');
+
+  if (!refreshToken) {
+    return false;
+  }
+
+  try {
+    const refreshResponse = await axios.post('http://localhost:8111/auth/refresh', {}, {
+      headers: {
+        'Authorization': `Bearer ${refreshToken}`
+      }
+    });
+
+    if (refreshResponse.data.status === 'ok') {
+      const newAccessToken = refreshResponse.data.data.access_token;
+      const newRefreshToken = refreshResponse.data.data.refresh_token;
+
+      // обновление токенов
+      authStore.setAccessToken(newAccessToken);
+      document.cookie = `refresh_token=${newRefreshToken}; path=/; max-age=3600; secure; httponly`;
+
+      return true;
+    } else {
+      authStore.setAccessToken(null);
+      document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      return false;
+    }
+  } catch (error) {
+    authStore.setAccessToken(null);
+    document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    return false;
+  }
+}
+
 // interceptor для добавления access_token в заголовок
 axios.interceptors.request.use(
   (config) => {
@@ -54,16 +96,28 @@ axios.interceptors.response.use(
   (response) => {
     return response;
   },
-  (error) => {
+  async (error) => {
     if (error.response && error.response.status === 401) {
-      // перенаправление на страницу логина, только если не находимся на ней
-      if (router.currentRoute.value.path !== '/login') {
-        router.push('/login');
+      const originalRequest = error.config;
+
+      // Проверяем, не пытались ли мы уже обновить токен
+      if (!originalRequest._retry) {
+        originalRequest._retry = true;
+
+        const success = await refreshAccessToken();
+
+        if (success) {
+          // Повторяем оригинальный запрос с новым токеном
+          originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`;
+          return axios(originalRequest); // Повторяем запрос
+        } else {
+          // Если обновление токена не удалось, перенаправляем на логин
+          if (router.currentRoute.value.path !== '/login') {
+            router.push('/login');
+          }
+          return Promise.reject(error);
+        }
       }
-
-      authStore.setAccessToken(null); // очищаем токен в Pinia
-
-      return Promise.reject(error);
     }
     return Promise.reject(error);
   }
@@ -74,29 +128,35 @@ router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
   if (requiresAuth) {
-    const accessToken = authStore.accessToken;
+    let accessToken = authStore.accessToken;
 
+    // если access-токена нет в Pinia
     if (!accessToken) {
-      // если токена нет в Pinia, перенаправляем на логин
-      return next({ path: '/login' });
-    }
-
-      try {
-        const response = await axios.get('http://localhost:8111/auth/info');
-        app.config.globalProperties.$user = response.data;
-        next();
-
-      } catch (error) {
-        if (error.response && error.response.status === 401) {
-          next({ path: '/login' });
-        } else {
-          console.error("Ошибка при проверке авторизации:", error);
-          next(false);
-        }
+      const success = await refreshAccessToken();
+      if (success) {
+        accessToken = authStore.accessToken;
+      } else {
+        // если не удалось обновить, на логин
+        return next({ path: '/login' });
       }
-    } else {
-      next();
     }
+
+    try {
+      const response = await axios.get('http://localhost:8111/auth/info');
+      app.config.globalProperties.$user = response.data;
+      next();
+    } catch (error) {
+      if (error.response && error.response.status === 401) {
+        next({ path: '/login' });
+      } else {
+        console.error("Ошибка при проверке авторизации:", error);
+        next(false);
+      }
+    }
+
+  } else {
+    next();
+  }
 });
 
 app.use(router);
