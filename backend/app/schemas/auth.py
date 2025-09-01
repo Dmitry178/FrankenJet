@@ -25,7 +25,7 @@ class SAuthTokens(BaseModel):
     """
 
     access_token: str
-    refresh_token: str | None = None  # TODO: сделать обязательным после добавления refresh-токена
+    refresh_token: str
 
 
 class SUserInfo(BaseModel):
@@ -35,3 +35,6 @@ class SUserInfo(BaseModel):
 
     id: int
     email: EmailStr
+    full_name: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None
