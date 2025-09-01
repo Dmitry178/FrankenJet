@@ -46,7 +46,8 @@ class Settings(BaseSettings):
 
     JWT_ALGORITHM: str = "HS256"  # TODO: переделать на RS256
     JWT_SECRET_KEY: str = "secret key"  # TODO: добавить возможность использования сертификатов
-    JWT_EXPIRE_MINUTES: int = 60 * 24 * 30  # время жизни jwt-токена (в минутах)
+    JWT_ACCESS_EXPIRE_MINUTES: int = 15  # время жизни access-токена (в минутах)
+    JWT_REFRESH_EXPIRE_MINUTES: int = 60 * 24 * 30  # время жизни refresh-токена (в минутах)
 
     DB_CONN: str  # строка соединения с базой
 
