@@ -4,6 +4,7 @@ from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 
 from app.core.config import settings
+from app.core.config_const import TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH
 from app.db.db_manager import DBManager
 from app.exceptions import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx
 from app.schemas.auth import SLoginUser, SRegisterUser, SAuthTokens, SUserInfo
@@ -20,20 +21,20 @@ class AuthTokenService:
         return self.pwd_context.hash(password)
 
     @staticmethod
-    def create_access_token(payload_data: dict) -> str:
+    def create_jwt_token(payload_data: dict, expire: int) -> str:
         """
-        Создание JWT access-токена
+        Создание JWT-токена
 
         :param payload_data: данные для упаковки в тело токена
+        :param expire: время жизни токена
         """
 
-        expire_date = datetime.now(timezone.utc) + timedelta(minutes=settings.JWT_EXPIRE_MINUTES)
-        payload = {**payload_data, "exp": expire_date}
+        iat = datetime.now(timezone.utc)
+        expire_date = iat + timedelta(minutes=expire)
+        payload = {**payload_data, "iat": iat, "exp": expire_date}
         encoded_jwt = jwt.encode(payload=payload, key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
 
         return encoded_jwt
-
-    # TODO: сделать создание refresh-токена и обновление access-токена
 
     @staticmethod
     def decode_token(token: str) -> dict:
@@ -62,6 +63,7 @@ class AuthServices:
         Проверка пользователя и пароля, выпуск access и refresh токенов
         """
 
+        # TODO: добавить роли пользователя в базу и получение ролей пользователя
         user = await self.db.users.select_one_or_none(email=data.email)
         if not user:
             raise UserNotFoundEx
@@ -69,9 +71,15 @@ class AuthServices:
         if not AuthTokenService().verify_password(data.password, user.hashed_password):
             raise PasswordIncorrectEx
 
-        payload_data = {"id": user.id}
-        access_token = AuthTokenService().create_access_token(payload_data)
-        refresh_token = None  # TODO: добавить refresh token
+        # TODO: добавить роли в access_token
+        access_token = AuthTokenService().create_jwt_token(
+            {"id": user.id, "type": TOKEN_TYPE_ACCESS, "email": data.email},
+            settings.JWT_ACCESS_EXPIRE_MINUTES
+        )
+        refresh_token = AuthTokenService().create_jwt_token(
+            {"id": user.id, "type": TOKEN_TYPE_REFRESH},
+            settings.JWT_REFRESH_EXPIRE_MINUTES
+        )
 
         return SAuthTokens(access_token=access_token, refresh_token=refresh_token)
 
