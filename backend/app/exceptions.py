@@ -1,24 +1,34 @@
-from fastapi import HTTPException
+from starlette import status
 
 
 class BaseAuthException(Exception):
-    detail = "Ошибка"
-    status_code = 400
+    detail = "Error"
+    status_code = status.HTTP_400_BAD_REQUEST
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):  # noqa
         super().__init__(self.detail, *args)
 
 
 class UserNotFoundEx(BaseAuthException):
-    detail = "Пользователь не найден"
-    status_code = 404
+    detail = "User not found"
+    status_code = status.HTTP_404_NOT_FOUND
 
 
 class PasswordIncorrectEx(BaseAuthException):
-    detail = "Пароль пользователя неверный"
-    status_code = 401
+    detail = "Password incorrect"
+    status_code = status.HTTP_401_UNAUTHORIZED
 
 
 class UserExistsEx(BaseAuthException):
-    detail = "Пользователь уже зарегистрирован"
-    status_code = 409
+    detail = "User already exists"
+    status_code = status.HTTP_409_CONFLICT
+
+
+class TokenTypeErrorEx(BaseAuthException):
+    detail = "Token type error"
+    status_code = status.HTTP_401_UNAUTHORIZED
+
+
+class AuthUserErrorEx(BaseAuthException):
+    detail = "Auth user error"
+    status_code = status.HTTP_401_UNAUTHORIZED
