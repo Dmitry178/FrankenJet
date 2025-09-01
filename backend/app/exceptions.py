@@ -24,6 +24,11 @@ class UserExistsEx(BaseAuthException):
     status_code = status.HTTP_409_CONFLICT
 
 
+class TokenInvalidEx(BaseAuthException):
+    detail = "Invalid token"
+    status_code = status.HTTP_401_UNAUTHORIZED
+
+
 class TokenTypeErrorEx(BaseAuthException):
     detail = "Token type error"
     status_code = status.HTTP_401_UNAUTHORIZED
