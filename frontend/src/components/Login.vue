@@ -4,8 +4,8 @@
       <h2>Аутентификация</h2>
 
       <div class="form-inputs">
-        <input type="email" placeholder="Email" class="input-field" v-model="email"/>
-        <input type="password" placeholder="Пароль" class="input-field" v-model="password"/>
+        <input type="email" placeholder="Email" class="input-field"  id="email" name="email" v-model="email" autocomplete="email"/>
+        <input type="password" placeholder="Пароль" class="input-field" id="password" name="password" v-model="password" autocomplete="current-password"/>
         <button class="enter-button" @click="login">Войти</button>
       </div>
 
@@ -24,13 +24,24 @@
 </template>
 
 <script>
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router';
+import Cookies from 'js-cookie';
+
 export default {
   data() {
     return {
       email: '',
-      password: ''
+      password: '',
+      first_name: '',
     };
   },
+  setup() {
+    const authStore = useAuthStore();
+    const router = useRouter();
+    return { authStore, router };
+  },
+
   methods: {
     loginWithGoogle() {
       window.location.href = 'http://localhost:8111/oauth/google';
@@ -46,7 +57,20 @@ export default {
         });
 
         if (response.status === 200) {
-          window.location.href = '/';
+          const accessToken = response.data.data.access_token;
+          const refreshToken = response.data.data.refresh_token;
+
+          this.authStore.setAccessToken(accessToken);
+
+          Cookies.set('refresh_token', refreshToken, {
+            // expires: 30,
+            // secure: true,
+            sameSite: 'Strict',
+            path: '/'
+          });
+
+          await this.router.push('/');
+
         } else {
           console.error('Ошибка аутентификации:', response.status);
           alert('Неверный email или пароль.');
@@ -98,7 +122,6 @@ h2 {
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  //box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
 }
 
@@ -154,14 +177,9 @@ h2 {
   font-size: 16px;
   font-weight: 500;
   cursor: pointer;
-  //box-shadow: 0 2px 4px rgba(0,0,0,0.1);
   transition: all 0.2s ease;
   width: 100%;
   height: 48px;
-}
-
-.button:hover {
-  //box-shadow: 0 4px 5px rgba(0,0,0,0.2);
 }
 
 </style>
