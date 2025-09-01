@@ -4,13 +4,18 @@
     <div v-if="userInfo">
       <p>ID: {{ userInfo.id }}</p>
       <p>Email: {{ userInfo.email }}</p>
+      <p>Name: {{ userInfo.first_name }}</p>
     </div>
-    <p v-else>Загрузка информации о пользователе...</p>
+    <p v-else>Ошибка загрузки информации о пользователе</p>
     <button class="button" @click="logout">Выйти</button>
   </div>
 </template>
 
 <script>
+import { useAuthStore } from '@/stores/auth';
+import { useRouter } from 'vue-router';
+import Cookies from 'js-cookie';
+
 export default {
   data() {
     return {
@@ -19,6 +24,11 @@ export default {
   },
   mounted() {
     this.fetchUserInfo();
+  },
+  setup() {
+    const authStore = useAuthStore();
+    const router = useRouter();
+    return { authStore, router };
   },
   methods: {
     async fetchUserInfo() {
@@ -36,13 +46,9 @@ export default {
     },
     async logout() {
       try {
-        const response = await this.$axios.post('http://localhost:8111/auth/logout');
-
-        if (response.status === 200) {
-          window.location.href = '/login';
-        } else {
-          console.error('Ошибка выхода из приложения:', response.status);
-        }
+        this.authStore.setAccessToken(null);
+        Cookies.remove('refresh_token', { path: '/' });
+        await this.router.push('/login');
       } catch (error) {
         console.error('Ошибка при запросе:', error);
       }
