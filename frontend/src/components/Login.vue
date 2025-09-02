@@ -21,14 +21,22 @@
           Войти через VK
         </button>
       </div>
+
+      <div class="auth-links">
+        <router-link to="/register">Зарегистрироваться</router-link> |
+        <router-link to="/reset">Сбросить пароль</router-link>
+      </div>
     </div>
   </div>
 </template>
 
 <script>
+
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import Cookies from 'js-cookie';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
   data() {
@@ -67,11 +75,11 @@ export default {
 
   methods: {
     loginWithGoogle() {
-      window.location.href = 'http://localhost:8111/oauth/google';
+      window.location.href = `${API_BASE_URL}/oauth/google`;
     },
 
     loginWithVK() {
-      window.location.href = 'http://localhost:8111/oauth/vk';
+      window.location.href = `${API_BASE_URL}/oauth/vk`;
     },
 
     async login() {
@@ -87,7 +95,7 @@ export default {
       this.errorMessage = '';
 
       try {
-        const response = await this.$axios.post('http://localhost:8111/auth/login', {
+        const response = await this.$axios.post(`${API_BASE_URL}/auth/login`, {
           email: this.email,
           password: this.password
         });
@@ -113,7 +121,7 @@ export default {
         }
       } catch (error) {
         console.error('Ошибка при запросе:', error);
-        alert('Произошла ошибка при аутентификации.');
+        alert('Произошла ошибка при аутентификации');
       }
     }
   }
@@ -221,6 +229,21 @@ h2 {
 .error-message {
   color: red;
   margin-bottom: 10px;
+}
+
+.auth-links {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #777;
+}
+
+.auth-links a {
+  color: #007bff;
+  text-decoration: none;
+}
+
+.auth-links a:hover {
+  text-decoration: underline;
 }
 
 </style>
