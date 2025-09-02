@@ -7,7 +7,7 @@ import App from './App.vue';
 
 import Home from './components/Home.vue';
 import Login from './components/Login.vue';
-// import AuthGoogle from './components/AuthGoogle.vue';
+import AuthGoogle from './components/LoginGoogle.vue';
 // import AuthVK from './components/AuthVK.vue';
 
 function getCookie(name) {
@@ -19,7 +19,7 @@ function getCookie(name) {
 const routes = [
   { path: '/', component: Home, meta: { requiresAuth: true } },
   { path: '/login', component: Login },
-  // { path: '/auth/google', component: AuthGoogle }
+  { path: '/auth/google', component: AuthGoogle }
   // { path: '/auth/vk', component: AuthVK }
 ];
 
@@ -100,21 +100,18 @@ axios.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       const originalRequest = error.config;
 
-      // Проверяем, не пытались ли мы уже обновить токен
+      // проверка попытки обновления токена
       if (!originalRequest._retry) {
         originalRequest._retry = true;
 
         const success = await refreshAccessToken();
 
         if (success) {
-          // Повторяем оригинальный запрос с новым токеном
+          // повтор оригинального запроса с новым токеном
           originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`;
-          return axios(originalRequest); // Повторяем запрос
+          return axios(originalRequest); // повтор запроса
         } else {
-          // Если обновление токена не удалось, перенаправляем на логин
-          if (router.currentRoute.value.path !== '/login') {
-            router.push('/login');
-          }
+          // если обновление токена не удалось, пробрасываем ошибку дальше
           return Promise.reject(error);
         }
       }
@@ -141,13 +138,15 @@ router.beforeEach(async (to, from, next) => {
       }
     }
 
+    // если токен есть (или был успешно обновлен), делаем запрос к /auth/info
     try {
       const response = await axios.get('http://localhost:8111/auth/info');
       app.config.globalProperties.$user = response.data;
       next();
     } catch (error) {
+      // перенаправление на /login, если запрос /auth/info вернул 401 и interceptor не смог обновить токен
       if (error.response && error.response.status === 401) {
-        next({ path: '/login' });
+        return next({ path: '/login' });
       } else {
         console.error("Ошибка при проверке авторизации:", error);
         next(false);
