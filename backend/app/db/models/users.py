@@ -1,7 +1,12 @@
 from sqlalchemy import String, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from typing import TYPE_CHECKING
+
 from app.db import Base
+
+if TYPE_CHECKING:
+    from app.db.models import RefreshTokens
 
 
 class Users(Base):
@@ -20,9 +25,11 @@ class Users(Base):
     full_name: Mapped[str | None] = mapped_column(String(60))  # полное имя
     first_name: Mapped[str | None] = mapped_column(String(60))  # имя
     last_name: Mapped[str | None] = mapped_column(String(60))  # фамилия
+    picture: Mapped[str | None] = mapped_column(String(128))  # ссылка на фото профиля
 
     roles: Mapped[list["Roles"]] = relationship(secondary="user_roles", back_populates="users")
     # user_roles: Mapped[list["UserRoles"]] = relationship(back_populates="user")
+    jti: Mapped[list["RefreshTokens"]] = relationship(back_populates="user")
 
 
 class Roles(Base):
