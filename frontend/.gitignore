@@ -7,4 +7,6 @@ logs
 *.log
 *.log*
 *.env
-!env-example.env
+*.env.*
+!example.env
+!example.env.*
