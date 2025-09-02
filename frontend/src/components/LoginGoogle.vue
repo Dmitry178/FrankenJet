@@ -5,9 +5,12 @@
 </template>
 
 <script>
+
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import Cookies from 'js-cookie';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
   setup() {
@@ -29,7 +32,7 @@ export default {
 
       if (code && state) {
         try {
-          const response = await this.$axios.post('http://localhost:8111/oauth/google/callback', { code, state });
+          const response = await this.$axios.post(`${API_BASE_URL}/oauth/google/redirect`, { code, state });
 
           if (response.status === 200) {
             const accessToken = response.data.data.access_token;
@@ -50,7 +53,7 @@ export default {
             await this.router.push({path: '/login', query: {error: 'Ошибка аутентификации Google.'}});
           }
         } catch (error) {
-          console.error('Ошибка при запросе к oauth/google/callback:', error);
+          console.error('Ошибка при запросе к oauth/google/redirect:', error);
           await this.router.push({path: '/login', query: {error: 'Произошла ошибка при аутентификации Google.'}});
         }
       } else {
