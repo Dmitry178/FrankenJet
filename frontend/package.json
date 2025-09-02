@@ -4,9 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite --port 3000",
-    "build": "vite build",
-    "preview": "vite preview --port 80"
+    "dev": "vite --port 3000 --mode dev",
+    "build": "vite build --mode main",
+    "preview": "vite preview --port 80 --mode main"
   },
   "dependencies": {
     "axios": "^1.11.0",
