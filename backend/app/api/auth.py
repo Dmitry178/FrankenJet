@@ -3,9 +3,10 @@ from starlette import status
 
 from app.dependencies.auth import AuthUserIdDep, AuthTokenDep
 from app.dependencies.db import DDB
-from app.exceptions import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx
+from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx
 from app.schemas.auth import SLoginUser
 from app.services.auth import AuthServices
+from app.services.users import UsersServices
 from app.types import status_ok
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -32,7 +33,7 @@ async def user_register(data: SLoginUser, db: DDB):
     """
 
     try:
-        await AuthServices(db).register_user(data)
+        await UsersServices(db).create_user_by_email(data)
         return status_ok
 
     except UserExistsEx as ex:
