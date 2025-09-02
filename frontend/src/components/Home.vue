@@ -4,7 +4,9 @@
     <div v-if="userInfo">
       <p>ID: {{ userInfo.id }}</p>
       <p>Email: {{ userInfo.email }}</p>
-      <p>Name: {{ userInfo.first_name }}</p>
+      <p v-if="userInfo.first_name">Name: {{ userInfo.first_name }}</p>
+      <img v-if="userInfo.picture" :src="userInfo.picture" alt="User Picture" class="user-picture">
+      <p v-else-if="userInfo.picture">Picture: {{ userInfo.picture }}</p>
     </div>
     <p v-else>Ошибка загрузки информации о пользователе</p>
     <button class="button" @click="logout">Выйти</button>
@@ -12,9 +14,12 @@
 </template>
 
 <script>
+
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import Cookies from 'js-cookie';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
   data() {
@@ -34,7 +39,7 @@ export default {
   methods: {
     async fetchUserInfo() {
       try {
-        const response = await this.$axios.get('http://localhost:8111/auth/info');
+        const response = await this.$axios.get(`${API_BASE_URL}/auth/info`);
 
         if (response.status === 200 && response.data.status === 'ok') {
           this.userInfo = response.data.data;
@@ -88,6 +93,13 @@ h2 {
 
 .button:hover {
   background-color: #367c39;
+}
+
+.user-picture {
+  max-width: 200px;
+  max-height: 200px;
+  //border-radius: 50%;
+  margin-bottom: 10px;
 }
 
 </style>
