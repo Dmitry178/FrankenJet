@@ -8,7 +8,11 @@ import App from './App.vue';
 import Home from './components/Home.vue';
 import Login from './components/Login.vue';
 import AuthGoogle from './components/LoginGoogle.vue';
-// import AuthVK from './components/AuthVK.vue';
+// import AuthVK from './components/LoginVK.vue';
+import Register from './components/Register.vue';
+import ResetPassword from './components/ResetPassword.vue';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -19,8 +23,10 @@ function getCookie(name) {
 const routes = [
   { path: '/', component: Home, meta: { requiresAuth: true } },
   { path: '/login', component: Login },
-  { path: '/auth/google', component: AuthGoogle }
-  // { path: '/auth/vk', component: AuthVK }
+  { path: '/auth/google', component: AuthGoogle },
+  // { path: '/auth/vk', component: AuthVK },
+  { path: '/register', component: Register },
+  { path: '/reset', component: ResetPassword },
 ];
 
 const router = createRouter({
@@ -34,7 +40,6 @@ const pinia = createPinia()
 const app = createApp(App);
 
 app.config.globalProperties.$axios = axios;
-
 app.use(pinia);
 
 // экземпляр authStore
@@ -50,7 +55,7 @@ async function refreshAccessToken() {
   }
 
   try {
-    const refreshResponse = await axios.post('http://localhost:8111/auth/refresh', {}, {
+    const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
       headers: {
         'Authorization': `Bearer ${refreshToken}`
       }
@@ -65,11 +70,13 @@ async function refreshAccessToken() {
       document.cookie = `refresh_token=${newRefreshToken}; path=/; max-age=3600; secure; httponly`;
 
       return true;
+
     } else {
       authStore.setAccessToken(null);
       document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
       return false;
     }
+
   } catch (error) {
     authStore.setAccessToken(null);
     document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
@@ -140,9 +147,10 @@ router.beforeEach(async (to, from, next) => {
 
     // если токен есть (или был успешно обновлен), делаем запрос к /auth/info
     try {
-      const response = await axios.get('http://localhost:8111/auth/info');
+      const response = await axios.get(`${API_BASE_URL}/auth/info`);
       app.config.globalProperties.$user = response.data;
       next();
+
     } catch (error) {
       // перенаправление на /login, если запрос /auth/info вернул 401 и interceptor не смог обновить токен
       if (error.response && error.response.status === 401) {
