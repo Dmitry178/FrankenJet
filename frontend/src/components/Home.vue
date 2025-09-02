@@ -20,6 +20,7 @@ export default {
   data() {
     return {
       userInfo: null,
+      first_name: '',
     };
   },
   mounted() {
