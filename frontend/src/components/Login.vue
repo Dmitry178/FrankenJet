@@ -3,6 +3,8 @@
     <div class="auth-form">
       <h2>Аутентификация</h2>
 
+      <div v-if="errorMessage" class="error-message">{{ errorMessage }}</div>
+
       <div class="form-inputs">
         <input type="email" placeholder="Email" class="input-field"  id="email" name="email" v-model="email" autocomplete="email"/>
         <input type="password" placeholder="Пароль" class="input-field" id="password" name="password" v-model="password" autocomplete="current-password"/>
@@ -33,23 +35,57 @@ export default {
     return {
       email: '',
       password: '',
-      first_name: '',
+      access_token: '',
+      refresh_token: '',
+      errorMessage: '',
     };
   },
+
   setup() {
     const authStore = useAuthStore();
     const router = useRouter();
     return { authStore, router };
   },
 
+  mounted() {
+    const error = this.$route.query.error;
+    if (error) {
+      this.errorMessage = error;
+    }
+  },
+
+  watch: {
+    '$route'(to, from) {
+      const error = to.query.error;
+      if (error) {
+        this.errorMessage = error;
+      } else {
+        this.errorMessage = '';
+      }
+    }
+  },
+
   methods: {
     loginWithGoogle() {
       window.location.href = 'http://localhost:8111/oauth/google';
     },
+
     loginWithVK() {
       window.location.href = 'http://localhost:8111/oauth/vk';
     },
+
     async login() {
+      if (!this.email) {
+        this.errorMessage = 'Введите email';
+        return;
+      }
+      if (!this.password) {
+        this.errorMessage = 'Введите пароль';
+        return;
+      }
+
+      this.errorMessage = '';
+
       try {
         const response = await this.$axios.post('http://localhost:8111/auth/login', {
           email: this.email,
@@ -180,6 +216,11 @@ h2 {
   transition: all 0.2s ease;
   width: 100%;
   height: 48px;
+}
+
+.error-message {
+  color: red;
+  margin-bottom: 10px;
 }
 
 </style>
