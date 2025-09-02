@@ -56,3 +56,15 @@ class BaseRepository:
             .returning(self.model)
         )
         return (await self.session.execute(stmt)).mappings().one()
+
+    async def insert_model_data_scalar(self, data: BaseModel):
+        """
+        Добавление данных
+        """
+
+        stmt = (
+            insert(self.model)
+            .values(**data.model_dump())
+            .returning(self.model)
+        )
+        return (await self.session.execute(stmt)).scalars().one()
