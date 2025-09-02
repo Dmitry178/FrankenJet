@@ -7,11 +7,12 @@ import secrets
 import urllib.parse
 
 from aiohttp import ContentTypeError
-from typing import Dict
 
 from app.core.config import settings
 from app.core.config_const import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
-    OAUTH2_VK_URL, OAUTH2_VK_REDIRECT_URL, OAUTH2_VK_TOKEN_URL
+    OAUTH2_VK_URL, OAUTH2_VK_REDIRECT_URL
+from app.exceptions.oauth2 import OAuth2ErrorEx
+from app.schemas.users import SUserCreateOAuth2
 from app.types import ABody
 
 
@@ -65,9 +66,9 @@ class OAuth2Services:
             return f"{OAUTH2_GOOGLE_URL}?{query_string}"
 
         @staticmethod
-        async def get_oauth2_user_info(code: ABody, state: ABody) -> Dict:
+        async def get_oauth2_user_data(code: ABody, state: ABody) -> SUserCreateOAuth2:
             """
-            Получение данных о пользователе
+            Получение данных пользователя
             """
 
             # TODO: сделать проверку state из базы
@@ -86,13 +87,13 @@ class OAuth2Services:
             ) as response:
 
                 if response.status != 200:
-                    # error_text = await response.text()
-                    raise  # TODO: добавить вызов кастомной ошибки
+                    # error_text = await response.text()  # TODO: добавить логи
+                    raise OAuth2ErrorEx
 
-                # Проверка content-type
+                # проверка content-type
                 content_type = response.headers.get('content-type', '')
                 if 'application/json' not in content_type:
-                    # error_text = await response.text()
+                    # error_text = await response.text()  # TODO: добавить логи
                     raise  # TODO: добавить вызов кастомной ошибки
 
                 try:
@@ -101,30 +102,30 @@ class OAuth2Services:
                     id_token = result.get("id_token")
                     # access_token = result.get("access_token")
                     # refresh_token = result.get("refresh_token")
-                    user_data = jwt.decode(
+                    data = jwt.decode(
                         id_token,
                         algorithms=["RS256"],
                         options={"verify_signature": False},  # TODO: сделать запрос public key для проверки токена
                     )
 
+                    # дополнительная проверка на ошибки Google OAuth
+                    if 'error' in result:
+                        raise OAuth2ErrorEx
+
                 except (ContentTypeError, json.JSONDecodeError) as ex:
-                    # error_text = await response.text()
-                    raise  # TODO: добавить вызов кастомной ошибки
+                    # error_text = await response.text()  # TODO: добавить логи
+                    raise OAuth2ErrorEx from ex
 
-                # Дополнительная проверка на ошибки Google OAuth
-                if 'error' in result:
-                    raise  # TODO: добавить вызов кастомной ошибки
+            # упаковка данных от гугла в схему SUserCreateOAuth2
+            user_data = SUserCreateOAuth2(
+                email=data.get("email"),
+                full_name=data.get("name"),
+                first_name=data.get("given_name"),
+                last_name=data.get("family_name"),
+                picture=data.get("picture"),
+            )
 
-            # TODO: переделать в pydantic-схему
-            ret = {
-                "fullname": user_data.get("name"),
-                "name": user_data.get("given_name"),
-                "family": user_data.get("family_name"),
-                "email": user_data.get("email"),
-                "picture": user_data.get("picture"),
-            }
-
-            return ret
+            return user_data
 
     class VK:
 
