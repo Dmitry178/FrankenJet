@@ -1,20 +1,24 @@
 <template>
-  <div class="container">
-    <h2>User info:</h2>
-    <div v-if="userInfo">
-      <p>ID: {{ userInfo.id }}</p>
-      <p>Email: {{ userInfo.email }}</p>
-      <p v-if="userInfo.first_name">Name: {{ userInfo.first_name }}</p>
-      <img v-if="userInfo.picture" :src="userInfo.picture" alt="User Picture" class="user-picture">
-      <p v-else-if="userInfo.picture">Picture: {{ userInfo.picture }}</p>
-    </div>
-    <p v-else>Ошибка загрузки информации о пользователе</p>
-    <button class="button" @click="logout">Выйти</button>
-  </div>
+  <v-container>
+    <v-card>
+      <v-card-title>User Info:</v-card-title>
+      <v-card-text>
+        <div v-if="userInfo">
+          <p>ID: {{ userInfo.id }}</p>
+          <p>Email: {{ userInfo.email }}</p>
+          <p v-if="userInfo.first_name">Name: {{ userInfo.first_name }}</p>
+          <v-img v-if="userInfo.picture" :src="userInfo.picture" aspect-ratio="1" max-width="200" class="user-picture"></v-img>
+        </div>
+        <p v-else>Ошибка загрузки информации о пользователе</p>
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="logout">Выйти</v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-container>
 </template>
 
 <script>
-
 import { useAuthStore } from '@/stores/auth';
 import { useRouter } from 'vue-router';
 import Cookies from 'js-cookie';
@@ -64,42 +68,9 @@ export default {
 </script>
 
 <style scoped>
-.container {
-  display: flex;
-  flex-direction: column;
-  padding: 30px;
-  height: 100vh;
-  background: #f7f7f7;
-}
-
-h2 {
-  margin-top: 0;
-  margin-bottom: 20px;
-  font-family: sans-serif;
-  color: #333;
-}
-
-.button {
-  background-color: #4CAF50;
-  color: white;
-  padding: 12px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 16px;
-  width: 150px;
-  transition: background-color 0.3s ease;
-}
-
-.button:hover {
-  background-color: #367c39;
-}
-
 .user-picture {
   max-width: 200px;
   max-height: 200px;
-  //border-radius: 50%;
   margin-bottom: 10px;
 }
-
 </style>
