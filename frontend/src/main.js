@@ -2,8 +2,14 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'
-import './assets/main.css'
+// import './assets/main.css'
 import App from './App.vue';
+
+import * as components from 'vuetify/components';
+import * as directives from 'vuetify/directives';
+import 'vuetify/styles';
+import '@mdi/font/css/materialdesignicons.css';
+import { createVuetify } from 'vuetify';
 
 import Home from './components/Home.vue';
 import Login from './components/Login.vue';
@@ -14,6 +20,34 @@ import ResetPassword from './components/ResetPassword.vue';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+// цветовая схема (#CDAB8F)
+const lightTheme = {
+  dark: false,
+  colors: {
+    primary: '#CDAB8F',
+    secondary: '#E8D5C4',
+    accent: '#A1887F',
+    error: '#B00020',
+    info: '#2196F3',
+    success: '#4CAF50',
+    warning: '#FB8C00',
+    background: '#F8F5F0',
+    surface: '#FFFDF5',
+  }
+}
+
+const vuetify = createVuetify({
+  components,
+  directives,
+  theme: {
+    defaultTheme: 'lightTheme',
+    themes: {
+      lightTheme,
+    }
+  }
+});
+
+// ???
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -21,12 +55,13 @@ function getCookie(name) {
 }
 
 const routes = [
-  { path: '/', component: Home, meta: { requiresAuth: true } },
-  { path: '/login', component: Login },
+  { path: '/', component: Home, name: 'Home' },
+  { path: '/login', component: Login, name: 'Login' },
   { path: '/auth/google', component: AuthGoogle },
   // { path: '/auth/vk', component: AuthVK },
-  { path: '/register', component: Register },
-  { path: '/reset', component: ResetPassword },
+  // { path: '/profile', component: Profile, name: 'Profile', meta: { requiresAuth: true } },
+  { path: '/register', component: Register, name: 'Register' },
+  { path: '/reset', component: ResetPassword, name: 'ResetPassword' },
 ];
 
 const router = createRouter({
@@ -41,8 +76,10 @@ const app = createApp(App);
 
 app.config.globalProperties.$axios = axios;
 app.use(pinia);
+app.use(router);
+app.use(vuetify);
 
-// экземпляр authStore
+// экземпляр authStore (???)
 import { useAuthStore } from '@/stores/auth';
 const authStore = useAuthStore();
 
@@ -127,7 +164,8 @@ axios.interceptors.response.use(
   }
 );
 
-// маршрутизатор
+// маршрутизатор (???)
+/*
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
@@ -165,6 +203,25 @@ router.beforeEach(async (to, from, next) => {
     next();
   }
 });
+ */
 
-app.use(router);
+router.beforeEach(async (to, from, next) => {
+    const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
+
+    if (requiresAuth) {
+        // маршрут требует авторизацию
+        if (!authStore.accessToken) {
+            // нет access токена, перенаправляем на страницу логина
+            next('/login');
+        } else {
+            // access токен есть, пропускаем
+            next();
+        }
+    } else {
+        // маршрут не требует авторизацию, пропускаем
+        next();
+    }
+});
+
+// app.use(router);
 app.mount('#app');
