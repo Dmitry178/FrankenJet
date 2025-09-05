@@ -3,7 +3,10 @@
     <v-app>
       <v-app-bar :elevation="1" app flat>
         <v-container class="d-flex align-center">
-          <router-link to="/" style="text-decoration: none; color: inherit; display: flex; align-items: center;">
+          <router-link
+              to="/"
+              style="text-decoration: none; color: inherit; display: flex; align-items: center;"
+          >
             <v-icon icon="mdi-airplane" class="mr-1" size="x-large" color="primary"></v-icon>
             <v-toolbar-title class="font-weight-bold">Franken Jet</v-toolbar-title>
           </router-link>
@@ -12,15 +15,16 @@
 
           <v-menu v-if="!isLoggedIn" offset="0" :close-on-content-click="false">
             <template v-slot:activator="{ props }">
-              <v-btn v-bind="props" text>
-                Вход
+              <v-btn class="ml-2" v-bind="props" icon>
+                <v-icon left>mdi-login</v-icon>
               </v-btn>
             </template>
-            <v-card width="400">
+            <v-card width="300">
               <v-card-title class="text-center">Аутентификация</v-card-title>
               <v-card-text>
                 <v-alert v-if="loginErrorMessage" type="error">{{ loginErrorMessage }}</v-alert>
                 <v-text-field
+                  v-if="settingsStore.isAuthenticatedEnabled"
                   v-model="loginEmail"
                   label="Email"
                   type="email"
@@ -29,6 +33,7 @@
                   autocomplete="email"
                 ></v-text-field>
                 <v-text-field
+                  v-if="settingsStore.isAuthenticatedEnabled"
                   v-model="loginPassword"
                   label="Пароль"
                   type="password"
@@ -38,25 +43,42 @@
                 ></v-text-field>
               </v-card-text>
               <v-card-actions class="d-flex flex-column">
-                <v-btn color="primary" block @click="login">Войти</v-btn>
-                <v-btn color="primary" block @click="loginWithGoogle">
+                <v-btn
+                  v-if="settingsStore.isAuthenticatedEnabled"
+                  color="primary"
+                  block @click="login"
+                >
+                  Войти
+                </v-btn>
+                <v-btn
+                  v-if="settingsStore.isGoogleOAuthEnabled"
+                  color="primary"
+                  block
+                  @click="loginWithGoogle"
+                >
                   <v-icon left>mdi-google</v-icon>
                   Войти через Google
                 </v-btn>
-                <v-btn color="primary" block @click="loginWithVK">
+                <v-btn
+                  v-if="settingsStore.isVkOAuthEnabled"
+                  color="primary"
+                  block
+                  @click="loginWithVK"
+                >
                   <v-icon left>mdi-vk</v-icon>
                   Войти через VK
                 </v-btn>
                 <div class="text-center mt-2">
-                  <router-link to="/register">Зарегистрироваться</router-link> |
-                  <router-link to="/reset">Сбросить пароль</router-link>
+                  <router-link v-if="settingsStore.isRegistrationEnabled" to="/register">Зарегистрироваться</router-link>
+                  <span v-if="settingsStore.isRegistrationEnabled && settingsStore.isResetPasswordEnabled"> | </span>
+                  <router-link v-if="settingsStore.isResetPasswordEnabled" to="/reset">Сбросить пароль</router-link>
                 </div>
               </v-card-actions>
             </v-card>
           </v-menu>
 
-          <v-btn v-else @click="logout" text>
-            Выход
+          <v-btn class="ml-2" v-else @click="logout" icon>
+            <v-icon left>mdi-logout</v-icon>
           </v-btn>
 
         </v-container>
@@ -72,8 +94,9 @@
 </template>
 
 <script>
-import {computed, ref} from 'vue';
+import {computed, ref, onMounted} from 'vue';
 import { useAuthStore } from '@/stores/auth';
+import { useSettingsStore } from '@/stores/settings';
 import { useRouter } from 'vue-router';
 import Cookies from 'js-cookie';
 import axios from 'axios';
@@ -84,6 +107,7 @@ export default {
   name: 'App',
   setup() {
     const authStore = useAuthStore();
+    const settingsStore = useSettingsStore();
     const router = useRouter();
 
     const isLoggedIn = computed(() => authStore.accessToken !== null);
@@ -147,6 +171,10 @@ export default {
       window.location.href = `${API_BASE_URL}/oauth/vk`;
     };
 
+    onMounted(() => {
+      settingsStore.loadSettings();
+    });
+
     return {
       isLoggedIn,
       logout,
@@ -155,7 +183,8 @@ export default {
       loginPassword,
       loginErrorMessage,
       loginWithGoogle,
-      loginWithVK
+      loginWithVK,
+      settingsStore,
     };
   }
 };
