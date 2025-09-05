@@ -3,7 +3,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from typing import Annotated
 
-from app.core.config_const import TOKEN_TYPE_ACCESS
+from app.core.config_app import TOKEN_TYPE_ACCESS
 from app.exceptions.auth import TokenTypeErrorEx, AuthUserErrorEx
 from app.services.security import SecurityService
 

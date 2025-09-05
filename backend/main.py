@@ -8,7 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api import router
 from app.api.local import index_local_router
-from app.core.config import settings, AppMode
+from app.core.config_env import settings, AppMode
 from app.core.logs import logger
 
 

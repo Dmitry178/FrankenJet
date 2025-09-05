@@ -1,7 +1,7 @@
 import logging
 import sys
 
-from app.core.config import settings
+from app.core.config_env import settings
 
 logging.basicConfig(
     level=logging.INFO,

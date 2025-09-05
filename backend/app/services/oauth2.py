@@ -8,8 +8,8 @@ import urllib.parse
 
 from aiohttp import ContentTypeError
 
-from app.core.config import settings
-from app.core.config_const import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
+from app.core.config_env import settings
+from app.core.config_app import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
     OAUTH2_VK_URL, OAUTH2_VK_REDIRECT_URL
 from app.exceptions.oauth2 import OAuth2ErrorEx
 from app.schemas.users import SUserCreateOAuth2
