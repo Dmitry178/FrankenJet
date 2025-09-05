@@ -25,6 +25,9 @@ async def user_login(data: SLoginUser, db: DDB):
     except (UserNotFoundEx, PasswordIncorrectEx) as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+
 
 @auth_router.post("/register", summary="Регистрация пользователя")
 async def user_register(data: SLoginUser, db: DDB):
@@ -38,6 +41,9 @@ async def user_register(data: SLoginUser, db: DDB):
 
     except UserExistsEx as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
+
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
 @auth_router.post("/refresh", summary="Перевыпуск токенов")
@@ -57,13 +63,15 @@ async def refresh_tokens(refresh_token: AuthTokenDep, db: DDB):
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
-@auth_router.get("/info", summary="Получение информации о пользователе")
+@auth_router.get("/info", summary="Информация о пользователе")
 async def get_user_info(user_id: AuthUserIdDep, db: DDB):
     """
     Получение информации о текущем аутентифицированном пользователе
     """
 
-    # TODO: обернуть в try/except
-    user_info = await AuthServices(db).get_user_info(user_id)
+    try:
+        user_info = await AuthServices(db).get_user_info(user_id)
+        return {**status_ok, "data": user_info.model_dump()}
 
-    return {**status_ok, "data": user_info.model_dump()}
+    except (UserNotFoundEx, Exception):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
