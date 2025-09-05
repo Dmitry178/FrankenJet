@@ -51,6 +51,17 @@ class Settings(BaseSettings):
 
     DB_CONN: str  # строка соединения с базой
 
+    # учётная запись админа по умолчанию (создаётся при первом запуске) # TODO: реализовать
+    ADMIN_USER: str | None = None
+    ADMIN_HASHED_PASSWORD: str | None = None
+
+    # доступность встроенной аутентификации, регистрации и сброса пароля пользователя
+    ALLOW_AUTHENTICATION: bool = False
+    ALLOW_REGISTRATION: bool = False
+    ALLOW_RESET_PASSWORD: bool = False
+    ALLOW_OAUTH2_GOOGLE: bool = False
+    ALLOW_OAUTH2_VK: bool = False
+
     # OAUTH2 аутентификация
     OAUTH2_GOOGLE_CLIENT_ID: str | None = None
     OAUTH2_GOOGLE_CLIENT_SECRET: str | None = None
