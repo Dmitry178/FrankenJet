@@ -47,7 +47,6 @@ const vuetify = createVuetify({
   }
 });
 
-// ???
 function getCookie(name) {
   const value = `; ${document.cookie}`;
   const parts = value.split(`; ${name}=`);
@@ -79,8 +78,9 @@ app.use(pinia);
 app.use(router);
 app.use(vuetify);
 
-// экземпляр authStore (???)
+// экземпляр authStore
 import { useAuthStore } from '@/stores/auth';
+import Cookies from "js-cookie";
 const authStore = useAuthStore();
 
 // перевыпуск токенов
@@ -99,24 +99,41 @@ async function refreshAccessToken() {
     });
 
     if (refreshResponse.data.status === 'ok') {
-      const newAccessToken = refreshResponse.data.data.access_token;
-      const newRefreshToken = refreshResponse.data.data.refresh_token;
-
-      // обновление токенов
+      const newAccessToken = refreshResponse.data.data.tokens.access_token;
       authStore.setAccessToken(newAccessToken);
-      document.cookie = `refresh_token=${newRefreshToken}; path=/; max-age=3600; secure; httponly`;
+
+      const newRefreshToken = refreshResponse.data.data.tokens.refresh_token;
+      // document.cookie = `refresh_token=${newRefreshToken}; path=/; max-age=3600; secure; httponly`;
+      Cookies.set('refresh_token', newRefreshToken, {
+        // expires: 30,
+        // secure: true,
+        sameSite: 'Strict',
+        path: '/'
+      });
+
+      const userData = {
+        email: refreshResponse.data.data.user.email,
+        fullName: refreshResponse.data.data.user.full_name,
+        firstName: refreshResponse.data.data.user.first_name,
+        lastName: refreshResponse.data.data.user.last_name,
+        picture: refreshResponse.data.data.user.picture,
+      };
+      authStore.setUser(userData);
+
+      const roles = refreshResponse.data.data.roles;
+      authStore.setRoles(roles);
 
       return true;
 
     } else {
       authStore.setAccessToken(null);
-      document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+      Cookies.remove('refresh_token');
       return false;
     }
 
   } catch (error) {
     authStore.setAccessToken(null);
-    document.cookie = "refresh_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 UTC;";
+    Cookies.remove('refresh_token');
     return false;
   }
 }
@@ -164,55 +181,14 @@ axios.interceptors.response.use(
   }
 );
 
-// маршрутизатор (???)
-/*
-router.beforeEach(async (to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
-
-  if (requiresAuth) {
-    let accessToken = authStore.accessToken;
-
-    // если access-токена нет в Pinia
-    if (!accessToken) {
-      const success = await refreshAccessToken();
-      if (success) {
-        accessToken = authStore.accessToken;
-      } else {
-        // если не удалось обновить, на логин
-        return next({ path: '/login' });
-      }
-    }
-
-    // если токен есть (или был успешно обновлен), делаем запрос к /auth/info
-    try {
-      const response = await axios.get(`${API_BASE_URL}/auth/info`);
-      app.config.globalProperties.$user = response.data;
-      next();
-
-    } catch (error) {
-      // перенаправление на /login, если запрос /auth/info вернул 401 и interceptor не смог обновить токен
-      if (error.response && error.response.status === 401) {
-        return next({ path: '/login' });
-      } else {
-        console.error("Ошибка при проверке авторизации:", error);
-        next(false);
-      }
-    }
-
-  } else {
-    next();
-  }
-});
- */
-
 router.beforeEach(async (to, from, next) => {
     const requiresAuth = to.matched.some(record => record.meta.requiresAuth);
 
     if (requiresAuth) {
         // маршрут требует авторизацию
         if (!authStore.accessToken) {
-            // нет access токена, перенаправляем на страницу логина
-            next('/login');
+            // нет access токена, перенаправляем на главную страницу
+            next('/');
         } else {
             // access токен есть, пропускаем
             next();
@@ -223,5 +199,11 @@ router.beforeEach(async (to, from, next) => {
     }
 });
 
-// app.use(router);
-app.mount('#app');
+// app.mount('#app');
+
+(async () => {
+    if (!authStore.accessToken && Cookies.get('refresh_token')) {
+        await refreshAccessToken();
+    }
+    app.mount('#app');
+})();
