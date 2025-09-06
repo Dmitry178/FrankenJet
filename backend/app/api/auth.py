@@ -19,8 +19,8 @@ async def user_login(data: SLoginUser, db: DDB):
     """
 
     try:
-        tokens = await AuthServices(db).login(data)
-        return {**status_ok, "data": tokens.model_dump()}
+        result = await AuthServices(db).login(data)
+        return {**status_ok, "data": result}
 
     except (UserNotFoundEx, PasswordIncorrectEx) as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
@@ -53,8 +53,8 @@ async def refresh_tokens(refresh_token: AuthTokenDep, db: DDB):
     """
 
     try:
-        tokens = await AuthServices(db).refresh(refresh_token)
-        return {**status_ok, "data": tokens.model_dump()}
+        result = await AuthServices(db).refresh(refresh_token)
+        return {**status_ok, "data": result}
 
     except (TokenInvalidEx, TokenTypeErrorEx, UserNotFoundEx) as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
