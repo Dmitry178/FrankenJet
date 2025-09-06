@@ -1,10 +1,12 @@
-from uuid import uuid4
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from uuid import uuid4, UUID
 
-from app.core.config import settings
-from app.core.config_const import TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH
+from app.core.config_env import settings
+from app.core.config_app import TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH
 from app.db.db_manager import DBManager
-from app.exceptions import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx
-from app.schemas.auth import SLoginUser, SRegisterUser, SAuthTokens, SUserInfo
+from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx
+from app.schemas.auth import SLoginUser, SAuthTokens
+from app.schemas.users import SUserInfo
 from app.services.security import SecurityService
 
 
@@ -15,8 +17,7 @@ class AuthServices:
     def __init__(self, db: DBManager | None = None) -> None:
         self.db = db
 
-    @staticmethod
-    async def issue_tokens(user_id: int, email: str, roles: list | None) -> SAuthTokens:
+    async def issue_tokens(self, user_id: int, email: str, roles: list | None, jti: UUID | None = None) -> SAuthTokens:
         """
         Выпуск токенов
         """
@@ -26,15 +27,44 @@ class AuthServices:
             settings.JWT_ACCESS_EXPIRE_MINUTES
         )
 
-        # TODO: сделать хранение токена (или jti) в базе
+        new_jti = uuid4()
         refresh_token = SecurityService().create_jwt_token(
-            {"id": user_id, "type": TOKEN_TYPE_REFRESH, "jti": str(uuid4())},
+            {"id": user_id, "type": TOKEN_TYPE_REFRESH, "jti": str(new_jti)},
             settings.JWT_REFRESH_EXPIRE_MINUTES
         )
 
+        # регистрация токена
+        await self.register_user_jti(user_id, new_jti)
+
+        # отзыв токена
+        if jti:
+            await self.revoke_user_jti(user_id, jti)
+
         return SAuthTokens(access_token=access_token, refresh_token=refresh_token)
 
-    async def login(self, data: SLoginUser) -> SAuthTokens:
+    async def prepare_user_data(self, user, jti: UUID | None = None) -> dict:
+        """
+        Подготовка словаря с данными пользователя
+        """
+
+        roles = [role.role for role in user.roles]  # список ролей пользователя
+
+        user_data = {
+            "tokens": await self.issue_tokens(user.id, user.email, roles, jti),
+            "user": {
+                "id": user.id,
+                "email": user.email,
+                "full_name": user.full_name,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "picture": user.picture,
+            },
+            "roles": roles,
+        }
+
+        return user_data
+
+    async def login(self, data: SLoginUser) -> dict:
         """
         Проверка пользователя и пароля, выпуск access и refresh токенов
         """
@@ -43,19 +73,15 @@ class AuthServices:
         if not user:
             raise UserNotFoundEx
 
-        roles = [role.role for role in user.roles]  # список ролей пользователя
-
         if not SecurityService().verify_password(data.password, user.hashed_password):
             raise PasswordIncorrectEx
 
-        return await self.issue_tokens(user.id, user.email, roles)
+        return await self.prepare_user_data(user)
 
-    async def refresh(self, refresh_token: str) -> SAuthTokens:
+    async def refresh(self, refresh_token: str) -> dict:
         """
         Перевыпуск access и refresh токенов
         """
-
-        # TODO: сделать отзыв токена в базе
 
         refresh_token_payload = SecurityService().decode_token(refresh_token)
         if not refresh_token_payload:
@@ -65,33 +91,13 @@ class AuthServices:
             raise TokenTypeErrorEx
 
         user_id = refresh_token_payload.get("id")
+        jti = refresh_token_payload.get("jti")
 
         user = await self.db.users.get_user_with_roles(id=user_id)
         if not user:
             raise UserNotFoundEx
 
-        roles = [role.role for role in user.roles]
-
-        return await self.issue_tokens(user_id, user.email, roles)
-
-    async def register_user(self, data: SLoginUser) -> None:
-        """
-        Регистрация пользователя
-        """
-
-        hashed_password = SecurityService().hash_password(data.password)
-        new_user_data = SRegisterUser(email=data.email, hashed_password=hashed_password)
-
-        # TODO: добавить отправку и валидацию кода подтверждения на email
-        # TODO: добавить try/except
-
-        if await self.db.users.is_exists(email=data.email):
-            raise UserExistsEx()
-
-        await self.db.users.insert_model_data(new_user_data)
-        await self.db.commit()
-
-        return None
+        return await self.prepare_user_data(user, jti)
 
     async def get_user_info(self, user_id: int) -> SUserInfo:
         """
@@ -103,3 +109,37 @@ class AuthServices:
             raise UserNotFoundEx
 
         return SUserInfo.model_validate(user)
+
+    async def register_user_jti(self, user_id: int, jti: UUID) -> bool:
+        """
+        Регистрация refresh-токена (jti) в базе
+        """
+
+        try:
+            await self.db.refresh_tokens.insert_data(
+                user_id=user_id, jti=jti
+            )
+            await self.db.commit()
+            return True
+
+        except (IntegrityError, SQLAlchemyError, Exception):
+            # TODO: добавить логи
+            await self.db.rollback()
+            return False
+
+    async def revoke_user_jti(self, user_id: int, jti: UUID) -> bool:
+        """
+        Отзыв refresh-токена (jti) из базы
+        """
+
+        try:
+            await self.db.refresh_tokens.delete(
+                user_id=user_id, jti=jti
+            )
+            await self.db.commit()
+            return True
+
+        except (IntegrityError, SQLAlchemyError, Exception):
+            # TODO: добавить логи
+            await self.db.rollback()
+            return False
