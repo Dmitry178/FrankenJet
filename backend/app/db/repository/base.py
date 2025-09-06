@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import select, insert, exists
+from sqlalchemy import select, insert, exists, delete
 
 
 class BaseRepository:
@@ -68,3 +68,15 @@ class BaseRepository:
             .returning(self.model)
         )
         return (await self.session.execute(stmt)).scalars().one()
+
+    async def delete(self, *filters, **filter_by) -> int:
+        """
+        Удаление записи по фильтру
+        """
+
+        stmt = (
+            delete(self.model)
+            .filter(*filters)
+            .filter_by(**filter_by)
+        )
+        return (await self.session.execute(stmt)).rowcount
