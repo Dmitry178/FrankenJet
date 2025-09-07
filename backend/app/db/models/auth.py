@@ -1,12 +1,12 @@
-import uuid
-
 from datetime import datetime
 
-from sqlalchemy import ForeignKey, Integer, Boolean, UUID, DateTime, text, false
+from sqlalchemy import Boolean, DateTime, text, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from typing import TYPE_CHECKING
 
 from app.db import Base
+from app.db.types import fk_user, uid
 
 if TYPE_CHECKING:
     from app.db.models import Users
@@ -18,11 +18,18 @@ class RefreshTokens(Base):
     """
 
     __tablename__ = "refresh_tokens"
+    __table_args__ = {"schema": "users"}
+    # __table_args__ = {"schema": "auth"}
+
+    '''
+    При масштабировании проекта и подключения микросервисов, которые работают с данной моделью,
+    следует перенести в отдельную схему "auth" (для безопасности и снижения накладных расходов при работе с данными)
+    '''
 
     id: Mapped[int] = mapped_column(primary_key=True)
 
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    jti: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))
+    user_id: Mapped[fk_user]
+    jti: Mapped[uid]
     issued_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("now()"))
     revoked: Mapped[bool] = mapped_column(Boolean, server_default=false())
     # device_info: Mapped[str | None] = mapped_column(JSONB)
