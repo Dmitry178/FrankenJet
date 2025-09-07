@@ -4,7 +4,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from typing import TYPE_CHECKING, List
 
 from app.db import Base
-from app.db.types import str_64, str_256, str_16, fk_user
+from app.db.types import str_16, str_64, str_256, fk_user, fk_role
 
 if TYPE_CHECKING:
     from app.db.models import RefreshTokens
@@ -73,7 +73,7 @@ class UsersRolesAssociation(Base):
     )
 
     user_id: Mapped[fk_user] = mapped_column(primary_key=True)
-    role_id: Mapped[str_16] = mapped_column(primary_key=True)
+    role_id: Mapped[fk_role] = mapped_column(primary_key=True)
 
     user: Mapped["Users"] = relationship(back_populates="roles_association")
     role: Mapped["Roles"] = relationship(back_populates="users_association")
