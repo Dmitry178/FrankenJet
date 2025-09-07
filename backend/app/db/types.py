@@ -1,8 +1,63 @@
-from sqlalchemy import MetaData
+import uuid
+
+from sqlalchemy import MetaData, UUID, text, ForeignKey, Integer, BigInteger, String
+from sqlalchemy.orm import mapped_column
+
+from typing import Annotated
 
 project_metadata = MetaData()
 
+# строковые аннотированные типы
+str_16 = Annotated[str, 16]
+str_32 = Annotated[str, 32]
+str_64 = Annotated[str, 64]
+str_128 = Annotated[str, 128]
+str_256 = Annotated[str, 256]
+
+# различные аннотированные типы
+int64 = Annotated[int, mapped_column(BigInteger)]
+
+uid = Annotated[
+    uuid.UUID,
+    mapped_column(
+        UUID(as_uuid=True),
+        server_default=text("uuid_generate_v4()")
+    )
+]
+
+uid_pk = Annotated[
+    uuid.UUID,
+    mapped_column(
+        UUID(as_uuid=True),
+        primary_key=True,
+        server_default=text("uuid_generate_v4()")
+    )
+]
+
+# foreign keys
+fk_user = Annotated[int, mapped_column(Integer, ForeignKey("users.users.id"))]
+fk_role = Annotated[str, mapped_column(String(16), ForeignKey("users.roles.role"))]
+fk_aircraft = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.aircraft.id"))]
+fk_country = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.countries.id"))]
+fk_design_bureau = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.design_bureaus.id"))]
+fk_designer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.designers.id"))]
+fk_manufacturer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.manufacturers.id"))]
+
 # карта аннотированных типов
 annotation_map = {
+    str_16: String(16),
+    str_32: String(32),
+    str_64: String(64),
+    str_128: String(128),
+    str_256: String(256),
 
+    int64: BigInteger,
+    uid: UUID(as_uuid=True),
+    uid_pk: UUID(as_uuid=True),
+
+    fk_user: Integer,
+    fk_aircraft: UUID(as_uuid=True),
+    fk_country: UUID(as_uuid=True),
+    fk_designer: UUID(as_uuid=True),
+    fk_manufacturer: UUID(as_uuid=True),
 }
