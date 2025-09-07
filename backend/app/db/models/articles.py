@@ -167,6 +167,7 @@ class Manufacturers(Base):
     __table_args__ = {"schema": "articles"}
 
     id: Mapped[uid_pk]
+    country_id: Mapped[fk_country]
 
     name: Mapped[str_32]
     description: Mapped[str] = mapped_column(Text)
