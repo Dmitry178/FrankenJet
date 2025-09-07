@@ -3,10 +3,10 @@ from uuid import uuid4, UUID
 
 from app.core.config_env import settings
 from app.core.config_app import TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH
+from app.core.logs import logger
 from app.db.db_manager import DBManager
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx
 from app.schemas.auth import SLoginUser, SAuthTokens
-from app.schemas.users import SUserInfo
 from app.services.security import SecurityService
 
 
@@ -42,15 +42,17 @@ class AuthServices:
 
         return SAuthTokens(access_token=access_token, refresh_token=refresh_token)
 
-    async def prepare_user_data(self, user, jti: UUID | None = None) -> dict:
+    async def prepare_user_data(self, user, tokens=True, jti: UUID | None = None) -> dict:
         """
         Подготовка словаря с данными пользователя
         """
 
         roles = [role.role for role in user.roles]  # список ролей пользователя
-
         user_data = {
-            "tokens": await self.issue_tokens(user.id, user.email, roles, jti),
+            "tokens": (await self.issue_tokens(user.id, user.email, roles, jti)).model_dump()
+        } if tokens else {}
+
+        user_data |= {
             "user": {
                 "id": user.id,
                 "email": user.email,
@@ -97,18 +99,18 @@ class AuthServices:
         if not user:
             raise UserNotFoundEx
 
-        return await self.prepare_user_data(user, jti)
+        return await self.prepare_user_data(user, jti=jti)
 
-    async def get_user_info(self, user_id: int) -> SUserInfo:
+    async def get_user_info(self, user_id: int) -> dict:
         """
         Получение информации о пользователе по его id
         """
 
-        user = await self.db.users.select_one_or_none(id=user_id)
+        user = await self.db.users.get_user_with_roles(id=user_id)
         if not user:
             raise UserNotFoundEx
 
-        return SUserInfo.model_validate(user)
+        return await self.prepare_user_data(user, tokens=False)
 
     async def register_user_jti(self, user_id: int, jti: UUID) -> bool:
         """
@@ -122,8 +124,8 @@ class AuthServices:
             await self.db.commit()
             return True
 
-        except (IntegrityError, SQLAlchemyError, Exception):
-            # TODO: добавить логи
+        except (IntegrityError, SQLAlchemyError, Exception) as ex:
+            logger.error(ex)
             await self.db.rollback()
             return False
 
@@ -139,7 +141,7 @@ class AuthServices:
             await self.db.commit()
             return True
 
-        except (IntegrityError, SQLAlchemyError, Exception):
-            # TODO: добавить логи
+        except (IntegrityError, SQLAlchemyError, Exception) as ex:
+            logger.error(ex)
             await self.db.rollback()
             return False
