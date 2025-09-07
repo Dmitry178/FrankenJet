@@ -1,7 +1,7 @@
 <template>
   <v-responsive class="border" style="border: none">
     <v-app>
-      <v-app-bar :elevation="1" app flat>
+      <v-app-bar app flat>
         <v-container class="d-flex align-center">
           <router-link
               to="/"
