@@ -4,6 +4,7 @@ import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'
 // import './assets/main.css'
 import App from './App.vue';
+import vuetify from './plugins/vuetify';
 
 import * as components from 'vuetify/components';
 import * as directives from 'vuetify/directives';
@@ -19,33 +20,6 @@ import Register from './components/Register.vue';
 import ResetPassword from './components/ResetPassword.vue';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-// цветовая схема (#CDAB8F)
-const lightTheme = {
-  dark: false,
-  colors: {
-    primary: '#CDAB8F',
-    secondary: '#E8D5C4',
-    accent: '#A1887F',
-    error: '#B00020',
-    info: '#2196F3',
-    success: '#4CAF50',
-    warning: '#FB8C00',
-    background: '#F8F5F0',
-    surface: '#FFFDF5',
-  }
-}
-
-const vuetify = createVuetify({
-  components,
-  directives,
-  theme: {
-    defaultTheme: 'lightTheme',
-    themes: {
-      lightTheme,
-    }
-  }
-});
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
