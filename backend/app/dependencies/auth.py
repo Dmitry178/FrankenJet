@@ -25,6 +25,8 @@ async def get_auth_user_id(token: str = Depends(get_auth_token)) -> int:
 
     try:
         token_payload = SecurityService.decode_token(token)
+        if not token_payload:
+            raise InvalidTokenError
 
         # проверка типа токена
         if token_payload.get("type") != TOKEN_TYPE_ACCESS:
