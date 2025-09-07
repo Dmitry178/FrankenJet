@@ -1,9 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from starlette import status
 
+from app.core.logs import logger
 from app.dependencies.auth import AuthUserIdDep, AuthTokenDep
 from app.dependencies.db import DDB
-from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx
+from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx, \
+    UserCreationErrorEx
 from app.schemas.auth import SLoginUser
 from app.services.auth import AuthServices
 from app.services.users import UsersServices
@@ -25,7 +27,8 @@ async def user_login(data: SLoginUser, db: DDB):
     except (UserNotFoundEx, PasswordIncorrectEx) as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
-    except Exception:
+    except Exception as ex:
+        logger.error(ex)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
@@ -39,10 +42,11 @@ async def user_register(data: SLoginUser, db: DDB):
         await UsersServices(db).create_user_by_email(data)
         return status_ok
 
-    except UserExistsEx as ex:
+    except (UserCreationErrorEx, UserExistsEx) as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
-    except Exception:
+    except Exception as ex:
+        logger.error(ex)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
@@ -59,7 +63,8 @@ async def refresh_tokens(refresh_token: AuthTokenDep, db: DDB):
     except (TokenInvalidEx, TokenTypeErrorEx, UserNotFoundEx) as ex:
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
-    except Exception:
+    except Exception as ex:
+        logger.error(ex)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
@@ -71,7 +76,11 @@ async def get_user_info(user_id: AuthUserIdDep, db: DDB):
 
     try:
         user_info = await AuthServices(db).get_user_info(user_id)
-        return {**status_ok, "data": user_info.model_dump()}
+        return {**status_ok, "data": user_info}
 
-    except (UserNotFoundEx, Exception):
+    except UserNotFoundEx:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+
+    except Exception as ex:
+        logger.error(ex)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
