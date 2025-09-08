@@ -1,18 +1,37 @@
-from datetime import date
-from enum import Enum
+import enum
 
-from sqlalchemy import Date, Text, String
-from sqlalchemy.dialects.postgresql import ENUM
+from datetime import date
+
+from sqlalchemy import Date, Text, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from typing import List
 
 from app.db import Base
+from app.db.models.base import TimestampMixin
 from app.db.types import uid_pk, str_32, str_64, str_128, fk_manufacturer, fk_country, fk_designer, fk_aircraft, \
     fk_design_bureau
 
 
-class EngineTypes(str, Enum):
+class AircraftTypes(str, enum.Enum):
+    """
+    Типы воздушных судов
+    """
+
+    airplane = "самолёт"
+    airship = "дирижабль"
+    helicopter = "вертолёт"
+    rocket = "ракета"
+    glider = "планер"
+    ornithopter = "орнитоптер"
+    autogiro = "автожир"
+    gyrodyne = "винтокрыл"
+    wige = "экраноплан"
+    balloon = "воздушный шар"
+    blimp = "дирижабль"
+
+
+class EngineTypes(str, enum.Enum):
     """
     Типы двигателей
     """
@@ -20,9 +39,13 @@ class EngineTypes(str, Enum):
     piston = "поршневой"
     turbojet = "турбореактивный"
     turboprop = "турбовинтовой"
+    turbofan = "турбовентиляторный"
+    ramjet = "прямоточный воздушно-реактивный"
+    rocket = "ракетный"
+    electric = "электрический"
 
 
-class AircraftStatus(str, Enum):
+class AircraftStatus(str, enum.Enum):
     """
     Статус воздушного судна
     """
@@ -32,7 +55,7 @@ class AircraftStatus(str, Enum):
     in_operation = "в эксплуатации"
 
 
-class Aircraft(Base):
+class Aircraft(Base, TimestampMixin):
     """
     Воздушные суда
     """
@@ -44,14 +67,14 @@ class Aircraft(Base):
     country_id: Mapped[fk_country]
     manufacturer_id: Mapped[fk_manufacturer]
 
-    name: Mapped[str_32]  # название
-    year_of_manufacture: Mapped[int | None]  # дата начала производства
+    name: Mapped[str_32] = mapped_column(unique=True)  # название
+    aircraft_type: Mapped[str | None] = mapped_column(Enum(AircraftTypes, native_enum=False))  # тип воздушного судна
     first_flight: Mapped[date | None]  # первый полёт
     wingspan: Mapped[float | None]  # размах крыльев в метрах
-    length: Mapped[float | None]  # длина самолета в метрах
-    height: Mapped[float | None]  # высота самолета в метрах
+    length: Mapped[float | None]  # длина воздушного судна в метрах
+    height: Mapped[float | None]  # высота воздушного судна в метрах
     max_takeoff_weight: Mapped[float | None]  # максимальный взлетный вес в килограммах
-    engine_type: Mapped[str | None] = mapped_column(ENUM(EngineTypes))  # тип двигателя
+    engine_type: Mapped[str | None] = mapped_column(Enum(EngineTypes, native_enum=False))  # тип двигателя
     number_of_engines: Mapped[int | None]  # количество двигателей
     max_speed: Mapped[int | None]  # максимальная скорость в км/ч
     cruise_speed: Mapped[int | None]  # крейсерская скорость в км/ч
@@ -61,8 +84,9 @@ class Aircraft(Base):
     # capacity: Mapped[int | None]  # вместимость (количество пассажиров или полезной нагрузки)
     icao_designator: Mapped[str | None] = mapped_column(String(4))  # четырёхбуквенный код ИКАО
     iata_designator: Mapped[str | None] = mapped_column(String(3))  # двух-трёхбуквенный код ИАТА
-    status: Mapped[str | None] = mapped_column(ENUM(AircraftStatus))  # статус самолета
+    status: Mapped[str | None] = mapped_column(Enum(AircraftStatus, native_enum=False))  # статус самолета
     # variants: Mapped[str_256 | None]  # описание модификаций и вариантов самолета
+    year_of_manufacture: Mapped[int | None]  # дата начала производства
     first_used: Mapped[date | None]  # дата начала эксплуатации
     last_used: Mapped[date | None]  # дата окончания эксплуатации
 
@@ -93,10 +117,10 @@ class Countries(Base):
     __tablename__ = "countries"
     __table_args__ = {"schema": "articles"}
 
-    id: Mapped[uid_pk]
+    id: Mapped[str] = mapped_column(String(2), primary_key=True)  # двухбуквенный ISO-код страны
 
-    name: Mapped[str_32]
-    iso_code: Mapped[str | None] = mapped_column(String(3))  # двух/трёхбуквенный ISO-код страны
+    name: Mapped[str_32] = mapped_column(unique=True)
+    iso_code: Mapped[str | None] = mapped_column(String(3), unique=True)  # трёхбуквенный ISO-код страны
     flag_image_url: Mapped[str_128 | None]  # URL изображения флага страны
 
     aircraft: Mapped[List["Aircraft"]] = relationship(back_populates="country")
@@ -105,7 +129,7 @@ class Countries(Base):
     manufacturers: Mapped[List["Manufacturers"]] = relationship(back_populates="country")
 
 
-class Designers(Base):
+class Designers(Base, TimestampMixin):
     """
     Конструкторы
     """
@@ -116,7 +140,7 @@ class Designers(Base):
     id: Mapped[uid_pk]
     country_id: Mapped[fk_country]
 
-    name: Mapped[str_32]
+    name: Mapped[str_32] = mapped_column(unique=True)
     birth_date: Mapped[date | None] = mapped_column(Date)
     death_date: Mapped[date | None] = mapped_column(Date)
     known_for: Mapped[str] = mapped_column(Text)  # чем знаменит конструктор
@@ -158,7 +182,7 @@ class AircraftDesignersAssociation(Base):
     designer: Mapped["Designers"] = relationship(back_populates="aircraft_association")
 
 
-class Manufacturers(Base):
+class Manufacturers(Base, TimestampMixin):
     """
     Производители воздушных судов
     """
@@ -169,7 +193,7 @@ class Manufacturers(Base):
     id: Mapped[uid_pk]
     country_id: Mapped[fk_country]
 
-    name: Mapped[str_32]
+    name: Mapped[str_32] = mapped_column(unique=True)
     description: Mapped[str] = mapped_column(Text)
 
     country: Mapped["Countries"] = relationship(back_populates="manufacturers")
@@ -200,7 +224,7 @@ class AircraftManufacturersAssociation(Base):
     manufacturer: Mapped["Manufacturers"] = relationship(back_populates="aircraft_association")
 
 
-class DesignBureaus(Base):
+class DesignBureaus(Base, TimestampMixin):
     """
     Конструкторское бюро
     """
@@ -211,7 +235,7 @@ class DesignBureaus(Base):
     id: Mapped[uid_pk]
     country_id: Mapped[fk_country]
 
-    name: Mapped[str_32]
+    name: Mapped[str_32] = mapped_column(unique=True)
     description: Mapped[str] = mapped_column(Text)
     # image_url: Mapped[str_128 | None]
     # location: Mapped[str_128 | None]
