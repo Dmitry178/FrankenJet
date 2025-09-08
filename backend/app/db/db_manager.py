@@ -1,3 +1,5 @@
+from app.db.repository.articles import AircraftRepository, CountriesRepository, DesignersRepository, \
+    ManufacturersRepository, DesignBureausRepository
 from app.db.repository.auth import RefreshTokensRepository
 from app.db.repository.users import UsersRepository
 
@@ -6,10 +8,28 @@ class DBManager:
     def __init__(self, session_factory):
         self.session_factory = session_factory
 
+    class AuthDBManager:
+        def __init__(self, session):
+            self.session = session
+
+            self.refresh_tokens = RefreshTokensRepository(self.session)
+
+    class ArticlesDBManager:
+        def __init__(self, session):
+            self.session = session
+
+            self.aircraft = AircraftRepository(self.session)
+            self.countries = CountriesRepository(self.session)
+            self.design_bureaus = DesignBureausRepository(self.session)
+            self.designers = DesignersRepository(self.session)
+            self.manufacturers = ManufacturersRepository(self.session)
+
     async def __aenter__(self):
         self.session = self.session_factory()
 
-        self.refresh_tokens = RefreshTokensRepository(self.session)
+        self.articles = self.ArticlesDBManager(self.session)
+        self.auth = self.AuthDBManager(self.session)
+
         self.users = UsersRepository(self.session)
 
         return self
