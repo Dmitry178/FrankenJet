@@ -38,7 +38,7 @@ uid_pk = Annotated[
 fk_user = Annotated[int, mapped_column(Integer, ForeignKey("users.users.id"))]
 fk_role = Annotated[str, mapped_column(String(16), ForeignKey("users.roles.role"))]
 fk_aircraft = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.aircraft.id"))]
-fk_country = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.countries.id"))]
+fk_country = Annotated[str, mapped_column(String(2), ForeignKey("articles.countries.id"))]
 fk_design_bureau = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.design_bureaus.id"))]
 fk_designer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.designers.id"))]
 fk_manufacturer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.manufacturers.id"))]
