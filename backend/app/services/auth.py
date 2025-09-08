@@ -118,7 +118,7 @@ class AuthServices:
         """
 
         try:
-            await self.db.refresh_tokens.insert_data(
+            await self.db.auth.refresh_tokens.insert_data(
                 user_id=user_id, jti=jti
             )
             await self.db.commit()
@@ -135,7 +135,7 @@ class AuthServices:
         """
 
         try:
-            await self.db.refresh_tokens.delete(
+            await self.db.auth.refresh_tokens.delete(
                 user_id=user_id, jti=jti
             )
             await self.db.commit()
