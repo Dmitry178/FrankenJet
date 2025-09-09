@@ -25,7 +25,7 @@ class UsersServices:
             hashed_password = SecurityService().hash_password(user_data.password)
             new_user_data = SRegisterUser(email=user_data.email, hashed_password=hashed_password)
 
-            user = await self.db.users.insert_model_data_scalar(new_user_data)
+            user = await self.db.users.insert_one(new_user_data, scalar=True)
             await self.db.commit()
 
             return user.id
