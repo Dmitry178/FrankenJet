@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException
 from starlette import status
 
 from app.core.logs import logger
-from app.dependencies.auth import AuthUserIdDep, AuthTokenDep
+from app.dependencies.auth import DAuthUserId, DAuthToken
 from app.dependencies.db import DDB
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx, \
     UserCreationErrorEx
@@ -51,7 +51,7 @@ async def user_register(data: SLoginUser, db: DDB):
 
 
 @auth_router.post("/refresh", summary="Перевыпуск токенов")
-async def refresh_tokens(refresh_token: AuthTokenDep, db: DDB):
+async def refresh_tokens(refresh_token: DAuthToken, db: DDB):
     """
     Перевыпуск access и refresh токенов по refresh-токену
     """
@@ -69,7 +69,7 @@ async def refresh_tokens(refresh_token: AuthTokenDep, db: DDB):
 
 
 @auth_router.get("/info", summary="Информация о пользователе")
-async def get_user_info(user_id: AuthUserIdDep, db: DDB):
+async def get_user_info(user_id: DAuthUserId, db: DDB):
     """
     Получение информации о текущем аутентифицированном пользователе
     """
