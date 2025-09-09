@@ -15,32 +15,32 @@ class SAircraftFilters(BaseModel):
     status: AircraftStatus | None = Field(None, description="Статусу воздушного судна"),
 
 
-class SPostAircraft(BaseModel):
+class SAircraft(BaseModel):
     """
     Схема воздушного судна
     """
 
-    name: str  # название
-    manufacturer_id: UUID | None  # id производителя
-    country_id: str | None  # код страны
-    aircraft_type: str | None  # тип воздушного судна
-    first_flight: date | None  # первый полёт
-    wingspan: float | None  # размах крыльев в метрах
-    length: float | None  # длина воздушного судна в метрах
-    height: float | None  # высота воздушного судна в метрах
-    max_takeoff_weight: float | None  # максимальный взлетный вес в килограммах
-    engine_type: str | None  # тип двигателя
-    number_of_engines: int | None  # количество двигателей
-    max_speed: int | None  # максимальная скорость в км/ч
-    cruise_speed: int | None  # крейсерская скорость в км/ч
-    range: int | None  # дальность полета в км
-    service_ceiling: int | None  # практический потолок в метрах
-    crew: int | None  # экипаж (количество человек)
-    # capacity: int | None  # вместимость (количество пассажиров или полезной нагрузки)
-    icao_designator: str | None  # четырёхбуквенный код ИКАО
-    iata_designator: str | None  # двух-трёхбуквенный код ИАТА
-    status: str | None  # статус самолета
-    # variants: str_256 | None  # описание модификаций и вариантов самолета
-    year_of_manufacture: int | None  # дата начала производства
-    first_used: date | None  # дата начала эксплуатации
-    last_used: date | None  # дата окончания эксплуатации
+    name: str = Field(..., max_length=32, description="Название")
+    manufacturer_id: UUID = Field(None, description="Id производителя")
+    country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
+    aircraft_type: str = Field(None, max_length=32, description="тип воздушного судна")  # TODO: уточнить длину (enum)
+    first_flight: date = Field(None, description="первый полёт")
+    wingspan: float = Field(None, description="размах крыльев в метрах")
+    length: float = Field(None, description="длина воздушного судна в метрах")
+    height: float = Field(None, description="высота воздушного судна в метрах")
+    max_takeoff_weight: float = Field(None, description="максимальный взлетный вес в килограммах")
+    engine_type: str = Field(None, max_length=32, description="тип двигателя")  # TODO: уточнить длину (enum)
+    number_of_engines: int = Field(None, description="количество двигателей")
+    max_speed: int = Field(None, description="максимальная скорость в км/ч")
+    cruise_speed: int = Field(None, description="крейсерская скорость в км/ч")
+    range: int = Field(None, description="дальность полета в км")
+    service_ceiling: int = Field(None, description="практический потолок в метрах")
+    crew: int = Field(None, description="экипаж (количество человек)")
+    # capacity: int = Field(None, description="вместимость (количество пассажиров или полезной нагрузки)")
+    icao_designator: str = Field(None, max_length=4, description="четырёхбуквенный код ИКАО")
+    iata_designator: str = Field(None, max_length=3, description="двух-трёхбуквенный код ИАТА")
+    status: str = Field(None, max_length=32, description="статус самолета")  # TODO: уточнить длину (enum)
+    # variants: str = Field(None, description="описание модификаций и вариантов самолета")
+    year_of_manufacture: int = Field(None, description="дата начала производства")
+    first_used: date = Field(None, description="дата начала эксплуатации")
+    last_used: date = Field(None, description="дата окончания эксплуатации")
