@@ -4,10 +4,35 @@ from jwt import ExpiredSignatureError, InvalidTokenError
 from typing import Annotated
 
 from app.core.config_app import TOKEN_TYPE_ACCESS
-from app.exceptions.auth import TokenTypeErrorEx, AuthUserErrorEx
+from app.core.logs import logger
+from app.exceptions.auth import TokenTypeErrorEx, AuthUserErrorEx, AuthRoleErrorEx
 from app.services.security import SecurityService
 
 security = HTTPBearer()
+
+"""
+В данном модуле намеренно нарушается принцип DRY (Don't Repeat Yourself) по следующим причинам.
+
+1. Особенности реализации цепочки Depends() в FastAPI:  
+  механизм Depends() предназначен для внедрения зависимостей, но не для передачи параметров (например, ролей)
+  во время выполнения запроса.
+
+2. Риски безопасности при параметризации get_auth_user_id():
+  - технически возможно реализовать логику проверки ролей в функции get_auth_user_id()
+    и передавать роли через параметры, однако, это сделает параметры ролей доступными непосредственно в API,
+    сторонний пользователь сможет изменить эти параметры (например, подменить роль на "admin"),
+    что приведет к несанкционированному повышению привилегий;
+  - попытка передать роли через lambda-функции приводит к появлению параметров *args и **kwargs в сигнатуре эндпоинта,
+    что так же позволяет стороннему пользователю подменять параметры (уже любые, не только роли), так же это
+    потенциально может привести к нежелательному поведению, если эндпоинт начнёт принимать неверные аргументы.
+
+3. Вывод:
+   Наиболее безопасным и понятным решением является явное определение функций проверки ролей
+   (get_auth_admin_id, get_auth_editor_id, get_auth_moderator_id) с дублированием логики проверки.
+   Это позволяет избежать рисков, связанных с динамической передачей ролей через параметры эндпоинта или lambda-функции,
+   даже ценой нарушения принципа DRY. Явное определение зависимостей для каждой роли делает код более предсказуемым
+   и упрощает его аудит с точки зрения безопасности.
+"""
 
 
 async def get_auth_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
@@ -18,9 +43,9 @@ async def get_auth_token(credentials: HTTPAuthorizationCredentials = Depends(sec
     return credentials.credentials
 
 
-async def get_auth_user_id(token: str = Depends(get_auth_token)) -> int:
+async def get_auth_token_payload(token: str = Depends(get_auth_token)) -> dict:
     """
-    Получение id текущего аутентифицированного пользователя из access-токена в заголовках
+    Получение значения токена из заголовков
     """
 
     try:
@@ -28,15 +53,119 @@ async def get_auth_user_id(token: str = Depends(get_auth_token)) -> int:
         if not token_payload:
             raise InvalidTokenError
 
+        return token_payload
+
+    except (ExpiredSignatureError, InvalidTokenError) as ex:
+        raise AuthUserErrorEx from ex
+
+    except Exception as ex:
+        logger.error(ex)
+        raise Exception from ex
+
+
+async def get_auth_user_id(token_payload: dict = Depends(get_auth_token_payload)) -> int:
+    """
+    Получение id текущего аутентифицированного пользователя из access-токена в заголовках
+    """
+
+    try:
         # проверка типа токена
         if token_payload.get("type") != TOKEN_TYPE_ACCESS:
             raise TokenTypeErrorEx
 
         return token_payload.get("id")
 
-    except (ExpiredSignatureError, InvalidTokenError, TokenTypeErrorEx, ValueError) as ex:
+    except TokenTypeErrorEx as ex:
         raise AuthUserErrorEx from ex
 
+    except AuthRoleErrorEx as ex:
+        raise AuthRoleErrorEx from ex
 
-AuthTokenDep = Annotated[str, Depends(get_auth_token)]
-AuthUserIdDep = Annotated[int, Depends(get_auth_user_id)]
+    except (ValueError, Exception) as ex:
+        logger.error(ex)
+        raise Exception from ex
+
+
+async def get_auth_user_roles(token_payload: dict = Depends(get_auth_token_payload)) -> list:
+    """
+    Получение ролей авторизованного пользователя
+    """
+
+    try:
+        return token_payload.get("roles", [])
+
+    except ValueError as ex:
+        raise AuthRoleErrorEx from ex
+
+
+async def get_auth_admin_id(
+        user_id: int = Depends(get_auth_user_id),
+        roles: list = Depends(get_auth_user_roles)
+) -> int:
+    """
+    Получение id авторизованного администратора
+    """
+
+    try:
+        if "admin" not in roles:
+            raise AuthRoleErrorEx
+
+        return user_id
+
+    except AuthRoleErrorEx as ex:
+        raise AuthRoleErrorEx from ex
+
+    except (ValueError, Exception) as ex:
+        logger.error(ex)
+        raise Exception from ex
+
+
+async def get_auth_editor_id(
+        user_id: int = Depends(get_auth_user_id),
+        roles: list = Depends(get_auth_user_roles)
+) -> int:
+    """
+    Получение id авторизованного редактора
+    """
+
+    try:
+        if "editor" not in roles and "admin" not in roles:
+            raise AuthRoleErrorEx
+
+        return user_id
+
+    except AuthRoleErrorEx as ex:
+        raise AuthRoleErrorEx from ex
+
+    except (ValueError, Exception) as ex:
+        logger.error(ex)
+        raise Exception from ex
+
+
+async def get_auth_moderator_id(
+        user_id: int = Depends(get_auth_user_id),
+        roles: list = Depends(get_auth_user_roles)
+) -> int:
+    """
+    Получение id авторизованного модератора
+    """
+
+    try:
+        if "moderator" not in roles and "admin" not in roles:
+            raise AuthRoleErrorEx
+
+        return user_id
+
+    except AuthRoleErrorEx as ex:
+        raise AuthRoleErrorEx from ex
+
+    except (ValueError, Exception) as ex:
+        logger.error(ex)
+        raise Exception from ex
+
+
+DAuthToken = Annotated[str, Depends(get_auth_token)]
+DAuthUserId = Annotated[int, Depends(get_auth_user_id)]
+DAuthAdminId = Annotated[int, Depends(get_auth_admin_id)]
+DAuthEditorId = Annotated[int, Depends(get_auth_editor_id)]
+DAuthModeratorId = Annotated[int, Depends(get_auth_moderator_id)]
