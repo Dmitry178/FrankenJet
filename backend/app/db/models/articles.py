@@ -64,7 +64,7 @@ class Aircraft(Base, TimestampMixin):
     __table_args__ = {"schema": "articles"}
 
     id: Mapped[uid_pk]
-    country_id: Mapped[fk_country]  # код страны
+    country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
     manufacturer_id: Mapped[fk_manufacturer]  # id производителя
 
     name: Mapped[str_32] = mapped_column(unique=True)  # название
@@ -81,11 +81,11 @@ class Aircraft(Base, TimestampMixin):
     range: Mapped[int | None]  # дальность полета в км
     service_ceiling: Mapped[int | None]  # практический потолок в метрах
     crew: Mapped[int | None]  # экипаж (количество человек)
-    # capacity: Mapped[int | None]  # вместимость (количество пассажиров или полезной нагрузки)
+    # capacity: Mapped[str | None] = mapped_column(Text)  # вместимость (количество пассажиров или полезной нагрузки)
     icao_designator: Mapped[str | None] = mapped_column(String(4))  # четырёхбуквенный код ИКАО
     iata_designator: Mapped[str | None] = mapped_column(String(3))  # двух-трёхбуквенный код ИАТА
     status: Mapped[str | None] = mapped_column(Enum(AircraftStatus, native_enum=False))  # статус самолета
-    # variants: Mapped[str_256 | None]  # описание модификаций и вариантов самолета
+    # variants: Mapped[str | None] = mapped_column(Text)  # описание модификаций и вариантов самолета
     year_of_manufacture: Mapped[int | None]  # дата начала производства
     first_used: Mapped[date | None]  # дата начала эксплуатации
     last_used: Mapped[date | None]  # дата окончания эксплуатации
@@ -119,7 +119,7 @@ class Countries(Base):
 
     id: Mapped[str] = mapped_column(String(2), primary_key=True)  # двухбуквенный ISO-код страны
 
-    name: Mapped[str_32] = mapped_column(unique=True)
+    name: Mapped[str_32] = mapped_column(unique=True)  # название страны
     iso_code: Mapped[str | None] = mapped_column(String(3), unique=True)  # трёхбуквенный ISO-код страны
     flag_image_url: Mapped[str_128 | None]  # URL изображения флага страны
 
@@ -143,7 +143,7 @@ class Designers(Base, TimestampMixin):
     name: Mapped[str_32] = mapped_column(unique=True)
     birth_date: Mapped[date | None] = mapped_column(Date)
     death_date: Mapped[date | None] = mapped_column(Date)
-    known_for: Mapped[str] = mapped_column(Text)  # чем знаменит конструктор
+    known_for: Mapped[str | None] = mapped_column(Text)  # чем знаменит конструктор
     biography: Mapped[str] = mapped_column(Text)  # биография
     image_url: Mapped[str_128 | None]  # URL основного изображения
 
@@ -191,10 +191,10 @@ class Manufacturers(Base, TimestampMixin):
     __table_args__ = {"schema": "articles"}
 
     id: Mapped[uid_pk]
-    country_id: Mapped[fk_country]
+    country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
 
-    name: Mapped[str_32] = mapped_column(unique=True)
-    description: Mapped[str] = mapped_column(Text)
+    name: Mapped[str_32] = mapped_column(unique=True)  # название производителя
+    description: Mapped[str] = mapped_column(Text)  # описание производителя
 
     country: Mapped["Countries"] = relationship(back_populates="manufacturers")
     aircraft_association: Mapped[List["AircraftManufacturersAssociation"]] = relationship(
@@ -233,10 +233,10 @@ class DesignBureaus(Base, TimestampMixin):
     __table_args__ = {"schema": "articles"}
 
     id: Mapped[uid_pk]
-    country_id: Mapped[fk_country]
+    country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
 
-    name: Mapped[str_32] = mapped_column(unique=True)
-    description: Mapped[str] = mapped_column(Text)
+    name: Mapped[str_32] = mapped_column(unique=True)  # название конструкторского бюро
+    description: Mapped[str] = mapped_column(Text)  # описание конструкторского бюро
     # image_url: Mapped[str_128 | None]
     # location: Mapped[str_128 | None]
 
