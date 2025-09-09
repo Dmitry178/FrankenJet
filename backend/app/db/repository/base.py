@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from sqlalchemy import select, insert, exists, delete, func, over
+from sqlalchemy import select, insert, exists, delete, func, over, update
 
 
 class BaseRepository:
@@ -19,9 +19,10 @@ class BaseRepository:
             .where(*filters)
             .filter_by(**filter_by)
         )
+
         return (await self.session.execute(query)).scalar()
 
-    async def select_one_or_none(self, *filters, **filter_by):
+    async def select_one(self, scalars=False, *filters, **filter_by):
         """
         Получение записи по фильтру
         """
@@ -31,9 +32,25 @@ class BaseRepository:
             .filter(*filters)
             .filter_by(**filter_by)
         )
-        return (await self.session.execute(query)).mappings().one_or_none()
+        result = await self.session.execute(query)
 
-    async def select_all(self, *filters, **filter_by):
+        return result.scalars().one() if scalars else result.mappings().one()
+
+    async def select_one_or_none(self, scalars=False, *filters, **filter_by):
+        """
+        Получение записи по фильтру
+        """
+
+        query = (
+            select(self.model.__table__.columns)
+            .filter(*filters)
+            .filter_by(**filter_by)
+        )
+        result = await self.session.execute(query)
+
+        return result.scalars().one_or_none() if scalars else result.mappings().one_or_none()
+
+    async def select_all(self, scalars=False, *filters, **filter_by):
         """
         Получение данных из базы по фильтру
         """
@@ -43,7 +60,9 @@ class BaseRepository:
             .filter(*filters)
             .filter_by(**filter_by)
         )
-        return (await self.session.execute(query)).mappings().all()
+        result = await self.session.execute(query)
+
+        return result.scalars().all() if scalars else result.mappings().all()
 
     async def select_all_paginated(self, offset: int = 0, limit: int = None, *filters, **filter_by):
         """
@@ -70,8 +89,7 @@ class BaseRepository:
         """
 
         query = (
-            select(*self.model.__table__.columns,
-                   func.count(over()).label("total_count"))
+            select(*self.model.__table__.columns, func.count(over()).label("total_count"))  # noqa
             .filter(*filters)
             .filter_by(**filter_by)
         )
@@ -97,7 +115,7 @@ class BaseRepository:
 
         return data, total_count
 
-    async def insert_data(self, **values):
+    async def insert_one(self, data: BaseModel | None = None, scalars=False, commit=False, **values):
         """
         Добавление данных
         """
@@ -107,35 +125,45 @@ class BaseRepository:
             .values(**values)
             .returning(self.model)
         )
-        return (await self.session.execute(stmt)).mappings().one()
+        if data:
+            stmt = stmt.values(**data.model_dump(), **values)
 
-    async def insert_model_data(self, data: BaseModel):
+        result = await self.session.execute(stmt)
+
+        if commit:
+            self.session.commit()
+
+        return result.scalars().one() if scalars else result.mappings().one()
+
+    async def update_one(
+            self,
+            data: BaseModel | None = None,
+            exclude_unset: bool = False,
+            scalars=False,
+            commit=False,
+            *filters, **filter_by
+    ):
         """
-        Добавление данных
+        Обновление данных
         """
 
         stmt = (
-            insert(self.model)
-            .values(**data.model_dump())
+            update(self.model)
+            .values(**data.model_dump(by_alias=True, exclude_unset=exclude_unset))
+            .filter(*filters)
+            .filter_by(**filter_by)
             .returning(self.model)
         )
-        return (await self.session.execute(stmt)).mappings().one()
+        result = await self.session.execute(stmt)
 
-    async def insert_model_data_scalar(self, data: BaseModel):
-        """
-        Добавление данных
-        """
+        if commit:
+            self.session.commit()
 
-        stmt = (
-            insert(self.model)
-            .values(**data.model_dump())
-            .returning(self.model)
-        )
-        return (await self.session.execute(stmt)).scalars().one()
+        return result.scalars().one() if scalars else result.mappings().one()
 
-    async def delete(self, *filters, **filter_by) -> int:
+    async def delete_one(self, commit=False, *filters, **filter_by) -> int:
         """
-        Удаление записи по фильтру
+        Удаление данных
         """
 
         stmt = (
@@ -143,4 +171,9 @@ class BaseRepository:
             .filter(*filters)
             .filter_by(**filter_by)
         )
-        return (await self.session.execute(stmt)).rowcount
+        result = await self.session.execute(stmt)
+
+        if commit:
+            self.session.commit()
+
+        return result.rowcount
