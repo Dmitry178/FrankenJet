@@ -4,7 +4,7 @@ from uuid import UUID
 from app.db.db_manager import DBManager
 from app.db.models import Aircraft
 from app.db.models.articles import AircraftTypes, EngineTypes, AircraftStatus
-from app.schemas.aircraft import SAircraftFilters, SPostAircraft
+from app.schemas.aircraft import SAircraftFilters, SAircraft
 
 
 class AircraftServices:
@@ -13,26 +13,6 @@ class AircraftServices:
 
     def __init__(self, db: DBManager | None = None) -> None:
         self.db = db
-
-    async def get_aircraft(
-            self,
-            name: str | None = None,
-            page: int | None = None,
-            page_size: int | None = None,
-            filters: SAircraftFilters | None = None):
-        """
-        Получение списка воздушных судов по фильтру
-        """
-
-        filter_conditions = [Aircraft.name.ilike(f"%{name}%")] if name else []
-        filter_by_conditions = filters.model_dump(exclude_none=True) if filters else {}
-
-        offset = (page-1)*page_size
-        limit = page_size
-
-        return await self.db.articles.aircraft.select_all_paginated(
-            offset, limit, *filter_conditions, **filter_by_conditions
-        )
 
     @staticmethod
     async def get_aircraft_types() -> List[str]:
@@ -58,14 +38,34 @@ class AircraftServices:
 
         return [AircraftStatus(item).value for item in AircraftStatus]
 
-    async def create_aircraft(self, data: SPostAircraft):
+    async def get_aircraft(
+            self,
+            name: str | None = None,
+            page: int | None = None,
+            page_size: int | None = None,
+            filters: SAircraftFilters | None = None):
         """
-        Создание карточки воздушного судна
+        Получение списка воздушных судов по фильтру
+        """
+
+        filter_conditions = [Aircraft.name.ilike(f"%{name}%")] if name else []
+        filter_by_conditions = filters.model_dump(exclude_none=True) if filters else {}
+
+        offset = (page-1)*page_size
+        limit = page_size
+
+        return await self.db.articles.aircraft.select_all_paginated(
+            offset, limit, *filter_conditions, **filter_by_conditions
+        )
+
+    async def add_aircraft(self, data: SAircraft):
+        """
+        Добавление карточки воздушного судна
         """
 
         return await self.db.articles.aircraft.insert_one(data)
 
-    async def edit_aircraft(self, aircraft_id: UUID, data: SPostAircraft, exclude_unset=False):
+    async def edit_aircraft(self, aircraft_id: UUID, data: SAircraft, exclude_unset=False):
         """
         Редактирование карточки воздушного судна
         """
