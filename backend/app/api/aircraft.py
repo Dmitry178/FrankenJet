@@ -1,10 +1,13 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Depends
+from uuid import UUID
 
+from app.core.logs import logger
 from app.db.models.articles import EngineTypes, AircraftStatus
+from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
-from app.schemas.aircraft import SAircraftFilters
+from app.schemas.aircraft import SAircraftFilters, SPostAircraft
 from app.services.aircraft import AircraftServices
-from app.types import status_ok
+from app.types import status_ok, status_error
 
 aircraft_router = APIRouter(prefix="/articles", tags=["Articles"])
 
@@ -33,10 +36,86 @@ async def get_aircraft(
     return {**status_ok, "data": data}
 
 
+@aircraft_router.post(
+    "/aircraft",
+    summary="Создание воздушного судна",
+    dependencies=[Depends(get_auth_editor_id)],
+)
+async def create_aircraft(data: SPostAircraft, db: DDB):
+    """
+    Создание карточки воздушного судна
+    """
+
+    try:
+        result = AircraftServices(db).create_aircraft(data)
+        return {**status_ok, "data": result}
+
+    except Exception as ex:
+        logger.error(ex)
+        return {**status_error}
+
+
+@aircraft_router.put(
+    "/aircraft/{aircraft_id}",
+    summary="Изменение воздушного судна",
+    dependencies=[Depends(get_auth_editor_id)],
+)
+async def edit_aircraft_put(aircraft_id: UUID, data: SPostAircraft, db: DDB):
+    """
+    Редактирование карточки воздушного судна (put)
+    """
+
+    try:
+        result = AircraftServices(db).edit_aircraft(aircraft_id, data)
+        return {**status_ok, "data": result}
+
+    except Exception as ex:
+        logger.error(ex)
+        return {**status_error}
+
+
+@aircraft_router.patch(
+    "/aircraft/{aircraft_id}",
+    summary="Изменение воздушного судна",
+    dependencies=[Depends(get_auth_editor_id)],
+)
+async def edit_aircraft_post(aircraft_id: UUID, data: SPostAircraft, db: DDB):
+    """
+    Редактирование карточки воздушного судна (patch)
+    """
+
+    try:
+        result = AircraftServices(db).edit_aircraft(aircraft_id, data, exclude_unset=True)
+        return {**status_ok, "data": result}
+
+    except Exception as ex:
+        logger.error(ex)
+        return {**status_error}
+
+
+@aircraft_router.delete(
+    "/aircraft/{aircraft_id}",
+    summary="Удаление воздушного судна",
+    dependencies=[Depends(get_auth_editor_id)],
+)
+async def delete_aircraft(aircraft_id: UUID, db: DDB):
+    """
+    Удаление карточки воздушного судна
+    """
+
+    try:
+        result = AircraftServices(db).delete_aircraft(aircraft_id)
+        return {**status_ok, "data": result}
+
+    except Exception as ex:
+        logger.error(ex)
+        return {**status_error}
+
+
 @aircraft_router.get("/aircraft/types", summary="Список типов воздушных судов")
 async def get_aircraft_types():
     """
-    Получить список типов воздушных судов
+    Получение списка типов воздушных судов
     """
 
     data = await AircraftServices().get_aircraft_types()
@@ -46,7 +125,7 @@ async def get_aircraft_types():
 @aircraft_router.get("/aircraft/engines", summary="Список типов двигателей воздушных судов")
 async def get_engine_types():
     """
-    Получить список типов двигателей воздушных судов
+    Получение списка типов двигателей воздушных судов
     """
 
     data = await AircraftServices().get_engine_types()
@@ -56,7 +135,7 @@ async def get_engine_types():
 @aircraft_router.get("/aircraft/statuses", summary="Список статусов воздушных судов")
 async def get_aircraft_statuses():
     """
-    Получить список статусов воздушных судов
+    Получение списка статусов воздушных судов
     """
 
     data = await AircraftServices().get_aircraft_statuses()
