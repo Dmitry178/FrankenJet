@@ -1,5 +1,5 @@
 from app.db.db_manager import DBManager
-from app.schemas.aircraft import SCountriesFilters
+from app.schemas.articles import SCountriesFilters
 
 
 class ArticlesServices:

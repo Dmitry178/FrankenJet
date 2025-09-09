@@ -2,7 +2,7 @@ from fastapi import APIRouter, Query
 
 from app.core.logs import logger
 from app.dependencies.db import DDB
-from app.schemas.aircraft import SCountriesFilters
+from app.schemas.articles import SCountriesFilters
 from app.services.articles import ArticlesServices
 from app.types import status_ok
 
