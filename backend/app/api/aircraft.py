@@ -5,7 +5,7 @@ from app.core.logs import logger
 from app.db.models.articles import EngineTypes, AircraftStatus
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
-from app.schemas.aircraft import SAircraftFilters, SPostAircraft
+from app.schemas.aircraft import SAircraftFilters, SAircraft
 from app.services.aircraft import AircraftServices
 from app.types import status_ok, status_error
 
@@ -38,16 +38,16 @@ async def get_aircraft(
 
 @aircraft_router.post(
     "/aircraft",
-    summary="Создание воздушного судна",
+    summary="Добавление воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def create_aircraft(data: SPostAircraft, db: DDB):
+async def add_aircraft(data: SAircraft, db: DDB):
     """
-    Создание карточки воздушного судна
+    Добавление карточки воздушного судна
     """
 
     try:
-        result = AircraftServices(db).create_aircraft(data)
+        result = AircraftServices(db).add_aircraft(data)
         return {**status_ok, "data": result}
 
     except Exception as ex:
@@ -60,7 +60,7 @@ async def create_aircraft(data: SPostAircraft, db: DDB):
     summary="Изменение воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def edit_aircraft_put(aircraft_id: UUID, data: SPostAircraft, db: DDB):
+async def edit_aircraft_put(aircraft_id: UUID, data: SAircraft, db: DDB):
     """
     Редактирование карточки воздушного судна (put)
     """
@@ -79,7 +79,7 @@ async def edit_aircraft_put(aircraft_id: UUID, data: SPostAircraft, db: DDB):
     summary="Изменение воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def edit_aircraft_post(aircraft_id: UUID, data: SPostAircraft, db: DDB):
+async def edit_aircraft_post(aircraft_id: UUID, data: SAircraft, db: DDB):
     """
     Редактирование карточки воздушного судна (patch)
     """
