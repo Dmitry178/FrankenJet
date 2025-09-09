@@ -41,3 +41,8 @@ class TokenTypeErrorEx(BaseAuthException):
 class AuthUserErrorEx(BaseAuthException):
     detail = "Auth user error"
     status_code = status.HTTP_401_UNAUTHORIZED
+
+
+class AuthRoleErrorEx(BaseAuthException):
+    detail = "Auth role error"
+    status_code = status.HTTP_403_FORBIDDEN
