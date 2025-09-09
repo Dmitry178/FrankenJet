@@ -1,9 +1,10 @@
 from typing import List
+from uuid import UUID
 
 from app.db.db_manager import DBManager
 from app.db.models import Aircraft
 from app.db.models.articles import AircraftTypes, EngineTypes, AircraftStatus
-from app.schemas.aircraft import SAircraftFilters
+from app.schemas.aircraft import SAircraftFilters, SPostAircraft
 
 
 class AircraftServices:
@@ -20,7 +21,7 @@ class AircraftServices:
             page_size: int | None = None,
             filters: SAircraftFilters | None = None):
         """
-        Список воздушных судов по фильтру
+        Получение списка воздушных судов по фильтру
         """
 
         filter_conditions = [Aircraft.name.ilike(f"%{name}%")] if name else []
@@ -36,7 +37,7 @@ class AircraftServices:
     @staticmethod
     async def get_aircraft_types() -> List[str]:
         """
-        Список типов воздушных судов
+        Получение списка типов воздушных судов
         """
 
         return [AircraftTypes(item).value for item in AircraftTypes]
@@ -44,7 +45,7 @@ class AircraftServices:
     @staticmethod
     async def get_engine_types() -> List[str]:
         """
-        Список типов двигателей
+        Получение списка типов двигателей
         """
 
         return [EngineTypes(item).value for item in EngineTypes]
@@ -52,7 +53,34 @@ class AircraftServices:
     @staticmethod
     async def get_aircraft_statuses() -> List[str]:
         """
-        Список статусов воздушных судов
+        Получение списка статусов воздушных судов
         """
 
         return [AircraftStatus(item).value for item in AircraftStatus]
+
+    async def create_aircraft(self, data: SPostAircraft):
+        """
+        Создание карточки воздушного судна
+        """
+
+        return await self.db.articles.aircraft.insert_one(data)
+
+    async def edit_aircraft(self, aircraft_id: UUID, data: SPostAircraft, exclude_unset=False):
+        """
+        Редактирование карточки воздушного судна
+        """
+
+        return await self.db.articles.aircraft.update_one(
+            data,
+            id=aircraft_id,
+            exclude_unset=exclude_unset,
+            commit=True,
+        )
+
+    async def delete_aircraft(self, aircraft_id: UUID):
+        """
+        Удаление карточки воздушного судна
+        """
+
+        return await self.db.articles.aircraft.delete_one(id=aircraft_id)
+
