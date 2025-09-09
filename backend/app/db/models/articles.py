@@ -64,8 +64,8 @@ class Aircraft(Base, TimestampMixin):
     __table_args__ = {"schema": "articles"}
 
     id: Mapped[uid_pk]
-    country_id: Mapped[fk_country]
-    manufacturer_id: Mapped[fk_manufacturer]
+    country_id: Mapped[fk_country]  # код страны
+    manufacturer_id: Mapped[fk_manufacturer]  # id производителя
 
     name: Mapped[str_32] = mapped_column(unique=True)  # название
     aircraft_type: Mapped[str | None] = mapped_column(Enum(AircraftTypes, native_enum=False))  # тип воздушного судна
