@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:17.5
+    container_name: fj-postgres
+    hostname: postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-fj_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fj_pass}
+      POSTGRES_DB: ${POSTGRES_DB:-fj}
+      TZ: Europe/Moscow
+    ports:
+      - "${POSTGRES_PORT:-5436}:5432"
+    volumes:
+      - ./volumes/postgres:/var/lib/postgresql/data
+    networks:
+      - network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: fj-backend
+    hostname: backend
+    depends_on:
+      - postgres
+    ports:
+      - "${BACKEND_PORT:-8100}:8000"
+    environment:
+      DB_CONN: ${DB_CONN:-fj_user:fj_pass@postgres:5432/fj}
+      CORS: ${CORS:-http://frontend:3100}
+      ALLOW_AUTHENTICATION: ${ALLOW_AUTHENTICATION:-true}
+      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASS: ${ADMIN_PASS:-admin}
+    restart: unless-stopped
+    networks:
+      - network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        API_BASE_URL: ${API_BASE_URL:-http://localhost:8100}
+    container_name: fj-frontend
+    hostname: frontend
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-3100}:80"
+    environment:
+      - API_BASE_URL=http://backend:8100
+      - VITE_API_BASE_URL=http://backend:8100
+    restart: unless-stopped
+    networks:
+      - network
+
+networks:
+  network:
+    driver: bridge
