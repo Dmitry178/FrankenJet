@@ -53,7 +53,7 @@ class Settings(BaseSettings):
 
     # учётная запись админа по умолчанию (создаётся при первом запуске) # TODO: реализовать
     ADMIN_USER: str | None = None
-    ADMIN_HASHED_PASSWORD: str | None = None
+    ADMIN_PASS: str | None = None
 
     # доступность встроенной аутентификации, регистрации и сброса пароля пользователя
     ALLOW_AUTHENTICATION: bool = False
@@ -85,7 +85,7 @@ class Settings(BaseSettings):
             raise ValueError("Invalid application mode")
         return self
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file=".env", extra='ignore')
 
 
 settings = Settings()
