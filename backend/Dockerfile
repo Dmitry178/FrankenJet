@@ -8,9 +8,14 @@ WORKDIR /code
 
 COPY ./pyproject.toml ./uv.lock* /code/
 RUN pip install uv
-RUN uv exoprt > requirements.txt
+RUN uv pip compile pyproject.toml --output-file requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
 
 COPY ./app /code/app
+COPY ./main.py /code/main.py
+COPY ./scripts /code/scripts
+COPY ./alembic /code/alembic
+COPY ./alembic.ini /code/alembic.ini
+RUN chmod +x /code/scripts/entrypoint.sh
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8111", "--forwarded-allow-ips=*", "--proxy-headers", "--no-server-header"]
+ENTRYPOINT ["/code/scripts/entrypoint.sh"]
