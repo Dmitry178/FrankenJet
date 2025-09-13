@@ -100,4 +100,3 @@ async def delete_design_bureau(bureau_id: UUID, db: DDB):
     except Exception as ex:
         logger.error(ex)
         return {**status_error}
-
