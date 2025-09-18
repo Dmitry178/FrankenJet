@@ -1,0 +1,305 @@
+import aioboto3
+import aiofiles
+
+from pathlib import Path
+from typing import List, AsyncGenerator
+
+from app.core.logs import logger
+
+
+class S3Manager:
+    """
+    Менеджер S3
+    """
+
+    def __init__(
+            self,
+            access_key_id: str,
+            secret_access_key: str,
+            endpoint_url: str | None = None,
+            # region_name: str = "us-east-1",
+    ):
+        self.access_key_id = access_key_id
+        self.secret_access_key = secret_access_key
+        self.endpoint_url = endpoint_url
+        # self.region_name = region_name
+        self.session = aioboto3.Session()
+
+    async def get_client(self):
+        """
+        Создание асинхронного клиента S3
+        """
+
+        return self.session.client(
+            "s3",
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.secret_access_key,
+            endpoint_url=self.endpoint_url,
+            # region_name=self.region_name,
+        )
+
+    async def list_buckets(self) -> List[str]:
+        """
+        Возврат списка бакетов
+        """
+
+        async with await self.get_client() as s3:
+            response = await s3.list_buckets()
+            return [bucket["Name"] for bucket in response["Buckets"]]
+
+    async def create_bucket(self, bucket_name: str) -> bool:
+        """
+        Создание бакета
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                await s3.create_bucket(Bucket=bucket_name)
+                logger.info(f"Бакет {bucket_name} создан")
+                return True
+
+        except Exception as ex:
+            logger.error(f"Ошибка создания бакета {bucket_name}: {ex}")
+            return False
+
+    async def delete_bucket(self, bucket_name: str) -> bool:
+        """
+        Удаление бакета
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                await self.empty_bucket(bucket_name)  # удаление всех объектов в бакете
+                await s3.delete_bucket(Bucket=bucket_name)
+                logger.info(f"Бакет {bucket_name} удалён")
+                return True
+
+        except Exception as ex:
+            logger.error(f"Ошибка удаления бакета {bucket_name}: {ex}")
+            return False
+
+    async def empty_bucket(self, bucket_name: str):
+        """
+        Очистка бакета от всех объектов
+        """
+
+        async with await self.get_client() as s3:
+            objects = await s3.list_objects_v2(Bucket=bucket_name)  # получение списка объектов
+            if "Contents" in objects:
+                delete_keys = [{"Key": obj["Key"]} for obj in objects["Contents"]]
+                await s3.delete_objects(
+                    Bucket=bucket_name,
+                    Delete={"Objects": delete_keys}
+                )
+
+    async def list_objects(self, bucket_name: str, prefix: str = "") -> List[dict]:
+        """
+        Возвращение списка объектов в бакете
+        """
+
+        async with await self.get_client() as s3:
+            response = await s3.list_objects_v2(
+                Bucket=bucket_name,
+                Prefix=prefix
+            )
+            return response.get("Contents", [])
+
+    @staticmethod
+    def define_content_type(file_name: str) -> dict:
+        """
+        Определение Content-Type по расширению файла
+        """
+
+        content_type_mapping = {
+            ".txt": "text/plain",
+            ".jpg": "image/jpeg",
+            ".jpeg": "image/jpeg",
+            ".png": "image/png",
+            ".pdf": "application/pdf",
+            ".json": "application/json",
+        }
+
+        extension = Path(file_name).suffix
+        content_type = content_type_mapping.get(extension, None)
+
+        return {"ContentType": content_type} if content_type else {}
+
+    async def upload_file(
+            self,
+            bucket_name: str,
+            local_file_path: str,
+            s3_key: str | None = None,
+            extra_args: dict | None = None
+    ) -> bool:
+        """
+        Загрузка файла в S3
+        """
+
+        try:
+            if s3_key is None:
+                s3_key = Path(local_file_path).name
+
+            async with await self.get_client() as s3:
+                async with aiofiles.open(local_file_path, "rb") as file:
+                    file_content = await file.read()
+
+                upload_args = {"Bucket": bucket_name, "Key": s3_key, "Body": file_content}
+                content_type = self.define_content_type(local_file_path)
+                extra_args = extra_args | content_type if extra_args else content_type
+
+                if extra_args:
+                    upload_args.update(extra_args)
+
+                await s3.put_object(**upload_args)
+                logger.info(f"Файл {local_file_path} загружен в {s3_key}")
+                return True
+
+        except Exception as ex:
+            logger.error(f"Ошибка загрузки файла {local_file_path}: {ex}")
+            return False
+
+    async def download_file(
+            self,
+            bucket_name: str,
+            s3_key: str,
+            local_file_path: str
+    ) -> bool:
+        """
+        Скачивание файла из S3
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                response = await s3.get_object(Bucket=bucket_name, Key=s3_key)
+                async with aiofiles.open(local_file_path, "wb") as file:
+                    async for chunk in response["Body"]:
+                        await file.write(chunk)
+
+                logger.info(f"Файл {s3_key} загружен в {local_file_path}")
+                return True
+
+        except Exception as ex:
+            logger.error(f"Ошибка загрузки файла {s3_key}: {ex}")
+            return False
+
+    async def delete_object(self, bucket_name: str, s3_key: str) -> bool:
+        """
+        Удаление объекта из S3
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                await s3.delete_object(Bucket=bucket_name, Key=s3_key)
+                logger.info(f"Объект {s3_key} удалён из {bucket_name}")
+                return True
+
+        except Exception as ex:
+            logger.error(f"Ошибка удаления объекта {s3_key}: {ex}")
+            return False
+
+    async def get_pre_signed_url(
+            self,
+            bucket_name: str,
+            s3_key: str,
+            expiration: int = 3600
+    ) -> str | None:
+        """
+        Генерация предварительно подписанного URL
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                url = await s3.generate_presigned_url(
+                    "get_object",
+                    Params={"Bucket": bucket_name, "Key": s3_key},
+                    ExpiresIn=expiration
+                )
+                return url
+
+        except Exception as ex:
+            logger.error(f"Ошибка генерации предварительно подписанного  URL для {s3_key}: {ex}")
+            return None
+
+    async def copy_object(
+            self,
+            source_bucket: str,
+            source_key: str,
+            dest_bucket: str,
+            dest_key: str
+    ) -> bool:
+        """
+        Копирование объекта внутри S3
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                copy_source = {"Bucket": source_bucket, "Key": source_key}
+                await s3.copy_object(
+                    CopySource=copy_source,
+                    Bucket=dest_bucket,
+                    Key=dest_key
+                )
+                logger.info(f"Объект скопирован из  {source_key} в {dest_key}")
+                return True
+
+        except Exception as ex:
+            logger.error(f"Ошибка копирования объекта {source_key}: {ex}")
+            return False
+
+    async def stream_download(
+            self,
+            bucket_name: str,
+            s3_key: str
+    ) -> AsyncGenerator[bytes, None]:
+        """
+        Потоковая загрузка файла
+        """
+
+        async with await self.get_client() as s3:
+            response = await s3.get_object(Bucket=bucket_name, Key=s3_key)
+            async for chunk in response["Body"]:
+                yield chunk
+
+    async def upload_from_memory(
+            self,
+            bucket_name: str,
+            s3_key: str,
+            data: bytes,
+            content_type: str = "application/octet-stream"
+    ) -> bool:
+        """
+        Загрузка данных из памяти
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                await s3.put_object(
+                    Bucket=bucket_name,
+                    Key=s3_key,
+                    Body=data,
+                    ContentType=content_type
+                )
+                logger.info(f"Данные загружены в {s3_key}")
+                return True
+
+        except Exception as ex:
+            logger.error(f"Ошибка загрузки данных в {s3_key}: {ex}")
+            return False
+
+    async def get_object_metadata(
+            self,
+            bucket_name: str,
+            s3_key: str
+    ) -> dict | None:
+        """
+        Получает метаданные объекта
+        """
+
+        try:
+            async with await self.get_client() as s3:
+                response = await s3.head_object(Bucket=bucket_name, Key=s3_key)
+                return response["Metadata"]
+
+        except Exception as ex:
+            logger.error(f"Ошибка получения метаданных для {s3_key}: {ex}")
+            return None
