@@ -23,7 +23,7 @@ async def get_google_oauth2_redirect():
 
 
 @oauth_router.post("/google/redirect")
-async def process_google_callback(code: ABody, state: ABody, db: DDB):
+async def google_redirect(code: ABody, state: ABody, db: DDB):
     """
     Обработка ответа от Google
     """
@@ -53,14 +53,14 @@ async def get_vk_oauth2_redirect():
 
 
 @oauth_router.post("/vk/redirect")
-async def process_google_callback(code: ABody, state: ABody, db: DDB):
+async def vk_redirect(code: ABody, state: ABody, db: DDB):
     """
     Обработка ответа от VK
     """
 
     try:
         # TODO: убрать дублирование кода, сделать через провайдеров oauth2
-        user_data = await OAuth2Services.VK.get_oauth2_user_data(code, state)
+        user_data = await OAuth2Services.VK.get_oauth2_user_data(code, state)  # TODO: доделать
         user = await UsersServices(db).get_or_create_user_by_oauth2(user_data)
         tokens = await AuthServices(db).issue_tokens(user.id, user.email, user.roles)
         return {**status_ok, "data": tokens.model_dump()}
