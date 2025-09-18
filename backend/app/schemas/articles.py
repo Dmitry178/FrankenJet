@@ -1,55 +1,24 @@
-from datetime import date
+from datetime import datetime
 from pydantic import BaseModel, Field
 
 
-class SCountriesFilters(BaseModel):
+class SArticles(BaseModel):
     """
-    Схема фильтра по странам
-    """
-
-    country: str | None = Field(None, description="Страна"),
-
-
-class SCountries(BaseModel):
-    """
-    Схема стран
+    Схема статей
     """
 
-    id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
-    name: str = Field(None, max_length=32, description="Название страны")
-    iso_code: str | None = Field(None, max_length=3, description="Трёхбуквенный ISO-код страны")
-    flag_image_url: str = Field(None, max_length=128, description="URL изображения флага страны")
-
-
-class SDesigners(BaseModel):
-    """
-    Схема конструкторов
-    """
-
-    country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
-    name: str = Field(..., max_length=32, description="Имя конструктора")
-    birth_date: date = Field(None)
-    death_date: date = Field(None)
-    known_for: str = Field(None, description="Чем знаменит конструктор")
-    biography: str = Field(..., description="Биография")
-    image_url: str = Field(None, description="URL основного изображения")
-
-
-class SDesignBureaus(BaseModel):
-    """
-    Схема конструкторских бюро
-    """
-
-    country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
-    name: str = Field(..., max_length=32, description="Название конструкторского бюро")
-    description: str = Field(..., description="Описание конструкторского бюро")
-
-
-class SManufacturers(BaseModel):
-    """
-    Схема производителей
-    """
-
-    country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
-    name: str = Field(..., max_length=32, description="Название производителя")
-    description: str = Field(..., description="Описание производителя")
+    article_category: str = Field(None, max_length=32, description="Категория статьи")  # TODO: уточнить длину (enum)
+    slug: str = Field(..., max_length=64, description="Строковый идентификатор")
+    title: str = Field(..., max_length=32, description="Заголовок статьи")
+    summary: str = Field(None, description="Краткое описание статьи")
+    content: str = Field(..., description="Текст статьи")
+    image_url: str = Field(None, max_length=128, description="Главное изображение")
+    thumbnail_url: str = Field(None, max_length=128, description="Миниатюра")
+    meta_title: str = Field(None, max_length=64, description="Мета-информация для SEO (название)")
+    meta_description: str = Field(None, max_length=128, description="Мета-информация для SEO (описание)")
+    view_count: int = Field(..., ge=0, description="Количество просмотров страницы")
+    seo_keywords: str = Field(None, max_length=128, description="Ключевые слова SEO")
+    is_published: bool = Field(False, description="Статья опубликована")
+    is_archived: bool = Field(False, description="Статья в архиве")
+    published_at: datetime = Field(None, description="Дата публикации")
+    archived_at: datetime = Field(None, description="Дата архива")
