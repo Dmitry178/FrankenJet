@@ -6,7 +6,7 @@ class SLoginUser(BaseModel):
     Схема логина пользователя
     """
 
-    email: EmailStr
+    email: str  # EmailStr
     password: str
 
 
