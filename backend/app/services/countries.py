@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from app.db.db_manager import DBManager
-from app.schemas.articles import SCountries
+from app.schemas.aircraft import SCountries
 
 
 class CountriesServices:
@@ -16,21 +16,21 @@ class CountriesServices:
         Получение списка стран
         """
 
-        return await self.db.articles.countries.select_all()
+        return await self.db.aircraft.countries.select_all()
 
     async def add_country(self, data: SCountries):
         """
         Добавление карточки страны
         """
 
-        return await self.db.articles.countries.insert_one(data)
+        return await self.db.aircraft.countries.insert_one(data)
 
     async def edit_country(self, aircraft_id: UUID, data: SCountries, exclude_unset=False):
         """
         Редактирование карточки страны
         """
 
-        return await self.db.articles.countries.update_one(
+        return await self.db.aircraft.countries.update_one(
             data,
             id=aircraft_id,
             exclude_unset=exclude_unset,
@@ -42,4 +42,4 @@ class CountriesServices:
         Удаление карточки страны
         """
 
-        return await self.db.articles.countries.delete_one(id=aircraft_id)
+        return await self.db.aircraft.countries.delete_one(id=aircraft_id)
