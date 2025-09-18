@@ -1,21 +1,34 @@
-from fastapi import APIRouter, Query, Depends
+from fastapi import APIRouter, Query, Path, Depends
 from uuid import UUID
 
 from app.core.logs import logger
-from app.db.models.articles import EngineTypes, AircraftStatus
+from app.db.models.aircraft import EngineTypes, AircraftStatus
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
 from app.schemas.aircraft import SAircraftFilters, SAircraft
 from app.services.aircraft import AircraftServices
 from app.types import status_ok, status_error
 
-aircraft_router = APIRouter(prefix="/articles", tags=["Articles"])
+aircraft_router = APIRouter(prefix="/aircraft", tags=["Aircraft"])
 
 
-@aircraft_router.get("/aircraft", summary="Список воздушных судов")
+@aircraft_router.get("/{slug}", summary="Карточка воздушного судна")
 async def get_aircraft(
         db: DDB,
-        name: str | None = Query(None, description="Название самолета"),
+        slug: str = Path(..., description="Название воздушного судна"),
+):
+    """
+    Карточка воздушного судна
+    """
+
+    data = await AircraftServices(db).get_aircraft(slug)
+    return {**status_ok, "data": data}
+
+
+@aircraft_router.get("/list", summary="Список воздушных судов")
+async def get_aircraft_list(
+        db: DDB,
+        name: str | None = Query(None, description="Название воздушного судна"),
         country: str | None = Query(None, description="Фильтр по стране"),
         engine_type: EngineTypes | None = Query(None, description="Фильтр по типу двигателя"),
         status: AircraftStatus | None = Query(None, description="Фильтр по статусу воздушного судна"),
@@ -23,7 +36,7 @@ async def get_aircraft(
         page_size: int = Query(20, ge=1, le=100, description="Количество элементов на странице"),
 ):
     """
-    Получить список воздушных судов
+    Получение списка воздушных судов
     """
 
     filters = SAircraftFilters(
@@ -32,12 +45,12 @@ async def get_aircraft(
         status=status,
     )
 
-    data = await AircraftServices(db).get_aircraft(name, page, page_size, filters)
+    data = await AircraftServices(db).get_aircraft_list(name, page, page_size, filters)
     return {**status_ok, "data": data}
 
 
 @aircraft_router.post(
-    "/aircraft",
+    "",
     summary="Добавление воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
 )
@@ -56,7 +69,7 @@ async def add_aircraft(data: SAircraft, db: DDB):
 
 
 @aircraft_router.put(
-    "/aircraft/{aircraft_id}",
+    "/{aircraft_id}",
     summary="Изменение воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
 )
@@ -75,7 +88,7 @@ async def edit_aircraft_put(aircraft_id: UUID, data: SAircraft, db: DDB):
 
 
 @aircraft_router.patch(
-    "/aircraft/{aircraft_id}",
+    "/{aircraft_id}",
     summary="Изменение воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
 )
@@ -94,7 +107,7 @@ async def edit_aircraft_post(aircraft_id: UUID, data: SAircraft, db: DDB):
 
 
 @aircraft_router.delete(
-    "/aircraft/{aircraft_id}",
+    "/{aircraft_id}",
     summary="Удаление воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
 )
@@ -112,7 +125,7 @@ async def delete_aircraft(aircraft_id: UUID, db: DDB):
         return {**status_error}
 
 
-@aircraft_router.get("/aircraft/types", summary="Список типов воздушных судов")
+@aircraft_router.get("/types", summary="Список типов воздушных судов")
 async def get_aircraft_types():
     """
     Получение списка типов воздушных судов
@@ -122,7 +135,7 @@ async def get_aircraft_types():
     return {**status_ok, "data": data}
 
 
-@aircraft_router.get("/aircraft/engines", summary="Список типов двигателей воздушных судов")
+@aircraft_router.get("/engines", summary="Список типов двигателей воздушных судов")
 async def get_engine_types():
     """
     Получение списка типов двигателей воздушных судов
@@ -132,7 +145,7 @@ async def get_engine_types():
     return {**status_ok, "data": data}
 
 
-@aircraft_router.get("/aircraft/statuses", summary="Список статусов воздушных судов")
+@aircraft_router.get("/statuses", summary="Список статусов воздушных судов")
 async def get_aircraft_statuses():
     """
     Получение списка статусов воздушных судов
