@@ -15,6 +15,23 @@ services:
     networks:
       - network
 
+  minio:
+    image: quay.io/minio/minio:RELEASE.2024-03-15T01-07-19Z
+    hostname: minio
+    container_name: fj-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+    volumes:
+      - ./volumes/s3:/data
+    ports:
+      - "${S3_API_PORT:-9910}:9000"
+      - "${S3_CONSOLE_PORT:-9911}:9001"
+    restart: unless-stopped
+    networks:
+      - network
+
   backend:
     build:
       context: ./backend
@@ -23,15 +40,19 @@ services:
     hostname: backend
     depends_on:
       - postgres
+      - minio
     ports:
       - "${BACKEND_PORT:-8100}:8000"
     environment:
       DB_CONN: ${DB_CONN:-fj_user:fj_pass@postgres:5432/fj}
-      CORS: ${CORS:-http://frontend:3100}
+      CORS: ${CORS:-http://localhost:3100}
       ALLOW_AUTHENTICATION: ${ALLOW_AUTHENTICATION:-true}
       ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
       ADMIN_USER: ${ADMIN_USER:-admin}
-      ADMIN_PASS: ${ADMIN_PASS:-admin}
+      ADMIN_PASS: ${ADMIN_PASS:-password}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-admin}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-password}
+      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-http://localhost:9910}
     restart: unless-stopped
     networks:
       - network
@@ -48,9 +69,6 @@ services:
       - backend
     ports:
       - "${FRONTEND_PORT:-3100}:80"
-    environment:
-      - API_BASE_URL=http://backend:8100
-      - VITE_API_BASE_URL=http://backend:8100
     restart: unless-stopped
     networks:
       - network
