@@ -4,11 +4,11 @@ from uuid import UUID
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
-from app.schemas.articles import SCountriesFilters, SManufacturers
+from app.schemas.aircraft import SCountriesFilters, SManufacturers
 from app.services.manufacturers import ManufacturersServices
 from app.types import status_ok, status_error
 
-manufacturers_router = APIRouter(prefix="/articles", tags=["Articles"])
+manufacturers_router = APIRouter(prefix="/aircraft", tags=["Aircraft"])
 
 
 @manufacturers_router.get("/manufacturers", summary="Список производителей")
