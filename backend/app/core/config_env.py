@@ -68,6 +68,11 @@ class Settings(BaseSettings):
     OAUTH2_VK_CLIENT_ID: str | None = None
     OAUTH2_VK_CLIENT_SECRET: str | None = None
 
+    # подключение к S3
+    S3_ACCESS_KEY_ID: str | None = None
+    S3_SECRET_ACCESS_KEY: str | None = None
+    S3_ENDPOINT_URL: str | None = None
+
     @property
     def db_url(self):
         return f"postgresql+asyncpg://{self.DB_CONN}"
