@@ -1,3 +1,5 @@
+# ruff: noqa: F403, F405
+
 import asyncio
 import asyncpg
 import sys
