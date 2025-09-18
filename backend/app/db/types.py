@@ -1,6 +1,6 @@
 import uuid
 
-from sqlalchemy import MetaData, UUID, text, ForeignKey, Integer, BigInteger, String
+from sqlalchemy import MetaData, UUID, text, ForeignKey, Integer, BigInteger, String, Boolean, true, false, literal
 from sqlalchemy.orm import mapped_column
 
 from typing import Annotated
@@ -14,9 +14,16 @@ str_64 = Annotated[str, 64]
 str_128 = Annotated[str, 128]
 str_256 = Annotated[str, 256]
 
-# различные аннотированные типы
+# числовые аннотированные типы
+int_0 = Annotated[int, mapped_column(Integer, default=0, server_default=literal(0))]
 int64 = Annotated[int, mapped_column(BigInteger)]
 
+# бинарные аннотированные типы
+bool_null = Annotated[bool | None, mapped_column(Boolean, nullable=True)]
+bool_true = Annotated[bool, mapped_column(Boolean, default=True, server_default=true())]
+bool_false = Annotated[bool, mapped_column(Boolean, default=False, server_default=false())]
+
+# UUID аннотированные типы
 uid = Annotated[
     uuid.UUID,
     mapped_column(
@@ -51,7 +58,13 @@ annotation_map = {
     str_128: String(128),
     str_256: String(256),
 
+    int_0: Integer,
     int64: BigInteger,
+
+    bool_null: Boolean,
+    bool_true: Boolean,
+    bool_false: Boolean,
+
     uid: UUID(as_uuid=True),
     uid_pk: UUID(as_uuid=True),
 
