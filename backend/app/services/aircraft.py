@@ -3,7 +3,7 @@ from uuid import UUID
 
 from app.db.db_manager import DBManager
 from app.db.models import Aircraft
-from app.db.models.articles import AircraftTypes, EngineTypes, AircraftStatus
+from app.db.models.aircraft import AircraftTypes, EngineTypes, AircraftStatus
 from app.schemas.aircraft import SAircraftFilters, SAircraft
 
 
@@ -38,12 +38,20 @@ class AircraftServices:
 
         return [AircraftStatus(item).value for item in AircraftStatus]
 
-    async def get_aircraft(
+    async def get_aircraft(self, slug: str) -> Aircraft:
+        """
+        Получение карточки воздушного судна
+        """
+
+        return await self.db.aircraft.select_one_or_none(slug=slug)
+
+    async def get_aircraft_list(
             self,
             name: str | None = None,
             page: int | None = None,
             page_size: int | None = None,
-            filters: SAircraftFilters | None = None):
+            filters: SAircraftFilters | None = None
+    ) -> List[Aircraft]:
         """
         Получение списка воздушных судов по фильтру
         """
@@ -54,7 +62,7 @@ class AircraftServices:
         offset = (page-1)*page_size
         limit = page_size
 
-        return await self.db.articles.aircraft.select_all_paginated(
+        return await self.db.aircraft.aircraft.select_all_paginated(
             offset, limit, *filter_conditions, **filter_by_conditions
         )
 
@@ -63,14 +71,14 @@ class AircraftServices:
         Добавление карточки воздушного судна
         """
 
-        return await self.db.articles.aircraft.insert_one(data)
+        return await self.db.aircraft.aircraft.insert_one(data)
 
     async def edit_aircraft(self, aircraft_id: UUID, data: SAircraft, exclude_unset=False):
         """
         Редактирование карточки воздушного судна
         """
 
-        return await self.db.articles.aircraft.update_one(
+        return await self.db.aircraft.aircraft.update_one(
             data,
             id=aircraft_id,
             exclude_unset=exclude_unset,
@@ -82,5 +90,4 @@ class AircraftServices:
         Удаление карточки воздушного судна
         """
 
-        return await self.db.articles.aircraft.delete_one(id=aircraft_id)
-
+        return await self.db.aircraft.aircraft.delete_one(id=aircraft_id)
