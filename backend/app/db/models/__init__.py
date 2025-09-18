@@ -1,6 +1,6 @@
 # ruff: noqa
 
-from app.db.models.articles import (
+from app.db.models.aircraft import (
     Aircraft,
     AircraftDesignersAssociation,
     AircraftManufacturersAssociation,
@@ -9,6 +9,9 @@ from app.db.models.articles import (
     Designers,
     DesignersBureausAssociation,
     Manufacturers,
+)
+from app.db.models.articles import (
+    Articles,
 )
 from app.db.models.auth import (
     RefreshTokens,
@@ -23,6 +26,7 @@ __all__ = [
     "Aircraft",
     "AircraftDesignersAssociation",
     "AircraftManufacturersAssociation",
+    "Articles",
     "Countries",
     "DesignBureaus",
     "Designers",
