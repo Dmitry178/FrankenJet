@@ -5,12 +5,15 @@ from datetime import date
 from sqlalchemy import Date, Text, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import List
+from typing import List, TYPE_CHECKING
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
 from app.db.types import uid_pk, str_32, str_64, str_128, fk_manufacturer, fk_country, fk_designer, fk_aircraft, \
-    fk_design_bureau
+    fk_design_bureau, fk_article
+
+if TYPE_CHECKING:
+    from app.db.models import Articles
 
 
 class AircraftTypes(str, enum.Enum):
@@ -64,8 +67,9 @@ class Aircraft(Base, TimestampMixin):
     __table_args__ = {"schema": "articles"}
 
     id: Mapped[uid_pk]
+    article_id: Mapped[fk_article | None]  # id статьи
     country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
-    manufacturer_id: Mapped[fk_manufacturer]  # id производителя
+    manufacturer_id: Mapped[fk_manufacturer | None]  # id производителя
 
     slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название воздушного судна
@@ -91,6 +95,7 @@ class Aircraft(Base, TimestampMixin):
     first_used: Mapped[date | None]  # дата начала эксплуатации
     last_used: Mapped[date | None]  # дата окончания эксплуатации
 
+    article: Mapped["Articles"] = relationship(back_populates="aircraft")
     country: Mapped["Countries"] = relationship(back_populates="aircraft")
     designers_association: Mapped[List["AircraftDesignersAssociation"]] = relationship(
         back_populates="aircraft"
@@ -121,7 +126,7 @@ class Countries(Base):
     id: Mapped[str] = mapped_column(String(2), primary_key=True)  # двухбуквенный ISO-код страны
 
     name: Mapped[str_32] = mapped_column(unique=True)  # название страны
-    iso_code: Mapped[str | None] = mapped_column(String(3), unique=True)  # трёхбуквенный ISO-код страны
+    iso_code: Mapped[str | None] = mapped_column(String(3), unique=True, nullable=True)  # трёхбуквенный ISO-код страны
     flag_image_url: Mapped[str_128 | None]  # URL изображения флага страны
 
     aircraft: Mapped[List["Aircraft"]] = relationship(back_populates="country")
