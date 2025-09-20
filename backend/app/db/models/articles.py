@@ -1,12 +1,18 @@
 import enum
 
 from datetime import datetime
+
 from sqlalchemy import Text, Enum
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+
+from typing import TYPE_CHECKING
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
 from app.db.types import uid_pk, int_0, str_64, str_128, bool_false
+
+if TYPE_CHECKING:
+    from app.db.models import Aircraft
 
 
 class ArticleCategories(str, enum.Enum):
@@ -14,10 +20,10 @@ class ArticleCategories(str, enum.Enum):
     Категории статей
     """
 
-    aircraft = "воздушное судно"
-    designers = "конструктор"
-    manufacturers = "производитель"
-    design_bureaus = "конструкторское бюро"
+    aircraft = "aircraft"
+    designer = "designer"
+    manufacturer = "manufacturer"
+    design_bureau = "design_bureau"
 
 
 class Articles(Base, TimestampMixin):
@@ -46,3 +52,5 @@ class Articles(Base, TimestampMixin):
     is_archived: Mapped[bool_false]  # статья в архиве
     published_at: Mapped[datetime | None]  # дата публикации
     archived_at: Mapped[datetime | None]  # дата архива
+
+    aircraft: Mapped["Aircraft"] = relationship(back_populates="article")
