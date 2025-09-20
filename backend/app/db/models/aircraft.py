@@ -73,6 +73,7 @@ class Aircraft(Base, TimestampMixin):
 
     slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название воздушного судна
+    original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
     aircraft_type: Mapped[str | None] = mapped_column(Enum(AircraftTypes, native_enum=False))  # тип воздушного судна
     first_flight: Mapped[date | None]  # первый полёт
     wingspan: Mapped[float | None]  # размах крыльев в метрах
@@ -148,6 +149,7 @@ class Designers(Base, TimestampMixin):
 
     slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # имя конструктора
+    original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # имя на оригинальном языке
     birth_date: Mapped[date | None] = mapped_column(Date)
     death_date: Mapped[date | None] = mapped_column(Date)
     known_for: Mapped[str | None] = mapped_column(Text)  # чем знаменит конструктор
@@ -202,6 +204,7 @@ class Manufacturers(Base, TimestampMixin):
 
     slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название производителя
+    original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
     description: Mapped[str] = mapped_column(Text)  # описание производителя
 
     country: Mapped["Countries"] = relationship(back_populates="manufacturers")
@@ -245,6 +248,7 @@ class DesignBureaus(Base, TimestampMixin):
 
     slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название конструкторского бюро
+    original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
     description: Mapped[str] = mapped_column(Text)  # описание конструкторского бюро
     # image_url: Mapped[str_128 | None]
     # location: Mapped[str_128 | None]
