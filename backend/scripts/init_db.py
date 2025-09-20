@@ -1,5 +1,9 @@
 # ruff: noqa: F403, F405
 
+"""
+Инициализация базы данных, добавление расширений и пользователя
+"""
+
 import asyncio
 import asyncpg
 import sys
@@ -33,6 +37,9 @@ schemas = [
 
 
 class DatabaseCreator:
+    """
+    Создание БД и пользователя, назначение привилегий
+    """
 
     def __init__(self, db_conn: str):
 
@@ -86,13 +93,17 @@ class DatabaseCreator:
 
 
 class DatabaseHandler:
+    """
+    Запуск миграций, добавление первичных данных
+    """
 
     def __init__(self, db_conn: str, admin_user: str | None = None, admin_pass: str | None = None):
 
         async_database_url = f"postgresql+asyncpg://{db_conn}"
         self.db_conn = db_conn
         self.async_engine = create_async_engine(url=async_database_url, echo=False)
-        self.async_session = async_sessionmaker(bind=self.async_engine)
+        self.async_session_maker = async_sessionmaker(bind=self.async_engine)
+        self.session = None
 
         # True - создание таблиц через миграции Alembic, False - создание таблиц через Base.metadata.create_all
         self.run_migrations = False
@@ -103,6 +114,23 @@ class DatabaseHandler:
         else:
             self.admin_user = None
             self.admin_pass = None
+
+    async def __aenter__(self):
+        """
+        Асинхронный context-manager для создания сессии
+        """
+
+        self.session = self.async_session_maker()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """
+        Асинхронный context manager для закрытия сессии
+        """
+
+        if exc_type is not None:
+            await self.session.rollback()
+        await self.session.close()
 
     async def create_tables(self):
         """
@@ -130,6 +158,24 @@ class DatabaseHandler:
                 await conn.run_sync(Base.metadata.create_all)
                 logger.info("Схемы и таблицы созданы")
 
+    async def insert_countries(self):
+        """
+        Заполнение таблицы стран
+        """
+
+        countries = [
+            {"id": "ru", "name": "Россия", "iso_code": "RUS"},
+            {"id": "su", "name": "СССР", "iso_code": None},
+            {"id": "us", "name": "США", "iso_code": "USA"},
+            {"id": "de", "name": "Германия", "iso_code": "GER"},
+        ]
+
+        stmt = insert(Countries).values(countries).on_conflict_do_nothing()
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+        logger.info("Таблица стран заполнена")
+
     async def insert_roles(self):
         """
         Заполнение таблицы ролей пользователей
@@ -142,11 +188,11 @@ class DatabaseHandler:
             {"role": "moderator"},  # модератор комментариев
         ]
 
-        async with self.async_session() as session:
-            stmt = insert(Roles).values(roles).on_conflict_do_nothing()
-            await session.execute(stmt)
-            await session.commit()
-            logger.info("Таблица ролей заполнена")
+        stmt = insert(Roles).values(roles).on_conflict_do_nothing()
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+        logger.info("Таблица ролей заполнена")
 
     async def insert_users(self):
         """
@@ -156,31 +202,30 @@ class DatabaseHandler:
         if not self.admin_user or not self.admin_pass:
             return
 
-        async with self.async_session() as session:
-            # добавление пользователя
-            query = await session.execute(select(Users.id).where(Users.email == self.admin_user))
-            user_id = query.scalar_one_or_none()
+        # добавление пользователя
+        query = await self.session.execute(select(Users.id).where(Users.email == self.admin_user))
+        user_id = query.scalar_one_or_none()
 
-            if not user_id:
-                stmt = insert(Users).values(email=self.admin_user, hashed_password=self.admin_pass).returning(Users.id)
-                user_id = (await session.execute(stmt)).scalar()
-                logger.info("Пользователь создан")
+        if not user_id:
+            stmt = insert(Users).values(email=self.admin_user, hashed_password=self.admin_pass).returning(Users.id)
+            user_id = (await self.session.execute(stmt)).scalar()
+            logger.info("Пользователь создан")
 
-            # добавление роли пользователя
-            query = await session.execute(
-                select(UsersRolesAssociation).where(
-                    UsersRolesAssociation.user_id == user_id,
-                    UsersRolesAssociation.role_id == "admin"
-                )
+        # добавление роли пользователя
+        query = await self.session.execute(
+            select(UsersRolesAssociation).where(
+                UsersRolesAssociation.user_id == user_id,
+                UsersRolesAssociation.role_id == "admin"
             )
-            existing_role = query.scalar_one_or_none()
+        )
+        existing_role = query.scalar_one_or_none()
 
-            if not existing_role:
-                stmt = insert(UsersRolesAssociation).values(user_id=user_id, role_id="admin")
-                await session.execute(stmt)
-                logger.info("Роль пользователя назначена")
+        if not existing_role:
+            stmt = insert(UsersRolesAssociation).values(user_id=user_id, role_id="admin")
+            await self.session.execute(stmt)
+            logger.info("Роль пользователя назначена")
 
-            await session.commit()
+        await self.session.commit()
 
 
 async def main():
