@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Body
 from starlette import status
 
+from app.api.responses import login_example
 from app.core.logs import logger
 from app.dependencies.auth import DAuthUserId, DAuthToken
 from app.dependencies.db import DDB
@@ -15,7 +16,7 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @auth_router.post("/login", summary="Аутентификация пользователя по email и паролю")
-async def user_login(data: SLoginUser, db: DDB):
+async def user_login(db: DDB, data: SLoginUser = Body(openapi_examples=login_example)):
     """
     Аутентификация пользователя
     """
@@ -33,7 +34,7 @@ async def user_login(data: SLoginUser, db: DDB):
 
 
 @auth_router.post("/register", summary="Регистрация пользователя")
-async def user_register(data: SLoginUser, db: DDB):
+async def user_register(db: DDB, data: SLoginUser = Body(openapi_examples=login_example)):
     """
     Регистрация пользователя
     """
