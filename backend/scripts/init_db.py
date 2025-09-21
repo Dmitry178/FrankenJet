@@ -6,16 +6,21 @@
 
 import asyncio
 import asyncpg
+import json
+import os
 import sys
 
 sys.path.append("/code")
 
 from alembic import command
 from alembic.config import Config
+from datetime import datetime
 from environs import Env
+from pathlib import Path
 from sqlalchemy import DDL, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
+from typing import TypeVar, Type
 from urllib.parse import urlparse
 
 from app.core.logs import logger
@@ -23,13 +28,18 @@ from app.db import Base
 from app.db.models import *
 from app.services.security import SecurityService
 
-# расширения
+T = TypeVar("T", bound=Base)
+
+# путь к статьям
+BASE_ARTICLES_PATH = "./scripts/articles"
+
+# расширения базы данных для установки
 extensions = [
     # "citext",
     "uuid-ossp",
 ]
 
-# схемы
+# схемы базы данных
 schemas = [
     "articles",
     "users"
@@ -132,7 +142,7 @@ class DatabaseHandler:
             await self.session.rollback()
         await self.session.close()
 
-    async def create_tables(self):
+    async def create_tables(self) -> None:
         """
         Создание таблиц базы данных
         """
@@ -158,7 +168,9 @@ class DatabaseHandler:
                 await conn.run_sync(Base.metadata.create_all)
                 logger.info("Схемы и таблицы созданы")
 
-    async def insert_countries(self):
+        return None
+
+    async def insert_countries(self) -> None:
         """
         Заполнение таблицы стран
         """
@@ -168,6 +180,7 @@ class DatabaseHandler:
             {"id": "su", "name": "СССР", "iso_code": None},
             {"id": "us", "name": "США", "iso_code": "USA"},
             {"id": "de", "name": "Германия", "iso_code": "GER"},
+            {"id": "fr", "name": "Франция", "iso_code": "FRA"},
         ]
 
         stmt = insert(Countries).values(countries).on_conflict_do_nothing()
@@ -176,7 +189,9 @@ class DatabaseHandler:
 
         logger.info("Таблица стран заполнена")
 
-    async def insert_roles(self):
+        return None
+
+    async def insert_roles(self) -> None:
         """
         Заполнение таблицы ролей пользователей
         """
@@ -194,7 +209,9 @@ class DatabaseHandler:
 
         logger.info("Таблица ролей заполнена")
 
-    async def insert_users(self):
+        return None
+
+    async def insert_users(self) -> None:
         """
         Заполнение таблицы пользователей
         """
@@ -227,11 +244,63 @@ class DatabaseHandler:
 
         await self.session.commit()
 
+        return None
 
-async def main():
+    async def add_data(self, model: Type[T], data: list) -> None:
+        """
+        Добавление данных в таблицу
+        """
+
+        if not data:
+            return None
+
+        stmt = insert(model).values(data).on_conflict_do_nothing()
+        await self.session.execute(stmt)
+        await self.session.commit()
+
+        logger.info(f"Данные добавлены в {model.__name__}")
+
+        return None
+
+
+async def main() -> None:
     """
     Запуск скриптов инициализации данных
     """
+
+    async def read_json(path: str, is_article=False) -> list:
+        """
+        Сборка json из файлов
+        """
+
+        directory = Path(f"{os.getcwd()}/{path}")
+
+        # чтение списка файлов с расширением json
+        files = [file.name for file in directory.glob("*.json")]
+
+        result = []
+        for file_name in files:
+            file_path = directory / file_name
+
+            # чтение json-файла
+            with open(file_path, "r", encoding="utf-8") as json_file:
+                json_data = json.load(json_file)
+
+                # дополнительная обработка статей
+                if is_article:
+                    # присоединение контента
+                    content_path = directory / json_data.get("content")
+                    with open(content_path, "r", encoding="utf-8") as content_file:
+                        content_data = content_file.read()
+                        json_data["content"] = content_data  # добавление контента
+
+                    # указание даты публикации
+                    if json_data.get("is_published"):
+                        json_data["published_at"] = datetime.now()
+
+                result.append(json_data)
+
+        return result
 
     env = Env()
     env.read_env()
@@ -244,15 +313,35 @@ async def main():
     admin_user = env.str("ADMIN_USER", None)
     admin_pass = env.str("ADMIN_PASS", None)
 
-    logger.info("Создание базы данных и пользователя")
-    create_db = DatabaseCreator(db_conn)
-    await create_db.create_database_and_user()
+    args = sys.argv
+    skip_create_db = "skip-create-db" in args
+    skip_create_tables = "skip-create-tables" in args
 
-    logger.info("Миграции, заполнение базы первичными данными")
-    handle_db = DatabaseHandler(db_conn, admin_user, admin_pass)
-    await handle_db.create_tables()
-    await handle_db.insert_roles()
-    await handle_db.insert_users()
+    if not skip_create_db:
+        logger.info("Создание базы данных и пользователя")
+        db_creator = DatabaseCreator(db_conn)
+        await db_creator.create_database_and_user()
+
+    async with DatabaseHandler(db_conn, admin_user, admin_pass) as db_handler:
+
+        if not skip_create_tables:
+            logger.info("Миграции")
+            await db_handler.create_tables()
+
+        logger.info("Заполнение базы первичными данными")
+        await db_handler.insert_roles()
+        await db_handler.insert_users()
+        await db_handler.insert_countries()
+
+        logger.info("Добавление статей")
+        data = await read_json(BASE_ARTICLES_PATH, is_article=True)
+        await db_handler.add_data(Articles, data)
+
+        logger.info("Добавление карточек воздушных судов")
+        data = await read_json(f"{BASE_ARTICLES_PATH}/aircraft")
+        await db_handler.add_data(Aircraft, data)
+
+    return None
 
 
 if __name__ == "__main__":
