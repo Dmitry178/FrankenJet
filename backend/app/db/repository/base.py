@@ -115,6 +115,27 @@ class BaseRepository:
 
         return data, total_count
 
+    async def select_random(self, columns=None, scalars=False, limit: int = None, *filters, **filter_by):
+        """
+        Получение случайных данных
+        """
+
+        if columns is None:
+            columns_to_select = [self.model.__table__.columns]
+        else:
+            columns_to_select = [getattr(self.model, col) for col in columns]
+
+        query = (
+            select(*columns_to_select)
+            .filter(*filters)
+            .filter_by(**filter_by)
+            .order_by(func.random())
+            .limit(limit)
+        )
+        result = await self.session.execute(query)
+
+        return result.scalars().all() if scalars else result.mappings().all()
+
     async def insert_one(self, data: BaseModel | None = None, scalars=False, commit=False, **values):
         """
         Добавление данных
