@@ -20,10 +20,14 @@ async def get_manufacturers(
     Получить список производителей
     """
 
-    filters = SCountriesFilters(country=country)
-    data = await ManufacturersServices(db).get_manufacturers(filters)
+    try:
+        filters = SCountriesFilters(country=country)
+        data = await ManufacturersServices(db).get_manufacturers(filters)
+        return {**status_ok, "data": data}
 
-    return {**status_ok, "data": data}
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
 
 
 @manufacturers_router.post(
@@ -41,8 +45,8 @@ async def add_manufacturer(data: SManufacturers, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @manufacturers_router.put(
@@ -60,8 +64,8 @@ async def edit_manufacturer_put(manufacturer_id: UUID, data: SManufacturers, db:
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @manufacturers_router.patch(
@@ -79,8 +83,8 @@ async def edit_manufacturer_post(manufacturer_id: UUID, data: SManufacturers, db
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @manufacturers_router.delete(
@@ -98,5 +102,5 @@ async def delete_manufacturer(manufacturer_id: UUID, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
