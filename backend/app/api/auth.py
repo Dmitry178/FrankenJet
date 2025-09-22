@@ -29,7 +29,7 @@ async def user_login(db: DDB, data: SLoginUser = Body(openapi_examples=login_exa
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
     except Exception as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
@@ -47,7 +47,7 @@ async def user_register(db: DDB, data: SLoginUser = Body(openapi_examples=login_
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
     except Exception as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
@@ -65,7 +65,7 @@ async def refresh_tokens(refresh_token: DAuthToken, db: DDB):
         raise HTTPException(status_code=ex.status_code, detail=ex.detail)
 
     except Exception as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
 
 
@@ -83,5 +83,5 @@ async def get_user_info(user_id: DAuthUserId, db: DDB):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
 
     except Exception as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)

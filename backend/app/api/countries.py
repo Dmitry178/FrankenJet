@@ -23,6 +23,7 @@ async def get_countries(db: DDB):
 
     except Exception as ex:
         logger.exception(ex)
+        return status_error
 
 
 @countries_router.post(
@@ -40,8 +41,8 @@ async def add_country(data: SCountries, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @countries_router.put(
@@ -59,8 +60,8 @@ async def edit_country_put(country_id: UUID, data: SCountries, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @countries_router.patch(
@@ -78,8 +79,8 @@ async def edit_country_post(country_id: UUID, data: SCountries, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @countries_router.delete(
@@ -97,5 +98,5 @@ async def delete_country(country_id: UUID, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
