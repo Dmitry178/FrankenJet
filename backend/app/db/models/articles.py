@@ -2,7 +2,7 @@ import enum
 
 from datetime import datetime
 
-from sqlalchemy import Text, Enum
+from sqlalchemy import Text, Enum, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from typing import TYPE_CHECKING
@@ -28,7 +28,7 @@ class ArticleCategories(str, enum.Enum):
 
 class Articles(Base, TimestampMixin):
     """
-    Статьи
+    Модель статей
     """
 
     __tablename__ = "articles"
@@ -54,3 +54,15 @@ class Articles(Base, TimestampMixin):
     archived_at: Mapped[datetime | None]  # дата архива
 
     aircraft: Mapped["Aircraft"] = relationship(back_populates="article")
+
+
+class Facts(Base):
+    """
+    Модель фактов об авиации
+    """
+
+    __tablename__ = "facts"
+    __table_args__ = {"schema": "articles"}
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    fact: Mapped[str_256]  # факт об авиации
