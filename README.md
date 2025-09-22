@@ -6,7 +6,7 @@
 
 ### Технологии
 
-Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend)
+Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
 
 * **Backend:**
   * Python 3.12, PostgreSQL 17, Async FastAPI, AsyncPG, AIOBoto3, AIOHTTP.
@@ -14,6 +14,8 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend)
     * Celery, RabbitMQ, Redis, AIOGram 3.
 * **Frontend:**
   * Vue.js 3.5, Vuetify
+
+Упор в проекте сделан на **Backend**.
 
 ### Реализовано
 
