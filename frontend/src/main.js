@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'
-// import './assets/main.css'
+import './assets/main.css'
 import App from './App.vue';
 import vuetify from './plugins/vuetify';
 
@@ -20,6 +20,7 @@ import Register from './components/Register.vue';
 import ResetPassword from './components/ResetPassword.vue';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const DEFAULT_IMAGE = '/aircraft.svg';
 
 function getCookie(name) {
   const value = `; ${document.cookie}`;
@@ -48,6 +49,7 @@ const pinia = createPinia()
 const app = createApp(App);
 
 app.config.globalProperties.$axios = axios;
+app.config.globalProperties.$defaultImage = DEFAULT_IMAGE;
 app.use(pinia);
 app.use(router);
 app.use(vuetify);
