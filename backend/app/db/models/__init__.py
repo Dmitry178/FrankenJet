@@ -11,7 +11,7 @@ from app.db.models.aircraft import (
     Manufacturers,
 )
 from app.db.models.articles import (
-    Articles,
+    Articles, Facts,
 )
 from app.db.models.auth import (
     RefreshTokens,
@@ -31,6 +31,7 @@ __all__ = [
     "DesignBureaus",
     "Designers",
     "DesignersBureausAssociation",
+    "Facts",
     "Manufacturers",
     "RefreshTokens",
     "Roles",
