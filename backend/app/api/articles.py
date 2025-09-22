@@ -20,8 +20,13 @@ async def get_article(
     Получение статьи
     """
 
-    data = await ArticlesServices(db).get_article(slug)
-    return {**status_ok, "data": data}
+    try:
+        data = await ArticlesServices(db).get_article(slug)
+        return {**status_ok, "data": data}
+
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
 
 
 @articles_router.get("/list", summary="Статьи")
@@ -35,8 +40,13 @@ async def get_article_list(
     Получение списка статей с фильтром
     """
 
-    data = await ArticlesServices(db).get_articles_list(page, page_size, filters)
-    return {**status_ok, "data": data}
+    try:
+        data = await ArticlesServices(db).get_articles_list(page, page_size, filters)
+        return {**status_ok, "data": data}
+
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
 
 
 @articles_router.post(
@@ -54,8 +64,8 @@ async def add_article(data: SArticles, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @articles_router.put(
@@ -73,8 +83,8 @@ async def edit_article_put(article_id: UUID, data: SArticles, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @articles_router.patch(
@@ -92,8 +102,8 @@ async def edit_article_post(article_id: UUID, data: SArticles, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @articles_router.delete(
@@ -111,5 +121,5 @@ async def delete_article(article_id: UUID, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error

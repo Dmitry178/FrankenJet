@@ -20,10 +20,14 @@ async def get_design_bureaus(
     Получить список конструкторских бюро
     """
 
-    filters = SCountriesFilters(country=country)
-    data = await BureausServices(db).get_design_bureaus(filters)
+    try:
+        filters = SCountriesFilters(country=country)
+        data = await BureausServices(db).get_design_bureaus(filters)
+        return {**status_ok, "data": data}
 
-    return {**status_ok, "data": data}
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
 
 
 @bureaus_router.post(
@@ -41,8 +45,8 @@ async def add_design_bureau(data: SDesignBureaus, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @bureaus_router.put(
@@ -60,8 +64,8 @@ async def edit_design_bureau_put(bureaus_id: UUID, data: SDesignBureaus, db: DDB
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @bureaus_router.patch(
@@ -79,8 +83,8 @@ async def edit_design_bureau_post(bureau_id: UUID, data: SDesignBureaus, db: DDB
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @bureaus_router.delete(
@@ -98,5 +102,5 @@ async def delete_design_bureau(bureau_id: UUID, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error

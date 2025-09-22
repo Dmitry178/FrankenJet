@@ -20,10 +20,14 @@ async def get_designers(
     Получить список конструкторов
     """
 
-    filters = SCountriesFilters(country=country)
-    data = await DesignersServices(db).get_designers(filters)
+    try:
+        filters = SCountriesFilters(country=country)
+        data = await DesignersServices(db).get_designers(filters)
+        return {**status_ok, "data": data}
 
-    return {**status_ok, "data": data}
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
 
 
 @designers_router.post(
@@ -41,8 +45,8 @@ async def add_design_bureau(data: SDesigners, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @designers_router.put(
@@ -60,8 +64,8 @@ async def edit_designer_put(designer_id: UUID, data: SDesigners, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @designers_router.patch(
@@ -80,7 +84,7 @@ async def edit_designer_post(designer_id: UUID, data: SDesigners, db: DDB):
 
     except Exception as ex:
         logger.error(ex)
-        return {**status_error}
+        return status_error
 
 
 @designers_router.delete(
@@ -99,4 +103,4 @@ async def delete_designer(designer_id: UUID, db: DDB):
 
     except Exception as ex:
         logger.error(ex)
-        return {**status_error}
+        return status_error

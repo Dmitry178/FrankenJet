@@ -21,8 +21,13 @@ async def get_aircraft(
     Карточка воздушного судна
     """
 
-    data = await AircraftServices(db).get_aircraft(slug)
-    return {**status_ok, "data": data}
+    try:
+        data = await AircraftServices(db).get_aircraft(slug)
+        return {**status_ok, "data": data}
+
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
 
 
 @aircraft_router.get("/list", summary="Список воздушных судов")
@@ -39,14 +44,19 @@ async def get_aircraft_list(
     Получение списка воздушных судов
     """
 
-    filters = SAircraftFilters(
-        country=country,
-        engine_type=engine_type,
-        status=status,
-    )
+    try:
+        filters = SAircraftFilters(
+            country=country,
+            engine_type=engine_type,
+            status=status,
+        )
 
-    data = await AircraftServices(db).get_aircraft_list(name, page, page_size, filters)
-    return {**status_ok, "data": data}
+        data = await AircraftServices(db).get_aircraft_list(name, page, page_size, filters)
+        return {**status_ok, "data": data}
+
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
 
 
 @aircraft_router.post(
@@ -64,8 +74,8 @@ async def add_aircraft(data: SAircraft, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @aircraft_router.put(
@@ -83,8 +93,8 @@ async def edit_aircraft_put(aircraft_id: UUID, data: SAircraft, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @aircraft_router.patch(
@@ -102,8 +112,8 @@ async def edit_aircraft_post(aircraft_id: UUID, data: SAircraft, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @aircraft_router.delete(
@@ -121,8 +131,8 @@ async def delete_aircraft(aircraft_id: UUID, db: DDB):
         return {**status_ok, "data": result}
 
     except Exception as ex:
-        logger.error(ex)
-        return {**status_error}
+        logger.exception(ex)
+        return status_error
 
 
 @aircraft_router.get("/types", summary="Список типов воздушных судов")
@@ -131,6 +141,7 @@ async def get_aircraft_types():
     Получение списка типов воздушных судов
     """
 
+    # try/except не нужно, данные берутся из enum
     data = await AircraftServices().get_aircraft_types()
     return {**status_ok, "data": data}
 
@@ -141,6 +152,7 @@ async def get_engine_types():
     Получение списка типов двигателей воздушных судов
     """
 
+    # try/except не нужно, данные берутся из enum
     data = await AircraftServices().get_engine_types()
     return {**status_ok, "data": data}
 
@@ -151,5 +163,6 @@ async def get_aircraft_statuses():
     Получение списка статусов воздушных судов
     """
 
+    # try/except не нужно, данные берутся из enum
     data = await AircraftServices().get_aircraft_statuses()
     return {**status_ok, "data": data}
