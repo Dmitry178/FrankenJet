@@ -24,7 +24,7 @@ class DesignersServices:
         Добавление карточки конструктора
         """
 
-        return await self.db.aircraft.countries.insert_one(data)
+        return await self.db.aircraft.designers.insert_one(data)
 
     async def edit_designer(self, designer_id: UUID, data: SDesigners, exclude_unset=False):
         """
