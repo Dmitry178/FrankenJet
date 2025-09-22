@@ -302,6 +302,16 @@ async def main() -> None:
 
         return result
 
+    async def read_text(file: str) -> list:
+        """
+        Получение списка из текстового файла
+        """
+
+        file_path = Path(f"{os.getcwd()}/{file}")
+        with open(file_path, "r", encoding="utf-8") as f:
+            file_data = [line.strip() for line in f if line.strip()]
+            return file_data
+
     env = Env()
     env.read_env()
 
@@ -325,13 +335,18 @@ async def main() -> None:
     async with DatabaseHandler(db_conn, admin_user, admin_pass) as db_handler:
 
         if not skip_create_tables:
-            logger.info("Миграции")
+            logger.info("Миграции" if db_handler.run_migrations else "Создание таблиц")
             await db_handler.create_tables()
 
         logger.info("Заполнение базы первичными данными")
         await db_handler.insert_roles()
         await db_handler.insert_users()
         await db_handler.insert_countries()
+
+        logger.info("Добавление фактов")
+        facts = await read_text("/scripts/facts/facts.txt")
+        data = [{"fact": fact} for fact in facts]
+        await db_handler.add_data(Facts, data)
 
         logger.info("Добавление статей")
         data = await read_json(BASE_ARTICLES_PATH, is_article=True)
