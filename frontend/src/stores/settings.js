@@ -34,7 +34,7 @@ export const useSettingsStore = defineStore('settings', {
       this.error = null;
       try {
         const response = await axios.get(`${API_BASE_URL}/settings`);
-        this.settings = response.data;
+        this.settings = response.data.data;
         this.loading = true;
       } catch (error) {
         console.error("Error loading settings:", error);
