@@ -2,6 +2,7 @@ from app.db.repository.aircraft import AircraftRepository, CountriesRepository, 
     ManufacturersRepository, DesignBureausRepository
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
+from app.db.repository.facts import FactsRepository
 from app.db.repository.users import UsersRepository
 
 
@@ -32,6 +33,7 @@ class DBManager:
         self.auth = self.AuthDBManager(self.session)
 
         self.articles = ArticlesRepository(self.session)
+        self.facts = FactsRepository(self.session)
         self.users = UsersRepository(self.session)
 
         return self
