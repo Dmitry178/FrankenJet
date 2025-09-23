@@ -1,9 +1,11 @@
+from fastapi.params import Example
+
 login_example = {
-    "1": {
-        "summary": "default",
-        "value": {
+    "example": Example(
+        summary="Default login",
+        value={
             "email": "user@example.com",
-            "password": "string",
+            "password": "password",
         }
-    }
+    )
 }
