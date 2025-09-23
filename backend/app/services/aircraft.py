@@ -59,6 +59,11 @@ class AircraftServices:
         filter_conditions = [Aircraft.name.ilike(f"%{name}%")] if name else []
         filter_by_conditions = filters.model_dump(exclude_none=True) if filters else {}
 
+        if page is None or page_size is None:
+            return await self.db.aircraft.aircraft.select_all(
+                *filter_conditions, **filter_by_conditions
+            )
+
         offset = (page-1)*page_size
         limit = page_size
 

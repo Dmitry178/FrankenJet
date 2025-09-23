@@ -40,6 +40,9 @@ class ArticlesServices:
 
         filter_conditions = [Articles.title.ilike(f"%{filters}%")] if filters else []
 
+        if page is None or page_size is None:
+            return await self.db.articles.select_all_paginated(*filter_conditions)
+
         offset = (page-1)*page_size
         limit = page_size
 
