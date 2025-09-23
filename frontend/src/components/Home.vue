@@ -18,7 +18,7 @@
       <v-card-text>
         <v-row>
           <v-col cols="12" sm="6" md="4" lg="3" v-for="article in articles" :key="article.slug">
-            <v-card>
+            <v-card @click="goToArticle(article.slug)" class="article-card">
               <v-img
                 :src="articleImage(article)"
                 height="200"
@@ -49,13 +49,18 @@
 
 <script>
 import axios from 'axios';
-import {inject} from "vue";
+import { inject } from "vue";
+import { useRouter } from 'vue-router';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
   components: {
 
+  },
+  setup() {
+    const router = useRouter();
+    return { router };
   },
   data() {
     return {
@@ -83,6 +88,20 @@ export default {
         console.error("Ошибка при загрузке данных главной страницы:", error);
       }
     },
+    goToArticle(slug) {
+      this.router.push({ path: `/articles/${slug}` });
+    },
   },
 };
 </script>
+
+<style scoped>
+.article-card {
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.article-card:hover {
+  transform: scale(1.02);
+}
+</style>
