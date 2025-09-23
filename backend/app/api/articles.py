@@ -4,6 +4,7 @@ from uuid import UUID
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
+from app.exceptions.articles import article_not_found, ArticleNotFoundEx
 from app.schemas.articles import SArticles
 from app.services.articles import ArticlesServices
 from app.types import status_ok, status_error
@@ -22,7 +23,13 @@ async def get_article(
 
     try:
         data = await ArticlesServices(db).get_article(slug)
+        if not data:
+            raise ArticleNotFoundEx
+
         return {**status_ok, "data": data}
+
+    except ArticleNotFoundEx:
+        raise article_not_found
 
     except Exception as ex:
         logger.exception(ex)
