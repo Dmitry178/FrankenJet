@@ -1,10 +1,13 @@
 from pydantic import BaseModel
 from sqlalchemy import select, insert, exists, delete, func, over, update
+from typing import Type
+
+from app.db import Base
 
 
 class BaseRepository:
 
-    model = None
+    model: Type[Base] | None = None
 
     def __init__(self, session):
         self.session = session
