@@ -1,4 +1,5 @@
 import { createApp } from 'vue';
+// import { createApp } from 'vue/dist/vue.esm-bundler.js'
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'
@@ -18,6 +19,7 @@ import AuthGoogle from './components/LoginGoogle.vue';
 // import AuthVK from './components/LoginVK.vue';
 import Register from './components/Register.vue';
 import ResetPassword from './components/ResetPassword.vue';
+import Article from './components/Article.vue';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const DEFAULT_IMAGE = '/aircraft.svg';
@@ -36,6 +38,7 @@ const routes = [
   // { path: '/profile', component: Profile, name: 'Profile', meta: { requiresAuth: true } },
   { path: '/register', component: Register, name: 'Register' },
   { path: '/reset', component: ResetPassword, name: 'ResetPassword' },
+  { path: '/articles/:slug', component: Article, name: 'Article' },
 ];
 
 const router = createRouter({
@@ -152,6 +155,8 @@ axios.interceptors.response.use(
           return Promise.reject(error);
         }
       }
+    } else if (error.response && (error.response.status === 404 || error.response.status >= 500)) {
+        return Promise.reject(error); // пробрасываем ошибку для обработки в компоненте
     }
     return Promise.reject(error);
   }
