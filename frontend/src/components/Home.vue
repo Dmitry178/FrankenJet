@@ -73,7 +73,8 @@ export default {
   },
   methods: {
     articleImage(article) {
-      return article.thumbnail_url ? article.thumbnail_url : this.$defaultImage;
+      // return article.thumbnail_url ? article.thumbnail_url : this.$defaultImage;
+      return this.$defaultImage;
     },
     async fetchHomeData() {
       try {
