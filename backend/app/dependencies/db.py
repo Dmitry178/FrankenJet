@@ -6,6 +6,10 @@ from app.db.db_manager import DBManager
 
 
 async def get_db():
+    """
+    Dependency для FastAPI, предоставляющий DBManager
+    """
+
     async with DBManager(session_factory=async_session_maker) as db:
         yield db
 

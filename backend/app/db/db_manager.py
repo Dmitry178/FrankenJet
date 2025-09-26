@@ -1,3 +1,5 @@
+""" Контекстный менеджер базы данных """
+
 from app.db.repository.aircraft import AircraftRepository, CountriesRepository, DesignersRepository, \
     ManufacturersRepository, DesignBureausRepository
 from app.db.repository.articles import ArticlesRepository
