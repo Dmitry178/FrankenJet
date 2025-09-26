@@ -12,7 +12,7 @@
         height="300"
         cover
         class="article-image"
-        :style="{ maxWidth: articleImageIsDefault ? '400px' : null }"
+        :style="{ maxWidth: articleImageIsDefault ? '480px' : null }"
       ></v-img>
 
       <v-card-text>
