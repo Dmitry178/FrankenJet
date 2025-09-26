@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import uid_pk, int_0, str_64, str_128, str_256, str_512, str_1024, bool_false
+from app.db.types import uid_pk, int_0, str_64, str_256, str_512, str_1024, bool_false
 
 if TYPE_CHECKING:
     from app.db.models import Aircraft
@@ -41,8 +41,6 @@ class Articles(Base, TimestampMixin):
     title: Mapped[str_64] = mapped_column(unique=True)  # заголовок статьи
     summary: Mapped[str_1024 | None]  # краткое описание статьи  # TODO: исправить размер строки
     content: Mapped[str] = mapped_column(Text)  # текст статьи
-    image_url: Mapped[str_128 | None]  # главное изображение
-    thumbnail_url: Mapped[str_128 | None]  # миниатюра
     meta_title: Mapped[str_512 | None]  # мета-информация для SEO (название)  # TODO: исправить размер строки
     meta_description: Mapped[str_1024 | None]  # мета-информация для SEO (описание)  # TODO: исправить размер строки
     view_count: Mapped[int_0]  # количество просмотров страницы
