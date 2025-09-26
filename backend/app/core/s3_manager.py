@@ -1,3 +1,5 @@
+""" Контекстный менеджер клиента S3 """
+
 import aioboto3
 import aiofiles
 
@@ -24,6 +26,29 @@ class S3Manager:
         self.endpoint_url = endpoint_url
         # self.region_name = region_name
         self.session = aioboto3.Session()
+
+    async def __aenter__(self):
+        """
+        Создание асинхронного клиента S3 при входе в контекст
+        """
+
+        self.client = await self.session.client(
+            "s3",
+            aws_access_key_id=self.access_key_id,
+            aws_secret_access_key=self.secret_access_key,
+            endpoint_url=self.endpoint_url,
+            # region_name=self.region_name,
+        ).__aenter__()  # получаем фактический клиент
+
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """
+        Закрытие асинхронного клиента S3 при выходе из контекста
+        """
+
+        await self.client.__aexit__(exc_type, exc_val, exc_tb)  # закрываем клиент
+        self.client = None
 
     async def get_client(self):
         """
@@ -111,18 +136,71 @@ class S3Manager:
         """
 
         content_type_mapping = {
+            # текстовые форматы
             ".txt": "text/plain",
+            ".md": "text/markdown",
+            ".csv": "text/csv",
+            ".html": "text/html",
+            ".htm": "text/html",
+            ".css": "text/css",
+
+            # изображения
             ".jpg": "image/jpeg",
             ".jpeg": "image/jpeg",
             ".png": "image/png",
+            ".svg": "image/svg+xml",
+            ".svgz": "image/svg+xml",
+            ".gif": "image/gif",
+            ".webp": "image/webp",
+            ".ico": "image/x-icon",
+            ".bmp": "image/bmp",
+            ".tiff": "image/tiff",
+            ".tif": "image/tiff",
+
+            # документы
             ".pdf": "application/pdf",
+            ".doc": "application/msword",
+            ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            ".xls": "application/vnd.ms-excel",
+            ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            ".ppt": "application/vnd.ms-powerpoint",
+            ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+
+            # архивы
+            ".zip": "application/zip",
+            ".rar": "application/x-rar-compressed",
+            ".7z": "application/x-7z-compressed",
+            ".tar": "application/x-tar",
+            ".gz": "application/gzip",
+
+            # json/xml
             ".json": "application/json",
+            ".xml": "application/xml",
+            ".rss": "application/rss+xml",
+
+            # файлы кода
+            ".js": "application/javascript",
+            ".mjs": "application/javascript",
+
+            # шрифты
+            ".woff": "font/woff",
+            ".woff2": "font/woff2",
+            ".ttf": "font/ttf",
+            ".otf": "font/otf",
+
+            # аудио/видео
+            ".mp3": "audio/mpeg",
+            ".wav": "audio/wav",
+            ".mp4": "video/mp4",
+            ".webm": "video/webm",
+            ".ogg": "audio/ogg",
+            ".avi": "video/x-msvideo",
         }
 
-        extension = Path(file_name).suffix
-        content_type = content_type_mapping.get(extension, None)
+        extension = Path(file_name).suffix.lower()
+        content_type = content_type_mapping.get(extension, "application/octet-stream")
 
-        return {"ContentType": content_type} if content_type else {}
+        return {"ContentType": content_type}
 
     async def upload_file(
             self,
