@@ -9,6 +9,7 @@ project_metadata = MetaData()
 
 # строковые аннотированные типы
 str_16 = Annotated[str, 16]
+str_24 = Annotated[str, 24]
 str_32 = Annotated[str, 32]
 str_64 = Annotated[str, 64]
 str_128 = Annotated[str, 128]
@@ -56,6 +57,7 @@ fk_manufacturer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), Foreign
 # карта аннотированных типов
 annotation_map = {
     str_16: String(16),
+    str_24: String(24),
     str_32: String(32),
     str_64: String(64),
     str_128: String(128),
