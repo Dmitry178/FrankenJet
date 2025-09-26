@@ -12,8 +12,6 @@ class SArticles(BaseModel):
     title: str = Field(..., max_length=32, description="Заголовок статьи")
     summary: str | None = Field(None, description="Краткое описание статьи")
     content: str = Field(..., description="Текст статьи")
-    image_url: str | None = Field(None, max_length=128, description="Главное изображение")
-    thumbnail_url: str | None = Field(None, max_length=128, description="Миниатюра")
     meta_title: str | None = Field(None, max_length=64, description="Мета-информация для SEO (название)")
     meta_description: str | None = Field(None, max_length=128, description="Мета-информация для SEO (описание)")
     view_count: int = Field(..., ge=0, description="Количество просмотров страницы")
