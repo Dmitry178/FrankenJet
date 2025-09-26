@@ -16,7 +16,7 @@ class PagesService:
         context = {}
 
         # случайные статьи
-        columns = ["slug", "title", "summary", "thumbnail_url"]
+        columns = ["slug", "title", "summary"]
         random_articles = await self.db.articles.select_random(columns=columns, limit=4, is_published=True) or []
         context["articles"] = random_articles
 
