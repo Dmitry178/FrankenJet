@@ -9,8 +9,8 @@ from typing import List, TYPE_CHECKING
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import uid_pk, str_32, str_64, str_128, fk_manufacturer, fk_country, fk_designer, fk_aircraft, \
-    fk_design_bureau, fk_article
+from app.db.types import uid_pk, str_16, str_24, str_32, str_64, str_128, fk_manufacturer, fk_country, fk_designer, \
+    fk_aircraft, fk_design_bureau, fk_article
 
 if TYPE_CHECKING:
     from app.db.models import Articles
@@ -74,13 +74,18 @@ class Aircraft(Base, TimestampMixin):
     slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название воздушного судна
     original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
-    aircraft_type: Mapped[str | None] = mapped_column(Enum(AircraftTypes, native_enum=False))  # тип воздушного судна
+    aircraft_type: Mapped[str_16 | None] = mapped_column(Enum(AircraftTypes, native_enum=False, length=16))  # тип ВС
+    image_url: Mapped[str_128 | None]  # основное изображение воздушного судна
+    image_description: Mapped[str_128 | None]  # описание изображения воздушного судна
+    image_license: Mapped[str_32 | None]  # лицензия изображения
+    image_source: Mapped[str_128 | None]  # источник изображения
+    image_author: Mapped[str_64 | None]  # автор изображения
     first_flight: Mapped[date | None]  # первый полёт
     wingspan: Mapped[float | None]  # размах крыльев в метрах
     length: Mapped[float | None]  # длина воздушного судна в метрах
     height: Mapped[float | None]  # высота воздушного судна в метрах
     max_takeoff_weight: Mapped[float | None]  # максимальный взлетный вес в килограммах
-    engine_type: Mapped[str | None] = mapped_column(Enum(EngineTypes, native_enum=False))  # тип двигателя
+    engine_type: Mapped[str_32 | None] = mapped_column(Enum(EngineTypes, native_enum=False, length=32))  # тип двигателя
     number_of_engines: Mapped[int | None]  # количество двигателей
     max_speed: Mapped[int | None]  # максимальная скорость в км/ч
     cruise_speed: Mapped[int | None]  # крейсерская скорость в км/ч
@@ -90,7 +95,7 @@ class Aircraft(Base, TimestampMixin):
     # capacity: Mapped[str | None] = mapped_column(Text)  # вместимость (количество пассажиров или полезной нагрузки)
     icao_designator: Mapped[str | None] = mapped_column(String(4))  # четырёхбуквенный код ИКАО
     iata_designator: Mapped[str | None] = mapped_column(String(3))  # двух-трёхбуквенный код ИАТА
-    status: Mapped[str | None] = mapped_column(Enum(AircraftStatus, native_enum=False))  # статус самолета
+    status: Mapped[str_24 | None] = mapped_column(Enum(AircraftStatus, native_enum=False, length=24))  # статус самолета
     # variants: Mapped[str | None] = mapped_column(Text)  # описание модификаций и вариантов самолета
     year_of_manufacture: Mapped[int | None]  # дата начала производства
     first_used: Mapped[date | None]  # дата начала эксплуатации

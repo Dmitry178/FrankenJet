@@ -9,11 +9,11 @@
 Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
 
 * **Backend:**
-  * Python 3.12, PostgreSQL 17, Async FastAPI, AsyncPG, AIOBoto3, AIOHTTP.
+  * Python 3.12, PostgreSQL 17 (AsyncPG), Async FastAPI, S3 MiniO (AIOBoto3), AIOHTTP.
   * Планируется:
-    * Celery, RabbitMQ, Redis, AIOGram 3.
+    * Celery, RabbitMQ, Redis, AIOGram3.
 * **Frontend:**
-  * Vue.js 3.5, Vuetify
+  * Vue.js 3.5, Axios, Vuetify, Pinia, Vue Router.
 
 Упор в проекте сделан на **Backend**.
 
@@ -45,6 +45,7 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
   * Профиль пользователя.
   * Глобальный поиск по всем разделам.
   * Фотогалерея.
+  * Мобильная/планшетная версия.
   * Аутентификация через VK, Yandex, Telegram.
   * Система исправления неточностей в карточках и статьях.
   * Система комментирования и оценки статей.

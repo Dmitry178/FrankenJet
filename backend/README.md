@@ -39,8 +39,9 @@ Backend FrankenJet - это REST API, разработанный для энци
 
 ## Roadmap
 
+* Добавить контекстный менеджер AIOHTTP.
 * Добавить админку.
 * Добавить аутентификацию через VK ID, Yandex ID, Telegram.
 * Добавить тесты.
-* Добавить gitlab ci/cd.
+* Добавить GitLab CI/CD и GitHub Actions.
 * Добавить Prometheus, Grafana, Grafana loki.
