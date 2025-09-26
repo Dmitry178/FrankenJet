@@ -15,7 +15,7 @@ articles_router = APIRouter(prefix="/articles", tags=["Articles"])
 @articles_router.get("/{slug}", summary="Статья")
 async def get_article(
         db: DDB,
-        slug: str = Path(..., description=""),
+        slug: str = Path(..., description="Строковый идентификатор"),
 ):
     """
     Получение статьи
@@ -36,7 +36,7 @@ async def get_article(
         return status_error
 
 
-@articles_router.get("/list", summary="Статьи")
+@articles_router.get("/list", summary="Список статей")
 async def get_article_list(
         db: DDB,
         filters: str | None = Query(None, description="Фильтр"),
