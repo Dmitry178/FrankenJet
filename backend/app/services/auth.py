@@ -1,8 +1,7 @@
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from uuid import uuid4, UUID
 
-from app.core.config_env import settings
-from app.core.config_app import TOKEN_TYPE_ACCESS, TOKEN_TYPE_REFRESH
+from app.config.app import JWT_TYPE_ACCESS, JWT_TYPE_REFRESH, JWT_ACCESS_EXPIRE_MINUTES, JWT_REFRESH_EXPIRE_MINUTES
 from app.core.logs import logger
 from app.db.db_manager import DBManager
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx
@@ -17,21 +16,24 @@ class AuthServices:
     def __init__(self, db: DBManager | None = None) -> None:
         self.db = db
 
-    async def issue_tokens(self, user_id: int, email: str, roles: list | None, jti: UUID | None = None) -> SAuthTokens:
+    async def issue_tokens(
+            self,
+            user_id: int,
+            email: str,
+            roles: list | None,
+            user_name: str | None = None,
+            jti: UUID | None = None
+    ) -> SAuthTokens:
         """
         Выпуск токенов
         """
 
-        access_token = SecurityService().create_jwt_token(
-            {"id": user_id, "type": TOKEN_TYPE_ACCESS, "email": email, "roles": roles},
-            settings.JWT_ACCESS_EXPIRE_MINUTES
-        )
+        access_payload = {"id": user_id, "type": JWT_TYPE_ACCESS, "name": user_name, "email": email, "roles": roles}
+        access_token = SecurityService().create_jwt_token(access_payload, JWT_ACCESS_EXPIRE_MINUTES)
 
         new_jti = uuid4()
-        refresh_token = SecurityService().create_jwt_token(
-            {"id": user_id, "type": TOKEN_TYPE_REFRESH, "jti": str(new_jti)},
-            settings.JWT_REFRESH_EXPIRE_MINUTES
-        )
+        refresh_payload = {"id": user_id, "type": JWT_TYPE_REFRESH, "jti": str(new_jti)}
+        refresh_token = SecurityService().create_jwt_token(refresh_payload, JWT_REFRESH_EXPIRE_MINUTES)
 
         # регистрация токена
         await self.register_user_jti(user_id, new_jti)
@@ -89,7 +91,7 @@ class AuthServices:
         if not refresh_token_payload:
             raise TokenInvalidEx
 
-        if refresh_token_payload.get("type") != TOKEN_TYPE_REFRESH:
+        if refresh_token_payload.get("type") != JWT_TYPE_REFRESH:
             raise TokenTypeErrorEx
 
         user_id = refresh_token_payload.get("id")
