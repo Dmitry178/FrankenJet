@@ -3,9 +3,10 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from typing import Annotated
 
-from app.core.config_app import TOKEN_TYPE_ACCESS
+from app.config.app import JWT_TYPE_ACCESS
 from app.core.logs import logger
-from app.exceptions.auth import TokenTypeErrorEx, AuthUserErrorEx, AuthRoleErrorEx
+from app.exceptions.auth import TokenTypeErrorEx, AuthRoleErrorEx, unauthorized_401
+from app.schemas.auth import SAuthUserInfo
 from app.services.security import SecurityService
 
 security = HTTPBearer()
@@ -55,11 +56,36 @@ async def get_auth_token_payload(token: str = Depends(get_auth_token)) -> dict:
 
         return token_payload
 
-    except (ExpiredSignatureError, InvalidTokenError) as ex:
-        raise AuthUserErrorEx from ex
+    except (ExpiredSignatureError, InvalidTokenError):
+        raise unauthorized_401
 
     except Exception as ex:
-        logger.error(ex)
+        logger.exception(ex)
+        raise Exception from ex
+
+
+async def get_auth_user_info(token_payload: dict = Depends(get_auth_token_payload)) -> SAuthUserInfo:
+    """
+    Получение информации о пользователе из токена
+    """
+
+    try:
+        # проверка типа токена
+        if token_payload.get("type") != JWT_TYPE_ACCESS:
+            raise TokenTypeErrorEx
+
+        return SAuthUserInfo(
+            id=token_payload.get("id"),
+            name=token_payload.get("name"),
+            email=token_payload.get("email"),
+            roles=token_payload.get("roles"),
+        )
+
+    except TokenTypeErrorEx:
+        raise unauthorized_401
+
+    except Exception as ex:
+        logger.exception(ex)
         raise Exception from ex
 
 
@@ -70,19 +96,16 @@ async def get_auth_user_id(token_payload: dict = Depends(get_auth_token_payload)
 
     try:
         # проверка типа токена
-        if token_payload.get("type") != TOKEN_TYPE_ACCESS:
+        if token_payload.get("type") != JWT_TYPE_ACCESS:
             raise TokenTypeErrorEx
 
         return token_payload.get("id")
 
-    except TokenTypeErrorEx as ex:
-        raise AuthUserErrorEx from ex
-
-    except AuthRoleErrorEx as ex:
-        raise AuthRoleErrorEx from ex
+    except TokenTypeErrorEx:
+        raise unauthorized_401
 
     except (ValueError, Exception) as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise Exception from ex
 
 
@@ -94,7 +117,7 @@ async def get_auth_user_roles(token_payload: dict = Depends(get_auth_token_paylo
     try:
         return token_payload.get("roles", [])
 
-    except ValueError as ex:
+    except (ValueError, Exception) as ex:
         raise AuthRoleErrorEx from ex
 
 
@@ -112,11 +135,11 @@ async def get_auth_admin_id(
 
         return user_id
 
-    except AuthRoleErrorEx as ex:
-        raise AuthRoleErrorEx from ex
+    except AuthRoleErrorEx:
+        raise unauthorized_401
 
     except (ValueError, Exception) as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise Exception from ex
 
 
@@ -134,11 +157,11 @@ async def get_auth_editor_id(
 
         return user_id
 
-    except AuthRoleErrorEx as ex:
-        raise AuthRoleErrorEx from ex
+    except AuthRoleErrorEx:
+        raise unauthorized_401
 
     except (ValueError, Exception) as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise Exception from ex
 
 
@@ -156,15 +179,16 @@ async def get_auth_moderator_id(
 
         return user_id
 
-    except AuthRoleErrorEx as ex:
-        raise AuthRoleErrorEx from ex
+    except AuthRoleErrorEx:
+        raise unauthorized_401
 
     except (ValueError, Exception) as ex:
-        logger.error(ex)
+        logger.exception(ex)
         raise Exception from ex
 
 
 DAuthToken = Annotated[str, Depends(get_auth_token)]
+DAuthUserInfo = Annotated[SAuthUserInfo, Depends(get_auth_user_info)]
 DAuthUserId = Annotated[int, Depends(get_auth_user_id)]
 DAuthAdminId = Annotated[int, Depends(get_auth_admin_id)]
 DAuthEditorId = Annotated[int, Depends(get_auth_editor_id)]
