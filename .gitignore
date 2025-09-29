@@ -1,3 +1,6 @@
 .idea
+.venv
 _*
 .env
+*.sh
+!__init__.py
