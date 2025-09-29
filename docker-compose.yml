@@ -17,8 +17,8 @@ services:
 
   minio:
     image: quay.io/minio/minio:RELEASE.2024-03-15T01-07-19Z
-    hostname: minio
     container_name: fj-minio
+    hostname: minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
