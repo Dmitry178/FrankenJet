@@ -1,4 +1,4 @@
-from app.core.config_env import settings
+from app.config.env import settings
 
 
 class AppServices:

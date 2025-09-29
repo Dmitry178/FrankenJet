@@ -8,9 +8,9 @@ import urllib.parse
 
 from aiohttp import ContentTypeError
 
-from app.core.config_env import settings
-from app.core.config_app import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
+from app.config.app import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
     OAUTH2_VK_URL, OAUTH2_VK_REDIRECT_URL
+from app.config.env import settings
 from app.exceptions.oauth2 import OAuth2ErrorEx
 from app.schemas.users import SUserCreateOAuth2
 from app.types import ABody
@@ -72,6 +72,7 @@ class OAuth2Services:
             """
 
             # TODO: сделать проверку state из базы
+            print(bool(state))
 
             data = {
                 "client_id": settings.OAUTH2_GOOGLE_CLIENT_ID,

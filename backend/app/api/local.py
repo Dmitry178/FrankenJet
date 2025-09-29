@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 from starlette.responses import RedirectResponse
 
-from app.core.config_env import settings, AppMode
+from app.config.env import settings, AppMode
 
 index_local_router = APIRouter(tags=["Local"])
 

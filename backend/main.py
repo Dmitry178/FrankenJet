@@ -8,7 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api import router
 from app.api.local import index_local_router
-from app.core.config_env import settings, AppMode
+from app.config.env import settings, AppMode
 from app.core.logs import logger
 
 
@@ -18,12 +18,12 @@ async def lifespan(fastapi_app: FastAPI):
     Точка входа при запуске и завершении FastAPI
     """
 
-    message = f'App started at: {datetime.now()} [{settings.VERSION}]'
+    message = f'App started at: {datetime.now()} [{settings.BUILD}]'
     logger.info(message)
 
     yield
 
-    message = f'App stopped at: {datetime.now()} [{settings.VERSION}]'
+    message = f'App stopped at: {datetime.now()} [{settings.BUILD}]'
     logger.info(message)
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)

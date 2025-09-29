@@ -3,7 +3,8 @@ import jwt
 from datetime import datetime, timezone, timedelta
 from passlib.context import CryptContext
 
-from app.core.config_env import settings
+from app.config.app import JWT_ALGORITHM
+from app.config.env import settings
 
 
 class SecurityService:
@@ -28,7 +29,7 @@ class SecurityService:
         iat = datetime.now(timezone.utc)
         expire_date = iat + timedelta(minutes=expire)
         payload = {**payload_data, "iat": iat, "exp": expire_date}
-        encoded_jwt = jwt.encode(payload=payload, key=settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
+        encoded_jwt = jwt.encode(payload=payload, key=settings.JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
         return encoded_jwt
 
@@ -39,7 +40,7 @@ class SecurityService:
         """
 
         try:
-            payload = jwt.decode(jwt=token, key=settings.JWT_SECRET_KEY, algorithms=settings.JWT_ALGORITHM)
+            payload = jwt.decode(jwt=token, key=settings.JWT_SECRET_KEY, algorithms=JWT_ALGORITHM)
             return payload
 
         except:  # noqa

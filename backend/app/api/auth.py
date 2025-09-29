@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Body
 from starlette import status
 
-from app.api.responses import login_example
+from app.api.openapi_examples import login_example
 from app.core.logs import logger
 from app.dependencies.auth import DAuthUserId, DAuthToken
 from app.dependencies.db import DDB

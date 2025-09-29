@@ -2,7 +2,7 @@ from sqlalchemy import NullPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from sqlalchemy.orm import DeclarativeBase
 
-from app.core.config_env import settings
+from app.config.env import settings
 from app.db.types import project_metadata, annotation_map
 
 engine = create_async_engine(settings.db_url, echo=False)
