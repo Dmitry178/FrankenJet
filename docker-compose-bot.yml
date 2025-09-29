@@ -48,6 +48,23 @@ services:
     networks:
       - network
 
+  notification-bot:
+    build:
+      context: ./notifications
+      dockerfile: Dockerfile
+    container_name: fj-notification-bot
+    hostname: notifications
+    depends_on:
+      - postgres
+      - rabbitmq
+    environment:
+      RMQ_CONN: ${RMQ_CONN:-amqp://admin:password@rabbitmq:5672}
+    env_file:
+      - ./notifications/bot.env
+    restart: unless-stopped
+    networks:
+      - network
+
   backend:
     build:
       context: ./backend
