@@ -41,17 +41,14 @@ class Settings(BaseSettings):
 
     APP_NAME: str = "Franken Jet"  # название приложения
     APP_MODE: AppMode = AppMode.local  # режим работы приложения
+    BUILD: str = "0"  # версия приложения  # TODO: добавить получение билда из файла в режиме local
 
-    VERSION: str = "0"  # версия приложения  # TODO: добавить получение версии из файла в режиме local
-
-    JWT_ALGORITHM: str = "HS256"  # TODO: переделать на RS256
     JWT_SECRET_KEY: str = "secret key"  # TODO: добавить возможность использования сертификатов
-    JWT_ACCESS_EXPIRE_MINUTES: int = 15  # время жизни access-токена (в минутах)
-    JWT_REFRESH_EXPIRE_MINUTES: int = 60 * 24 * 30  # время жизни refresh-токена (в минутах)
 
     DB_CONN: str  # строка соединения с базой
+    RMQ_CONN: str | None = None  # строка подключения к RabbitMQ
 
-    # учётная запись админа по умолчанию (создаётся при первом запуске) # TODO: реализовать
+    # учётная запись админа по умолчанию (создаётся при первом запуске)
     ADMIN_USER: str | None = None
     ADMIN_PASS: str | None = None
 
