@@ -1,4 +1,6 @@
 from enum import Enum
+
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # очереди RabbitMQ
@@ -30,8 +32,8 @@ class BotSettings(BaseSettings):
     RMQ_CONN: str | None = None  # строка подключения к RabbitMQ
 
     # telegram id учётной записи админа (на данном этапе - единичная запись)
-    TELEGRAM_ADMIN_ID: str | None = None
-    TELEGRAM_API_TOKEN: str | None = None
+    TELEGRAM_ADMIN_ID: int = Field(..., gt=0)
+    TELEGRAM_API_TOKEN: str = Field(..., min_length=1)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
