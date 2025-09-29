@@ -1,5 +1,5 @@
 [project]
-name = "franken jet backend"
+name = "franken-jet-backend"
 version = "0.1.0"
 description = "Franken Jet by Dmitry Odegov"
 readme = "README.md"
@@ -12,6 +12,7 @@ dependencies = [
     "bcrypt==3.2.0",
     "environs>=14.3.0",
     "fastapi[all]>=0.117.1",
+    "faststream[rabbit]>=0.5.48",
     "passlib>=1.7.4",
     "pyjwt[crypto]>=2.10.1",
     "sqlalchemy>=2.0.43",
