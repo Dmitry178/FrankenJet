@@ -26,3 +26,14 @@ class SAuthTokens(BaseModel):
 
     access_token: str
     refresh_token: str
+
+
+class SAuthUserInfo(BaseModel):
+    """
+    Схема информации об аутентифицированном пользователе
+    """
+
+    id: int
+    name: str | None = None
+    email: EmailStr | str
+    roles: list | None = None
