@@ -1,3 +1,4 @@
+from fastapi import HTTPException
 from starlette import status
 
 
@@ -46,3 +47,6 @@ class AuthUserErrorEx(BaseAuthException):
 class AuthRoleErrorEx(BaseAuthException):
     detail = "Auth role error"
     status_code = status.HTTP_403_FORBIDDEN
+
+
+unauthorized_401 = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
