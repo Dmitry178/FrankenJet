@@ -82,5 +82,4 @@ class RMQManager:
         if not self.url:
             return
 
-        # noinspection PyUnresolvedReferences
-        await self.broker.run()
+        await self.broker.start()
