@@ -21,13 +21,25 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend). Упор в проекте
 
 ```
 📦 franken-jet
-├── 🗂️ backend  # Основной backend (fastapi)
-├── 🗂️ frontend  # Web-приложение (vue.js)
-├── 🗂️ notifications  # Телеграм-бот уведомлений (aiogram)
-├── 🗂️ volumes  # Директория для томов при запуске приложения через docker compose
-├── 📄 docker-compose.yml  # запуск lite-версии приложения (без бота уведомлений и RabbitMQ)
-├── 📄 docker-compose-bot.yml  # версия приложения с RabbitMQ и ботом уведомлений 
-└── 📄 README.md  # Общая документация
+├─ 🗂️ backend                 # Основной backend (fastapi)
+│  ├─ 📁 alembic              # Миграции
+│  ├─ 📁 app                  # Основное приложение
+│  │  ├─ 📁 api               # Маршруты FastAPI
+│  │  ├─ 📁 config            # Конфигурация приложения
+│  │  ├─ 📁 core              # Основные модули, контекстные мереджеры
+│  │  ├─ 📁 db                # Модели и репозитории базы данных
+│  │  ├─ 📁 dependencies      # Зависимости (dependency injections)
+│  │  ├─ 📁 exceptions        # Исключения
+│  │  ├─ 📁 schemas           # Pydantic-схемы
+│  │  └─ 📁 services          # Сервисный слой (бизнес-логика)
+│  ├─ 📁 scripts              # Скрипты инициализации приложения при первом запуске через docker-compose
+│  └─ 📄 README.md            # Документация бэкенда
+├─ 🗂️ frontend                # Web-приложение (vue.js)
+├─ 🗂️ notifications           # Телеграм-бот уведомлений (aiogram)
+├─ 🗂️ volumes                 # Директория для томов при запуске приложения через docker compose
+├─ 📄 docker-compose.yml      # запуск lite-версии приложения (без бота уведомлений и RabbitMQ)
+├─ 📄 docker-compose-bot.yml  # версия приложения с RabbitMQ и ботом уведомлений 
+└─ 📄 README.md               # Общая документация
 ```
 
 ### Архитектура проекта
