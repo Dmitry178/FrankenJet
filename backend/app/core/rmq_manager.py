@@ -3,7 +3,6 @@ import asyncio
 from aiormq import AMQPConnectionError, ChannelClosed, AMQPError
 from contextlib import asynccontextmanager
 from faststream.rabbit import RabbitBroker
-from faststream.rabbit.fastapi import RabbitRouter
 
 from app.core.logs import logger
 
@@ -61,3 +60,27 @@ class RMQManager:
                     pass
 
                 await self.broker.connect()
+
+    def subscriber(self, queue: str):
+        """
+        Декоратор для подписки на очередь
+        """
+
+        if not self.url:
+            # если RMQ не настроен — возвращаем оригинальную функцию
+            def null_subscriber(func):
+                return func
+            return null_subscriber
+
+        return self.broker.subscriber(queue)
+
+    async def run_consumers(self):
+        """
+        Запуск брокера с подписчиками
+        """
+
+        if not self.url:
+            return
+
+        # noinspection PyUnresolvedReferences
+        await self.broker.run()
