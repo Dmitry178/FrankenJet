@@ -1,7 +1,8 @@
 from fastapi import Depends
 from typing import Annotated
 
-from app.core import settings, S3Manager
+from app.config.env import settings
+from app.core.s3_manager import S3Manager
 
 
 async def get_s3():
