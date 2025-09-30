@@ -8,7 +8,7 @@ from app.api.openapi_examples import notification_example, moderation_example
 from app.config.app import RMQ_NOTIFICATIONS_QUEUE, RMQ_ADMIN_AUTH_QUEUE, RMQ_MODERATION_QUEUE
 from app.core import RMQManager
 from app.core.logs import logger
-from app.dependencies.auth import get_auth_user_info
+from app.dependencies.auth import get_auth_user_info, get_auth_admin_id
 from app.dependencies.rmq import get_rmq
 from app.exceptions.bot import bot_user_forbidden_403
 from app.schemas.bot import SBotNotification, SBotAuthNotification, SBotModeration
@@ -48,7 +48,7 @@ async def send_notification(
 @bot_router.post(
     "/auth-notification",
     summary="Уведомление об аутентификации",
-    # dependencies=[Depends(get_auth_admin_id)],
+    dependencies=[Depends(get_auth_admin_id)],
 )
 async def send_auth_notification(
         request: Request,
