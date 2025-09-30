@@ -1,3 +1,6 @@
+import asyncio
+import signal
+import sys
 import uvicorn
 
 from contextlib import asynccontextmanager
@@ -9,6 +12,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api import router
 from app.api.local import index_local_router
 from app.config.env import settings, AppMode
+from app.consumers.startup import run_consumers
 from app.core import rmq_manager
 from app.core.logs import logger
 
@@ -56,5 +60,34 @@ if settings.APP_MODE == AppMode.local:
 app.include_router(router)
 
 
+def signal_handler():
+    logger.info("Shutting down...")
+    sys.exit(0)
+
+
+async def run_api():
+    """
+    Запуск API
+    """
+
+    config = uvicorn.Config("main:app", host="0.0.0.0", port=8111, reload=True)
+    server = uvicorn.Server(config)
+    await server.serve()
+
+
+async def main():
+    # обработка сигналов
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, signal_handler)  # noqa
+
+    if settings.APP_MODE == AppMode.local:
+        # запуск API и консьюмера в режиме локальной разработки
+        await asyncio.gather(run_api(), run_consumers())
+    else:
+        # в режиме production - запуск только API (консьюмер должен запускаться в endpoint.sh)
+        await run_api()
+
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8111, reload=True)
+    asyncio.run(main())
