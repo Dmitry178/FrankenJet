@@ -20,4 +20,4 @@ OAUTH2_VK_REDIRECT_URL = "http://localhost/auth/vk"  # TODO: переделат�
 RMQ_NOTIFICATIONS_QUEUE: str = "notification"  # уведомления бота
 RMQ_ADMIN_AUTH_QUEUE: str = "admin_auth"  # уведомление об аутентификации админа
 RMQ_MODERATION_QUEUE: str = "moderation"  # комментарии на модерацию
-RMQ_BACKEND_QUEUE: str = "backend"  # очередь отправки сообщения в бэкенд
+RMQ_BACKEND_QUEUE: str = "backend_bot"  # очередь для приёма сообщения бэкендом от бота
