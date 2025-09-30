@@ -56,6 +56,3 @@ async def handle_moderation_request(data: str):
 
     keyboard = get_moderation_keyboard(moderation_data.get("id"))
     await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text, reply_markup=keyboard)
-
-
-publish_to_backend = broker.publisher(RMQ_BACKEND_QUEUE)
