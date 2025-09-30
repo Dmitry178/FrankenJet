@@ -9,6 +9,7 @@ from starlette.middleware.cors import CORSMiddleware
 from app.api import router
 from app.api.local import index_local_router
 from app.config.env import settings, AppMode
+from app.core import rmq_manager
 from app.core.logs import logger
 
 
@@ -18,12 +19,20 @@ async def lifespan(fastapi_app: FastAPI):
     Точка входа при запуске и завершении FastAPI
     """
 
-    message = f'App started at: {datetime.now()} [{settings.BUILD}]'
+    if rmq_manager.url:
+        await rmq_manager.start()
+        logger.info("RabbitMQ connected")
+
+    message = f"App started at: {datetime.now()} [{settings.BUILD}]"
     logger.info(message)
 
     yield
 
-    message = f'App stopped at: {datetime.now()} [{settings.BUILD}]'
+    if rmq_manager.url:
+        await rmq_manager.close()
+        logger.info("RabbitMQ disconnected")
+
+    message = f"App stopped at: {datetime.now()} [{settings.BUILD}]"
     logger.info(message)
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
