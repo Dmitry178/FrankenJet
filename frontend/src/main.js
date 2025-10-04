@@ -3,6 +3,7 @@ import { createApp } from 'vue';
 import { createPinia } from 'pinia'
 import { createRouter, createWebHistory } from 'vue-router';
 import axios from 'axios'
+import { jwtDecode } from 'jwt-decode';
 import './assets/main.css'
 import App from './App.vue';
 import vuetify from './plugins/vuetify';
@@ -82,6 +83,14 @@ async function refreshAccessToken() {
       authStore.setAccessToken(newAccessToken);
 
       const newRefreshToken = refreshResponse.data.data.tokens.refresh_token;
+
+      try {
+        const payload = jwt_decode(newRefreshToken);
+        authStore.setJti(payload.jti);
+      } catch (e) {
+        console.error('Failed to decode refresh token:', e);
+      }
+
       // document.cookie = `refresh_token=${newRefreshToken}; path=/; max-age=3600; secure; httponly`;
       Cookies.set('refresh_token', newRefreshToken, {
         // expires: 30,
