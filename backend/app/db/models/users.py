@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import str_16, str_64, str_256, fk_user, fk_role
+from app.db.types import str_16, str_64, str_256, fk_role, fk_user_cascade
 
 if TYPE_CHECKING:
     from app.db.models import RefreshTokens
@@ -32,12 +32,13 @@ class Users(Base, TimestampMixin):
 
     jti: Mapped[list["RefreshTokens"]] = relationship(back_populates="user")
     roles_association: Mapped[List["UsersRolesAssociation"]] = relationship(
-        back_populates="user"
+        back_populates="user",
+        cascade="all, delete-orphan",  # каскадно удаляются роли в ассоциативной таблице
     )
     roles: Mapped[List["Roles"]] = relationship(
         secondary="users.users_roles_as",
         back_populates="users",
-        viewonly=True
+        viewonly=True,
     )
 
 
@@ -52,12 +53,12 @@ class Roles(Base):
     role: Mapped[str_16] = mapped_column(primary_key=True)
 
     users_association: Mapped[List["UsersRolesAssociation"]] = relationship(
-        back_populates="role"
+        back_populates="role",
     )
     users: Mapped[List["Users"]] = relationship(
         secondary="users.users_roles_as",
         back_populates="roles",
-        viewonly=True
+        viewonly=True,
     )
 
 
@@ -73,7 +74,7 @@ class UsersRolesAssociation(Base):
         {"schema": "users"},
     )
 
-    user_id: Mapped[fk_user] = mapped_column(primary_key=True)
+    user_id: Mapped[fk_user_cascade] = mapped_column(primary_key=True)
     role_id: Mapped[fk_role] = mapped_column(primary_key=True)
 
     user: Mapped["Users"] = relationship(back_populates="roles_association")
