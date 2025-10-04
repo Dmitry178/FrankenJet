@@ -72,59 +72,62 @@ class S3Manager:
             response = await s3.list_buckets()
             return [bucket["Name"] for bucket in response["Buckets"]]
 
-    async def create_bucket(self, bucket_name: str) -> bool:
+    async def create_bucket(self, bucket: str) -> bool:
         """
         Создание бакета
         """
 
         try:
             async with await self.get_client() as s3:
-                await s3.create_bucket(Bucket=bucket_name)
-                logger.info(f"Бакет {bucket_name} создан")
+                await s3.create_bucket(Bucket=bucket)
+                logger.info(f"Бакет {bucket} создан")
                 return True
 
         except Exception as ex:
-            logger.error(f"Ошибка создания бакета {bucket_name}: {ex}")
+            logger.exception(f"Ошибка создания бакета {bucket}: {ex}")
             return False
 
-    async def delete_bucket(self, bucket_name: str) -> bool:
+    async def delete_bucket(self, bucket: str) -> bool:
         """
         Удаление бакета
         """
 
         try:
             async with await self.get_client() as s3:
-                await self.empty_bucket(bucket_name)  # удаление всех объектов в бакете
-                await s3.delete_bucket(Bucket=bucket_name)
-                logger.info(f"Бакет {bucket_name} удалён")
+                await self.empty_bucket(bucket)  # удаление всех объектов в бакете
+                await s3.delete_bucket(Bucket=bucket)
+                logger.info(f"Бакет {bucket} удалён")
                 return True
 
         except Exception as ex:
-            logger.error(f"Ошибка удаления бакета {bucket_name}: {ex}")
+            logger.exception(f"Ошибка удаления бакета {bucket}: {ex}")
             return False
 
-    async def empty_bucket(self, bucket_name: str):
+    async def empty_bucket(self, bucket: str):
         """
         Очистка бакета от всех объектов
         """
 
         async with await self.get_client() as s3:
-            objects = await s3.list_objects_v2(Bucket=bucket_name)  # получение списка объектов
+            objects = await s3.list_objects_v2(Bucket=bucket)  # получение списка объектов
             if "Contents" in objects:
                 delete_keys = [{"Key": obj["Key"]} for obj in objects["Contents"]]
                 await s3.delete_objects(
-                    Bucket=bucket_name,
+                    Bucket=bucket,
                     Delete={"Objects": delete_keys}
                 )
 
-    async def list_objects(self, bucket_name: str, prefix: str = "") -> List[dict]:
+    async def list_objects(self, bucket: str, prefix: str = "") -> List[dict]:
         """
         Возвращение списка объектов в бакете
+
+        :param bucket: бакет
+        :param prefix: фильтр путей внутри бакета
         """
 
         async with await self.get_client() as s3:
             response = await s3.list_objects_v2(
-                Bucket=bucket_name,
+                Bucket=bucket,
                 Prefix=prefix
             )
             return response.get("Contents", [])
@@ -204,13 +207,18 @@ class S3Manager:
 
     async def upload_file(
             self,
-            bucket_name: str,
+            bucket: str,
             local_file_path: str,
             s3_key: str | None = None,
             extra_args: dict | None = None
     ) -> bool:
         """
         Загрузка файла в S3
+
+        :param bucket: бакет
+        :param local_file_path: путь загружаемого файла на диске
+        :param s3_key: путь к файлу внутри бакета
+        :param extra_args: дополнительные аргументы
         """
 
         try:
@@ -221,7 +229,7 @@ class S3Manager:
                 async with aiofiles.open(local_file_path, "rb") as file:
                     file_content = await file.read()
 
-                upload_args = {"Bucket": bucket_name, "Key": s3_key, "Body": file_content}
+                upload_args = {"Bucket": bucket, "Key": s3_key, "Body": file_content}
                 content_type = self.define_content_type(local_file_path)
                 extra_args = extra_args | content_type if extra_args else content_type
 
@@ -233,22 +241,21 @@ class S3Manager:
                 return True
 
         except Exception as ex:
-            logger.error(f"Ошибка загрузки файла {local_file_path}: {ex}")
+            logger.exception(f"Ошибка загрузки файла {local_file_path}: {ex}")
             return False
 
-    async def download_file(
-            self,
-            bucket_name: str,
-            s3_key: str,
-            local_file_path: str
-    ) -> bool:
+    async def download_file(self, bucket: str, local_file_path: str, s3_key: str) -> bool:
         """
         Скачивание файла из S3
+
+        :param bucket: бакет
+        :param local_file_path: путь загружаемого файла на диске
+        :param s3_key: путь к файлу внутри бакета
         """
 
         try:
             async with await self.get_client() as s3:
-                response = await s3.get_object(Bucket=bucket_name, Key=s3_key)
+                response = await s3.get_object(Bucket=bucket, Key=s3_key)
                 async with aiofiles.open(local_file_path, "wb") as file:
                     async for chunk in response["Body"]:
                         await file.write(chunk)
@@ -257,27 +264,30 @@ class S3Manager:
                 return True
 
         except Exception as ex:
-            logger.error(f"Ошибка загрузки файла {s3_key}: {ex}")
+            logger.exception(f"Ошибка загрузки файла {s3_key}: {ex}")
             return False
 
-    async def delete_object(self, bucket_name: str, s3_key: str) -> bool:
+    async def delete_object(self, bucket: str, s3_key: str) -> bool:
         """
         Удаление объекта из S3
+
+        :param bucket: бакет
+        :param s3_key: путь к файлу внутри бакета
         """
 
         try:
             async with await self.get_client() as s3:
-                await s3.delete_object(Bucket=bucket_name, Key=s3_key)
-                logger.info(f"Объект {s3_key} удалён из {bucket_name}")
+                await s3.delete_object(Bucket=bucket, Key=s3_key)
+                logger.info(f"Объект {s3_key} удалён из {bucket}")
                 return True
 
         except Exception as ex:
-            logger.error(f"Ошибка удаления объекта {s3_key}: {ex}")
+            logger.exception(f"Ошибка удаления объекта {s3_key}: {ex}")
             return False
 
     async def get_pre_signed_url(
             self,
-            bucket_name: str,
+            bucket: str,
             s3_key: str,
             expiration: int = 3600
     ) -> str | None:
@@ -289,13 +299,13 @@ class S3Manager:
             async with await self.get_client() as s3:
                 url = await s3.generate_presigned_url(
                     "get_object",
-                    Params={"Bucket": bucket_name, "Key": s3_key},
+                    Params={"Bucket": bucket, "Key": s3_key},
                     ExpiresIn=expiration
                 )
                 return url
 
         except Exception as ex:
-            logger.error(f"Ошибка генерации предварительно подписанного  URL для {s3_key}: {ex}")
+            logger.exception(f"Ошибка генерации предварительно подписанного  URL для {s3_key}: {ex}")
             return None
 
     async def copy_object(
@@ -321,12 +331,12 @@ class S3Manager:
                 return True
 
         except Exception as ex:
-            logger.error(f"Ошибка копирования объекта {source_key}: {ex}")
+            logger.exception(f"Ошибка копирования объекта {source_key}: {ex}")
             return False
 
     async def stream_download(
             self,
-            bucket_name: str,
+            bucket: str,
             s3_key: str
     ) -> AsyncGenerator[bytes, None]:
         """
@@ -334,13 +344,13 @@ class S3Manager:
         """
 
         async with await self.get_client() as s3:
-            response = await s3.get_object(Bucket=bucket_name, Key=s3_key)
+            response = await s3.get_object(Bucket=bucket, Key=s3_key)
             async for chunk in response["Body"]:
                 yield chunk
 
     async def upload_from_memory(
             self,
-            bucket_name: str,
+            bucket: str,
             s3_key: str,
             data: bytes,
             content_type: str = "application/octet-stream"
@@ -352,7 +362,7 @@ class S3Manager:
         try:
             async with await self.get_client() as s3:
                 await s3.put_object(
-                    Bucket=bucket_name,
+                    Bucket=bucket,
                     Key=s3_key,
                     Body=data,
                     ContentType=content_type
@@ -361,12 +371,12 @@ class S3Manager:
                 return True
 
         except Exception as ex:
-            logger.error(f"Ошибка загрузки данных в {s3_key}: {ex}")
+            logger.exception(f"Ошибка загрузки данных в {s3_key}: {ex}")
             return False
 
     async def get_object_metadata(
             self,
-            bucket_name: str,
+            bucket: str,
             s3_key: str
     ) -> dict | None:
         """
@@ -375,9 +385,9 @@ class S3Manager:
 
         try:
             async with await self.get_client() as s3:
-                response = await s3.head_object(Bucket=bucket_name, Key=s3_key)
+                response = await s3.head_object(Bucket=bucket, Key=s3_key)
                 return response["Metadata"]
 
         except Exception as ex:
-            logger.error(f"Ошибка получения метаданных для {s3_key}: {ex}")
+            logger.exception(f"Ошибка получения метаданных для {s3_key}: {ex}")
             return None
