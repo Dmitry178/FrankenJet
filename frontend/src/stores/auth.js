@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     accessToken: null,
+    jti: null,
     user: {
       email: null,
       fullName: null,
@@ -16,8 +17,12 @@ export const useAuthStore = defineStore('auth', {
     setAccessToken(token) {
       this.accessToken = token;
     },
+    setJti(jti) {
+      this.jti = jti;
+    },
     clearAccessToken() {
       this.accessToken = null;
+      this.jti = null;
       this.user = {
         email: null,
         fullName: null,
