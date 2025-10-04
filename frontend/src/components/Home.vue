@@ -22,6 +22,7 @@
               <v-img
                 v-if="article.image_url"
                 :src="article.image_url"
+                class="grayscale-image"
                 cover
               />
               <v-img
@@ -135,5 +136,9 @@ export default {
 
 .article-card:hover {
   transform: scale(1.02);
+}
+
+.grayscale-image {
+  filter: grayscale(100%);
 }
 </style>
