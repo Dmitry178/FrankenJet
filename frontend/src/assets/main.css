@@ -5,6 +5,11 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 1.5rem;
 }
 
+.v-card-title {
+  padding-top: 1rem;
+  padding-bottom: 0.75rem;
+}
+
 p {
   margin-bottom: 1rem;
 }
@@ -29,8 +34,39 @@ blockquote {
   padding-bottom: 0 !important;
 }
 
+.v-img {
+  margin: 1.5rem 1.75rem 0 1.75rem;
+}
+
 .article-image {
-  margin: 1rem;
+  margin: 0.5rem 1.75rem 0 1.75rem;
+}
+
+.v-card-title,
+.v-card-text
+{
+  margin-left: 0.75rem;
+  margin-right: 0.75rem;
+}
+
+.v-card-title {
+  margin-top: 0.5rem;
+}
+
+@media (max-width: 1279px) {
+  .v-container,
+  .v-app-bar {
+    padding-left: 50px !important;
+    padding-right: 50px !important;
+  }
+}
+
+@media (min-width: 1280px) {
+  .v-container,
+  .v-app-bar {
+    padding-left: 150px !important;
+    padding-right: 150px !important;
+  }
 }
 
 /* Стили для мобильных устройств */
@@ -53,15 +89,24 @@ blockquote {
   }
 
   .v-card-title {
-    padding: 0 0.5rem !important;
+    padding: 0.65rem 0.5rem 0 0.5rem !important;
   }
 
   .v-breadcrumbs {
     font-size: 0.9rem !important;
     padding: 0 !important;
   }
+
   .article-image {
     margin: 0.5rem;
+  }
+
+  .v-img {
+    margin: 0.75rem 0.5rem 0 0.5rem !important;
+  }
+
+  .v-text-field {
+    margin-bottom: 0.5rem !important;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -85,13 +130,5 @@ blockquote {
   blockquote {
     margin: 0.75rem 0;
     padding-left: 0.75rem;
-  }
-
-  .v-img {
-    margin: 0 0.5rem 0.5rem 0.5rem !important;
-  }
-
-  .v-text-field {
-    margin-bottom: 0.5rem !important;
   }
 }
