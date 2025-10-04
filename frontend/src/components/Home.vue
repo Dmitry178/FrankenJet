@@ -17,11 +17,10 @@
       <v-card-title>Статьи</v-card-title>
       <v-card-text>
         <v-row>
-          <v-col cols="12" sm="6" md="4" lg="3" v-for="article in articles" :key="article.slug">
+          <v-col cols="12" sm="12" md="6" lg="4" xl="4" v-for="article in visibleArticles" :key="article.slug">
             <v-card @click="goToArticle(article.slug)" class="article-card">
               <v-img
                 :src="articleImage(article)"
-                height="200"
                 cover
               ></v-img>
               <v-card-title>{{ article.title }}</v-card-title>
@@ -49,15 +48,12 @@
 
 <script>
 import axios from 'axios';
-import { inject } from "vue";
 import { useRouter } from 'vue-router';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
-  components: {
-
-  },
+  components: {},
   setup() {
     const router = useRouter();
     return { router };
@@ -70,6 +66,22 @@ export default {
   },
   mounted() {
     this.fetchHomeData();
+  },
+  computed: {
+    visibleArticles() {
+      const breakpoint = this.$vuetify.display.name;
+      let limit;
+
+      if (breakpoint === 'xs' || breakpoint === 'sm') {
+        limit = 1;
+      } else if (breakpoint === 'md') {
+        limit = 2;
+      } else {
+        limit = 3; // lg, xl
+      }
+
+      return this.articles.slice(0, limit);
+    }
   },
   methods: {
     articleImage(article) {
