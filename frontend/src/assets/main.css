@@ -1,6 +1,4 @@
-ul {
-  padding-left: 15px;
-}
+/* Общие стили */
 
 h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1rem;
@@ -13,7 +11,7 @@ p {
 
 ul, ol {
   margin-bottom: 1rem;
-  padding-left: 1.5rem;
+  padding-left: 1.25rem;
 }
 
 li {
@@ -29,4 +27,71 @@ blockquote {
 .v-breadcrumbs {
   padding-top: 0 !important;
   padding-bottom: 0 !important;
+}
+
+.article-image {
+  margin: 1rem;
+}
+
+/* Стили для мобильных устройств */
+
+@media (max-width: 768px) {
+  .v-container,
+  .v-app-bar,
+  .v-card,
+  .v-main {
+    padding-left: 4px !important;
+    padding-right: 4px !important;
+  }
+
+  .v-card {
+    padding-bottom: 4px !important;
+  }
+
+  .v-card-text {
+    padding: 0.5rem !important;
+  }
+
+  .v-card-title {
+    padding: 0 0.5rem !important;
+  }
+
+  .v-breadcrumbs {
+    font-size: 0.9rem !important;
+    padding: 0 !important;
+  }
+  .article-image {
+    margin: 0.5rem;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    margin-bottom: 0.75rem;
+    margin-top: 0.75rem;
+  }
+
+  p {
+    margin-bottom: 0.75rem;
+  }
+
+  ul, ol {
+    margin-bottom: 0.75rem;
+    padding-left: 1rem;
+  }
+
+  li {
+    margin-bottom: 0.25rem;
+  }
+
+  blockquote {
+    margin: 0.75rem 0;
+    padding-left: 0.75rem;
+  }
+
+  .v-img {
+    margin: 0 0.5rem 0.5rem 0.5rem !important;
+  }
+
+  .v-text-field {
+    margin-bottom: 0.5rem !important;
+  }
 }
