@@ -26,7 +26,7 @@ class S3Creator:
 
         for bucket in buckets_to_create:
             if bucket not in buckets_list:
-                await self.s3manager.create_bucket(bucket)
+                await self.s3manager.create_bucket(bucket, public=True)
                 logger.info(f"Бакет {bucket} создан")
 
 
