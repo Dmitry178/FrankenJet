@@ -8,7 +8,6 @@ import asyncio
 import json
 import os
 import sys
-from uuid import UUID
 
 sys.path.append("/code")
 
@@ -26,12 +25,14 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from typing import TypeVar, Type
 from urllib.parse import urlparse
+from uuid import UUID
 
 from app.config.app import BUCKET_IMAGES
 from app.core.logs import logger
 from app.core.s3_manager import S3Manager
 from app.db import Base
 from app.db.models import *
+from app.services.security import SecurityService
 
 T = TypeVar("T", bound=Base)
 
@@ -51,13 +52,14 @@ schemas = [
 ]
 
 
-class SAdminCreds(BaseModel):
+class SUserCreds(BaseModel):
     """
-    Схема админского логина/пароля по умолчанию
+    Схема регистрационных данных пользователя
     """
 
-    admin_user: str
-    admin_pass: str
+    username: str
+    password: str
+    roles: list[str] | None = None
 
 
 class SS3Creds(BaseModel):
@@ -75,7 +77,7 @@ class DataCreator:
     Запуск миграций, добавление первичных данных
     """
 
-    def __init__(self, db_conn: str, admin_data: SAdminCreds | None = None):
+    def __init__(self, db_conn: str):
 
         async_database_url = f"postgresql+asyncpg://{db_conn}"
         parsed_db_conn = urlparse(async_database_url)
@@ -85,8 +87,6 @@ class DataCreator:
         self.async_engine = create_async_engine(url=async_database_url, echo=False)
         self.async_session_maker = async_sessionmaker(bind=self.async_engine)
         self.session = None
-
-        self.admin_data = admin_data  # логин/пароль админа по умолчанию
 
         # True - создание таблиц через миграции Alembic, False - создание таблиц через Base.metadata.create_all
         self.run_migrations = False
@@ -117,7 +117,7 @@ class DataCreator:
 
             # создание расширений
             for extension in extensions:
-                await conn.execute(DDL(f"CREATE EXTENSION IF NOT EXISTS \"{extension}\""))
+                await conn.execute(DDL(f'CREATE EXTENSION IF NOT EXISTS "{extension}"'))
 
             # создание схем
             for schema in schemas:
@@ -177,42 +177,39 @@ class DataCreator:
 
         return None
 
-    async def insert_users(self) -> None:
+    async def insert_users(self, users: list[SUserCreds] | None = None) -> None:
         """
         Заполнение таблицы пользователей
         """
 
-        if not self.admin_data:
+        if not users:
             return
 
-        # добавление пользователя
-        query = await self.session.execute(select(Users.id).where(Users.email == self.admin_data.admin_user))
-        user_id = query.scalar_one_or_none()
+        for user in users:
+            # получение данных пользователя
+            query = await self.session.execute(select(Users.id).where(Users.email == user.username))
+            user_id = query.scalar_one_or_none()
 
-        if not user_id:
-            stmt = (
-                insert(Users)
-                .values(
-                    email=self.admin_data.admin_user, hashed_password=self.admin_data.admin_pass
+            # добавление пользователя, если его нет в базе
+            if not user_id:
+                hashed_password = SecurityService().hash_password(user.password)
+                stmt = (
+                    insert(Users)
+                    .values(
+                        email=user.username, hashed_password=hashed_password
+                    )
+                    .returning(Users.id)
                 )
-                .returning(Users.id)
-            )
-            user_id = (await self.session.execute(stmt)).scalar()
-            logger.info("Пользователь создан")
+                user_id = (await self.session.execute(stmt)).scalar()
+                logger.info("Пользователь создан")
 
-        # добавление роли пользователя
-        query = await self.session.execute(
-            select(UsersRolesAssociation).where(
-                UsersRolesAssociation.user_id == user_id,
-                UsersRolesAssociation.role_id == "admin"
-            )
-        )
-        existing_role = query.scalar_one_or_none()
+            # добавление ролей пользователя
+            if not user.roles:
+                continue
 
-        if not existing_role:
-            stmt = insert(UsersRolesAssociation).values(user_id=user_id, role_id="admin")
+            user_roles = [{"user_id": user_id, "role_id": role} for role in user.roles]
+            stmt = insert(UsersRolesAssociation).values(user_roles).on_conflict_do_nothing()
             await self.session.execute(stmt)
-            logger.info("Роль пользователя назначена")
 
         await self.session.commit()
 
@@ -386,10 +383,10 @@ async def main() -> None:
     # логин/пароль админа по умолчанию
     admin_user = env.str("ADMIN_USER", None)
     admin_pass = env.str("ADMIN_PASS", None)
+
+    users = None
     if admin_user and admin_pass:
-        admin_data = SAdminCreds(admin_user=admin_user, admin_pass=admin_pass)
-    else:
-        admin_data = None
+        users = [SUserCreds(username=admin_user, password=admin_pass, roles=["admin"])]
 
     # создание экземпляра S3-менеджера
     access_key_id = env.str("S3_ACCESS_KEY_ID", None)
@@ -408,7 +405,7 @@ async def main() -> None:
     args = sys.argv
     skip_migrations = "skip-migrations" in args
 
-    async with DataCreator(db_conn, admin_data) as db_handler:
+    async with DataCreator(db_conn) as db_handler:
 
         if not skip_migrations:
             logger.info("Миграции" if db_handler.run_migrations else "Создание таблиц")
@@ -416,7 +413,7 @@ async def main() -> None:
 
         logger.info("Заполнение базы первичными данными")
         await db_handler.insert_roles()
-        await db_handler.insert_users()
+        await db_handler.insert_users(users)
         await db_handler.insert_countries()
 
         logger.info("Добавление фактов")
