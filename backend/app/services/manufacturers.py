@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from app.db.db_manager import DBManager
+from app.core.db_manager import DBManager
 from app.schemas.aircraft import SCountriesFilters, SManufacturers
 
 

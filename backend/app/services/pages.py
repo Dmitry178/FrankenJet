@@ -1,4 +1,4 @@
-from app.db.db_manager import DBManager
+from app.core.db_manager import DBManager
 
 
 class PagesService:

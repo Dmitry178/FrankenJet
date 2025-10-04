@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from app.db.db_manager import DBManager
+from app.core.db_manager import DBManager
 from app.db.models.articles import ArticleCategories, Articles
 from app.schemas.articles import SArticles
 

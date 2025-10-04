@@ -1,8 +1,8 @@
 from fastapi import Depends
 from typing import Annotated
 
+from app.core.db_manager import DBManager
 from app.db import async_session_maker
-from app.db.db_manager import DBManager
 
 
 async def get_db():

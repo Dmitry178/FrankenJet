@@ -2,8 +2,8 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from uuid import uuid4, UUID
 
 from app.config.app import JWT_TYPE_ACCESS, JWT_TYPE_REFRESH, JWT_ACCESS_EXPIRE_MINUTES, JWT_REFRESH_EXPIRE_MINUTES
+from app.core.db_manager import DBManager
 from app.core.logs import logger
-from app.db.db_manager import DBManager
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx
 from app.schemas.auth import SLoginUser, SAuthTokens
 from app.services.security import SecurityService

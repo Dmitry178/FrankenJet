@@ -1,7 +1,7 @@
 from typing import List
 from uuid import UUID
 
-from app.db.db_manager import DBManager
+from app.core.db_manager import DBManager
 from app.db.models import Aircraft
 from app.db.models.aircraft import AircraftTypes, EngineTypes, AircraftStatus
 from app.schemas.aircraft import SAircraftFilters, SAircraft
