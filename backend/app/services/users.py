@@ -1,8 +1,8 @@
 from asyncpg import UniqueViolationError
 from sqlalchemy.exc import SQLAlchemyError
 
+from app.core.db_manager import DBManager
 from app.core.logs import logger
-from app.db.db_manager import DBManager
 from app.exceptions.auth import UserExistsEx, UserCreationErrorEx
 from app.schemas.auth import SLoginUser, SRegisterUser
 from app.schemas.users import SUserCreateOAuth2
@@ -34,9 +34,13 @@ class UsersServices:
             # пользователь уже существует, ошибка
             raise UserExistsEx from ex
 
-        except (SQLAlchemyError, Exception) as ex:
+        except SQLAlchemyError as ex:
             # ошибка базы данных
             logger.error(ex)
+            raise UserCreationErrorEx from ex
+
+        except Exception as ex:
+            logger.exception(ex)
             raise UserCreationErrorEx from ex
 
     async def get_or_create_user_by_oauth2(self, user_data: SUserCreateOAuth2):
@@ -49,8 +53,13 @@ class UsersServices:
             await self.db.commit()
             return user
 
-        except (SQLAlchemyError, Exception) as ex:
+        except SQLAlchemyError as ex:
             # ошибка базы данных
             await self.db.rollback()
             logger.error(ex)
+            raise UserCreationErrorEx from ex
+
+        except Exception as ex:
+            await self.db.rollback()
+            logger.exception(ex)
             raise UserCreationErrorEx from ex
