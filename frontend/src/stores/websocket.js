@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { ref } from 'vue';
-import { useAuthStore } from './auth';
+import { useAuthStore } from './auth.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
