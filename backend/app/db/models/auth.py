@@ -1,12 +1,8 @@
-from datetime import datetime
-
-from sqlalchemy import Boolean, DateTime, text, false
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
 from typing import TYPE_CHECKING
 
 from app.db import Base
-from app.db.types import fk_user, uid
+from app.db.types import fk_user, uid, bool_false, datetime_now, str_256
 
 if TYPE_CHECKING:
     from app.db.models import Users
@@ -30,8 +26,8 @@ class RefreshTokens(Base):
 
     user_id: Mapped[fk_user]
     jti: Mapped[uid]
-    issued_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("now()"))
-    revoked: Mapped[bool] = mapped_column(Boolean, server_default=false())
-    # device_info: Mapped[str | None] = mapped_column(JSONB)
+    issued_at: Mapped[datetime_now]
+    revoked: Mapped[bool_false]
+    user_agent: Mapped[str_256 | None]
 
     user: Mapped["Users"] = relationship(back_populates="jti")
