@@ -21,8 +21,8 @@
             class="ml-4"
             style="max-width: 300px;"
             hide-details
-            single-line
-            variant="outlined"
+            rounded="pill"
+            clearable
           ></v-text-field>
 
           <v-spacer></v-spacer>
@@ -44,8 +44,8 @@
 </template>
 
 <script>
-import Login from './components/Login.vue';
-import Logout from './components/Logout.vue';
+import Login from '@/components/Login.vue';
+import Logout from '@/components/Logout.vue';
 import {computed, onMounted, ref} from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
