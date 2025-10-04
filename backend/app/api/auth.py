@@ -10,7 +10,7 @@ from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsE
 from app.schemas.auth import SLoginUser
 from app.services.auth import AuthServices
 from app.services.users import UsersServices
-from app.types import status_ok
+from app.types import status_ok, status_error
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -25,8 +25,8 @@ async def user_login(db: DDB, data: SLoginUser = Body(openapi_examples=login_exa
         result = await AuthServices(db).login(data)
         return {**status_ok, "data": result}
 
-    except (UserNotFoundEx, PasswordIncorrectEx) as ex:
-        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
+    except (UserNotFoundEx, PasswordIncorrectEx):
+        return {**status_error, "detail": "Пользователь или пароль неверный"}
 
     except Exception as ex:
         logger.exception(ex)
@@ -43,8 +43,8 @@ async def user_register(db: DDB, data: SLoginUser = Body(openapi_examples=login_
         await UsersServices(db).create_user_by_email(data)
         return status_ok
 
-    except (UserCreationErrorEx, UserExistsEx) as ex:
-        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
+    except (UserCreationErrorEx, UserExistsEx):
+        return {**status_error, "detail": "Ошибка создания пользователя"}
 
     except Exception as ex:
         logger.exception(ex)
