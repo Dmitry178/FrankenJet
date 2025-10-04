@@ -39,18 +39,26 @@ export default {
     },
   },
   defaults: {
-    VCard: {
-      elevation: 0,
-      rounded: 'none',
-      style: 'border: 1px solid rgb(var(--v-theme-border));',
+    VContainer: {
+      style: 'padding: 10px;',
     },
     VAppBar: {
       elevation: 0,
       flat: true,
       style: 'border-bottom: 1px solid rgb(var(--v-theme-border));',
     },
-    VContainer: {
-      style: 'padding: 10px;',
+    VCard: {
+      elevation: 0,
+      rounded: '2',
+      style: 'border: 1px solid rgb(var(--v-theme-border)); padding-top: 1rem;',
     },
+    VTextField: {
+      density: 'compact',
+      singleLine: true,
+      variant: 'outlined',
+    },
+  },
+  icons: {
+    defaultSet: 'mdi',
   },
 }
