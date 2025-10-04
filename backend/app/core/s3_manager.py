@@ -2,6 +2,7 @@
 
 import aioboto3
 import aiofiles
+import json
 
 from pathlib import Path
 from typing import List, AsyncGenerator
@@ -72,16 +73,23 @@ class S3Manager:
             response = await s3.list_buckets()
             return [bucket["Name"] for bucket in response["Buckets"]]
 
-    async def create_bucket(self, bucket: str) -> bool:
+    async def create_bucket(self, bucket: str, public=False) -> bool:
         """
         Создание бакета
+
+        :param bucket: бакет
+        :param public: флаг публичности бакета
         """
 
         try:
             async with await self.get_client() as s3:
                 await s3.create_bucket(Bucket=bucket)
                 logger.info(f"Бакет {bucket} создан")
-                return True
+
+            if public:
+                await self.set_bucket_public_policy(bucket)
+
+            return True
 
         except Exception as ex:
             logger.exception(f"Ошибка создания бакета {bucket}: {ex}")
@@ -131,6 +139,36 @@ class S3Manager:
                 Prefix=prefix
             )
             return response.get("Contents", [])
+
+    async def set_bucket_public_policy(self, bucket: str) -> bool:
+        """
+        Установка публичной политики для бакета (доступ на чтение)
+        """
+
+        policy = {
+            "Version": "2012-10-17",
+            "Statement": [
+                {
+                    "Effect": "Allow",
+                    "Principal": {"AWS": "*"},
+                    "Action": ["s3:GetObject"],
+                    "Resource": [f"arn:aws:s3:::{bucket}/*"]
+                }
+            ]
+        }
+
+        try:
+            async with await self.get_client() as s3:
+                await s3.put_bucket_policy(
+                    Bucket=bucket,
+                    Policy=json.dumps(policy)
+                )
+                logger.info(f"Политика публичного доступа установлена для бакета {bucket}")
+                return True
+
+        except Exception as ex:
+            logger.exception(f"Ошибка установки политики для бакета {bucket}: {ex}")
+            return False
 
     @staticmethod
     def define_content_type(file_name: str) -> dict:
