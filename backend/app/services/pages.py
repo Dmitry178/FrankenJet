@@ -17,7 +17,7 @@ class PagesService:
 
         # случайные статьи
         columns = ["slug", "title", "summary"]
-        random_articles = await self.db.articles.select_random(columns=columns, limit=4, is_published=True) or []
+        random_articles = await self.db.articles.select_random(columns=columns, limit=3, is_published=True) or []
         context["articles"] = random_articles
 
         # случайные факты
