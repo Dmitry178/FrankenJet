@@ -13,7 +13,11 @@
         cover
         class="article-image"
         :style="{ maxWidth: articleImageIsDefault ? '480px' : null }"
-      ></v-img>
+      >
+        <template v-if="articleImageIsDefault" #placeholder>
+          <AirplaneSVG />
+        </template>
+      </v-img>
 
       <v-card-text>
         <p v-html="renderedContent"></p>
@@ -55,14 +59,16 @@
 <script>
 import axios from 'axios';
 import { useRoute } from 'vue-router';
-import { onMounted, onUnmounted, ref, computed, getCurrentInstance } from 'vue';
+import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
+import AirplaneSVG from "@/components/AirplaneSVG.vue";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
   components: {
+    AirplaneSVG,
     'v-meta': {
       props: ['title', 'description', 'keywords'],
       template: `
@@ -93,7 +99,6 @@ export default {
     const error = ref(false);
     const showScrollTop = ref(false);
     const scrollTimer = ref(null);
-    const internalInstance = getCurrentInstance();
 
     const breadcrumbs = computed(() => [
       { title: 'Главная', href: '/' },
@@ -112,7 +117,7 @@ export default {
 
     const articleImage = computed(() => {
       if (!article.value) return '';
-      return article.value.image_url ? article.value.image_url : internalInstance.appContext.config.globalProperties.$defaultImage;
+      return article.value.image_url;
     });
 
     const articleImageIsDefault = computed(() => {

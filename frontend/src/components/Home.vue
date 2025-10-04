@@ -20,13 +20,25 @@
           <v-col cols="12" sm="12" md="6" lg="4" xl="4" v-for="article in visibleArticles" :key="article.slug">
             <v-card @click="goToArticle(article.slug)" class="article-card">
               <v-img
-                :src="articleImage(article)"
+                v-if="article.image_url"
+                :src="article.image_url"
                 cover
-              ></v-img>
+              />
+              <v-img
+                v-else
+                src=""
+                cover
+                class="airplane-svg-wrapper"
+              >
+                <AirplaneSVG class="airplane-svg" />
+              </v-img>
+
               <v-card-title>{{ article.title }}</v-card-title>
+
               <v-card-text>
                 {{ article.summary }}
               </v-card-text>
+
             </v-card>
           </v-col>
         </v-row>
@@ -49,11 +61,14 @@
 <script>
 import axios from 'axios';
 import { useRouter } from 'vue-router';
+import AirplaneSVG from "@/components/AirplaneSVG.vue";
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
-  components: {},
+  components: {
+    AirplaneSVG
+  },
   setup() {
     const router = useRouter();
     return { router };
@@ -84,9 +99,13 @@ export default {
     }
   },
   methods: {
+    articleImageIsDefault(article) {
+      // return !article.image_url;
+      return true;
+    },
     articleImage(article) {
-      // return article.thumbnail_url ? article.thumbnail_url : this.$defaultImage;
-      return this.$defaultImage;
+      // return article.image_url || '';
+      return undefined;
     },
     async fetchHomeData() {
       try {
