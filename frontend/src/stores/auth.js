@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import axios from 'axios';
 import Cookies from 'js-cookie';
+import { jwtDecode } from 'jwt-decode';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -79,7 +80,7 @@ export const useAuthStore = defineStore('auth', {
 
           const newRefreshToken = tokens.refresh_token;
           try {
-            const payload = jwt_decode(newRefreshToken);
+            const payload = jwtDecode(newRefreshToken);
             this.setJti(payload.jti);
           } catch (e) {
             console.error('Failed to decode refresh token:', e);
