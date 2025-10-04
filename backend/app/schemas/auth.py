@@ -4,15 +4,23 @@ from pydantic import BaseModel, EmailStr
 class SLoginUser(BaseModel):
     """
     Схема логина пользователя
+
+    В проекте логином по умолчанию является email, однако
+    для демонстрационных целей предусмотрен пользователь с логином "admin",
+    который не соответствует формату email. Поэтому тип поля email может быть
+    как строкой (str), так и EmailStr.
     """
 
-    email: str  # EmailStr
+    email: str | EmailStr
     password: str
 
 
 class SRegisterUser(BaseModel):
     """
     Схема регистрации пользователя
+
+    При регистрации новых пользователей логином обязательно должен быть
+    корректный email адрес.
     """
 
     email: EmailStr
