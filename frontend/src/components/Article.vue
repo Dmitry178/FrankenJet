@@ -33,14 +33,29 @@
       Статья не найдена.
     </v-alert>
 
+    <v-btn
+      v-if="showScrollTop"
+      fab
+      icon
+      color="primary"
+      class="scroll-top-btn"
+      @click="scrollToTop"
+      fixed
+      bottom
+      right
+    >
+      <v-icon>mdi-arrow-up</v-icon>
+    </v-btn>
+
     <v-meta v-if="article" :title="article.meta_title" :description="article.meta_description" :keywords="article.seo_keywords"></v-meta>
+
   </v-container>
 </template>
 
 <script>
 import axios from 'axios';
 import { useRoute } from 'vue-router';
-import { onMounted, ref, computed, getCurrentInstance } from 'vue';
+import { onMounted, onUnmounted, ref, computed, getCurrentInstance } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 
@@ -76,6 +91,8 @@ export default {
     const slug = route.params.slug;
     const article = ref(null);
     const error = ref(false);
+    const showScrollTop = ref(false);
+    const scrollTimer = ref(null);
     const internalInstance = getCurrentInstance();
 
     const breadcrumbs = computed(() => [
@@ -122,6 +139,34 @@ export default {
       return doc.body.innerHTML;
     });
 
+    // отображение кнопки прокрутки на начало страницы
+    const handleScroll = () => {
+      showScrollTop.value = window.scrollY > 300;
+
+      // сброс предыдущего таймера
+      if (scrollTimer.value) {
+        clearTimeout(scrollTimer.value);
+      }
+
+      // отображение кнопки при скролле > 300px
+      if (window.scrollY > 300) {
+        showScrollTop.value = true;
+      }
+
+      // запуск таймера на скрытие кнопки через 2 секунды
+      scrollTimer.value = setTimeout(() => {
+        showScrollTop.value = false;
+      }, 2000);
+    };
+
+    // прокрутка страницы на начало
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    };
+
     onMounted(async () => {
       try {
         const response = await axios.get(`${API_BASE_URL}/articles/${slug}`);
@@ -138,6 +183,14 @@ export default {
       }
     });
 
+    onMounted(() => {
+      window.addEventListener('scroll', handleScroll);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('scroll', handleScroll);
+    });
+
     return {
       article,
       breadcrumbs,
@@ -146,13 +199,26 @@ export default {
       articleImage,
       articleImageIsDefault,
       renderedContent,
+      showScrollTop,
+      scrollToTop,
     };
   },
 };
 </script>
 
 <style scoped>
-.article-image {
-  margin: 16px;
+@media (max-width: 768px) {
+  .article-image {
+    height: auto !important;
+    margin-top: 1rem !important;
+    margin-bottom: 0 !important;
+  }
+}
+
+.scroll-top-btn {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 9999;
 }
 </style>
