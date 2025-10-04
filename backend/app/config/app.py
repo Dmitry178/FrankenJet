@@ -17,7 +17,10 @@ OAUTH2_VK_REDIRECT_URL = "http://localhost/auth/vk"  # TODO: переделат�
 # VK при использовании http поддерживает только localhost (без порта)  # TODO учесть этот момент
 
 # очереди RabbitMQ
-RMQ_NOTIFICATIONS_QUEUE: str = "notification"  # уведомления бота
-RMQ_ADMIN_AUTH_QUEUE: str = "admin_auth"  # уведомление об аутентификации админа
-RMQ_MODERATION_QUEUE: str = "moderation"  # комментарии на модерацию
-RMQ_BACKEND_QUEUE: str = "backend_bot"  # очередь для приёма сообщения бэкендом от бота
+RMQ_NOTIFICATIONS_QUEUE = "notification"  # уведомления бота
+RMQ_ADMIN_AUTH_QUEUE = "admin_auth"  # уведомление об аутентификации админа
+RMQ_MODERATION_QUEUE = "moderation"  # комментарии на модерацию
+RMQ_BACKEND_QUEUE = "backend_bot"  # очередь для приёма сообщения бэкендом от бота
+
+# настройки S3
+BUCKET_IMAGES = "images"
