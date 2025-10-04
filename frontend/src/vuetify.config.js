@@ -33,32 +33,32 @@ const dark = {
 const sky = {
   dark: false,
   colors: {
-    primary: '#4A90E2',      // Глубокое небо
-    secondary: '#87CEEB',    // Светлое небо
-    accent: '#5DADE2',       // Лёгкий акцент
-    error: '#C0392B',        // Красный (как на авиационных огнях)
-    info: '#3498DB',         // Ясное небо
-    success: '#2ECC71',      // Успешный полёт
-    warning: '#F39C12',      // Внимание (как огни приземления)
-    background: '#E0F6FF',   // Очень светлое небо
-    surface: '#FFFFFF',      // Облака
-    border: '#AED6F1',       // Лёгкая дымка
+    primary: '#4A90E2',
+    secondary: '#87CEEB',
+    accent: '#5DADE2',
+    error: '#C0392B',
+    info: '#3498DB',
+    success: '#2ECC71',
+    warning: '#F39C12',
+    background: '#E0F6FF',
+    surface: '#FFFFFF',
+    border: '#AED6F1',
   }
 }
 
 const skyDark = {
   dark: true,
   colors: {
-    primary: '#5DADE2',      // Яркое небо в темноте
-    secondary: '#85C1E9',    // Светлое небо при закате
-    accent: '#3498DB',       // Акцент как закат
-    error: '#E74C3C',        // Авиационная тревога
-    info: '#87CEEB',         // Тёмное небо
-    success: '#58D68D',      // Успешный полёт
-    warning: '#F4D03F',      // Внимание
-    background: '#0C2461',   // Глубокое небо (ночь)
-    surface: '#1A5276',      // Облака при луне
-    border: '#5499C7',       // Лёгкий контур
+    primary: '#5DADE2',
+    secondary: '#85C1E9',
+    accent: '#3498DB',
+    error: '#E74C3C',
+    info: '#87CEEB',
+    success: '#58D68D',
+    warning: '#F4D03F',
+    background: '#0C2461',
+    surface: '#1A5276',
+    border: '#5499C7',
   }
 }
 

@@ -12,7 +12,7 @@ a {
 
 a:hover {
   text-decoration: underline;
-  color: rgb(var(--v-theme-primary));
+  color: rgba(var(--v-theme-info), 0.75);
 }
 
 .v-card-title {
