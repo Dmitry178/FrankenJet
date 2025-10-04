@@ -1,6 +1,8 @@
 import uuid
+from datetime import datetime
 
-from sqlalchemy import MetaData, UUID, text, ForeignKey, Integer, BigInteger, String, Boolean, true, false, literal
+from sqlalchemy import MetaData, UUID, text, ForeignKey, Integer, BigInteger, String, Boolean, true, false, literal, \
+    DateTime
 from sqlalchemy.orm import mapped_column
 
 from typing import Annotated
@@ -26,6 +28,9 @@ bool_null = Annotated[bool | None, mapped_column(Boolean, nullable=True)]
 bool_true = Annotated[bool, mapped_column(Boolean, default=True, server_default=true())]
 bool_false = Annotated[bool, mapped_column(Boolean, default=False, server_default=false())]
 
+# типы даты/времени
+datetime_now = Annotated[datetime, mapped_column(DateTime, server_default=text("now()"))]
+
 # UUID аннотированные типы
 uid = Annotated[
     uuid.UUID,
@@ -46,6 +51,7 @@ uid_pk = Annotated[
 
 # foreign keys
 fk_user = Annotated[int, mapped_column(Integer, ForeignKey("users.users.id"))]
+fk_user_cascade = Annotated[int, mapped_column(Integer, ForeignKey("users.users.id", ondelete="CASCADE"))]
 fk_role = Annotated[str, mapped_column(String(16), ForeignKey("users.roles.role"))]
 fk_aircraft = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.aircraft.id"))]
 fk_article = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.articles.id"))]
@@ -75,7 +81,10 @@ annotation_map = {
     uid: UUID(as_uuid=True),
     uid_pk: UUID(as_uuid=True),
 
+    datetime_now: DateTime,
+
     fk_user: Integer,
+    fk_user_cascade: Integer,
     fk_aircraft: UUID(as_uuid=True),
     fk_article: UUID(as_uuid=True),
     fk_country: UUID(as_uuid=True),
