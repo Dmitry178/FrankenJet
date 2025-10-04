@@ -40,6 +40,7 @@ export default {
   },
   defaults: {
     VContainer: {
+      fluid: true,
       style: 'padding: 10px;',
     },
     VAppBar: {
@@ -50,7 +51,7 @@ export default {
     VCard: {
       elevation: 0,
       rounded: '2',
-      style: 'border: 1px solid rgb(var(--v-theme-border)); padding-top: 1rem;',
+      style: 'border: 1px solid rgb(var(--v-theme-border)); padding-top: 1rem; padding-left: 0.75rem; padding-right: 0.75rem;',
     },
     VTextField: {
       density: 'compact',
