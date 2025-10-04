@@ -18,7 +18,7 @@
             append-icon="mdi-magnify"
             @click:append="search"
             @keydown.enter="search"
-            class="ml-4"
+            class="ml-4 hidden-sm-and-down"
             style="max-width: 300px;"
             hide-details
             rounded="pill"
