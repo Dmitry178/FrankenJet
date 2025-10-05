@@ -17,7 +17,7 @@ class PagesService:
         context = {}
 
         # случайные статьи
-        random_articles = await self.db.articles.select_random_articles(limit=3) or []
+        random_articles = await self.db.articles.get_random_articles(limit=3) or []
 
         # обработка изображений
         processed_articles = [
