@@ -1,8 +1,10 @@
 from typing import List
 from uuid import UUID
 
+from app.config.env import settings
 from app.core.db_manager import DBManager
 from app.db.models.articles import ArticleCategories, Articles
+from app.schemas.aircraft import SAircraft
 from app.schemas.articles import SArticles
 
 
@@ -21,12 +23,25 @@ class ArticlesServices:
 
         return [ArticleCategories(item).value for item in ArticleCategories]
 
-    async def get_article(self, slug: str) -> Articles:
+    async def get_article(self, slug: str) -> dict:
         """
-        Получение статьи
+        Загрузка статьи
         """
 
-        return await self.db.articles.select_one_or_none(slug=slug)
+        data = await self.db.articles.get_article_by_slug(slug)
+        if not data:
+            return {}
+
+        aircraft = SAircraft.model_validate(data.get("Aircraft"), from_attributes=True)
+        if aircraft.image_url:
+            aircraft.image_url = f"{settings.S3_ENDPOINT_URL}{aircraft.image_url}"
+
+        result = {
+            "article": data.get("Articles"),
+            "aircraft": aircraft,
+        }
+
+        return result
 
     async def get_articles_list(
             self,
