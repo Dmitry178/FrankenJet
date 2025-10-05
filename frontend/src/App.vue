@@ -26,6 +26,11 @@
           ></v-text-field>
 
           <v-spacer></v-spacer>
+
+          <v-btn icon @click="toggleTheme" class="mr-2">
+            <v-icon>{{ themeIcon }}</v-icon>
+          </v-btn>
+
           <v-divider vertical></v-divider>
 
           <Login v-if="!isLoggedIn" />
@@ -50,6 +55,8 @@ import {computed, onMounted, ref} from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
 import { useRouter } from 'vue-router';
+import { useTheme } from 'vuetify';
+import vuetifyConfig from '@/vuetify.config.js';
 
 export default {
   name: 'App',
@@ -61,12 +68,45 @@ export default {
     const authStore = useAuthStore();
     const settingsStore = useSettingsStore();
     const router = useRouter();
+    const theme = useTheme();
 
     const isLoggedIn = computed(() => authStore.accessToken !== null);
     const searchQuery = ref('');
 
     const search = () => {
       router.push({ path: "/search", query: { q: searchQuery.value } });
+    };
+
+    // получаем названия тем из vuetify.config
+    const themeNames = Object.keys(vuetifyConfig.theme.themes);
+    const currentThemeIndex = ref(0);
+
+    // загружаем тему из localStorage
+    const savedTheme = localStorage.getItem('selectedTheme');
+    if (savedTheme && themeNames.includes(savedTheme)) {
+      theme.change(savedTheme);
+      currentThemeIndex.value = themeNames.indexOf(savedTheme);
+    }
+
+    const themeIcon = computed(() => {
+      // индекс следующей темы
+      const nextIndex = (currentThemeIndex.value + 1) % themeNames.length;
+      const nextThemeName = themeNames[nextIndex];
+
+      if (nextThemeName==='dark') {
+        return 'mdi-weather-night';
+      } else if (nextThemeName==='light') {
+        return 'mdi-weather-sunny';
+      } else {
+        return 'mdi-palette';
+      }
+    });
+
+    const toggleTheme = () => {
+      currentThemeIndex.value = (currentThemeIndex.value + 1) % themeNames.length;
+      const nextTheme = themeNames[currentThemeIndex.value];
+      theme.change(nextTheme);
+      localStorage.setItem('selectedTheme', nextTheme);
     };
 
     onMounted(() => {
@@ -78,6 +118,8 @@ export default {
       settingsStore,
       searchQuery,
       search,
+      themeIcon,
+      toggleTheme,
     };
   }
 };
