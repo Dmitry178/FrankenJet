@@ -3,14 +3,14 @@
     <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
 
     <v-card v-if="article">
-      <v-card-title>{{ article.title }}</v-card-title>
+      <v-card-title>{{ article.article.title }}</v-card-title>
 
-      <v-card-subtitle v-if="article.is_archived">В архиве</v-card-subtitle>
+      <v-card-subtitle v-if="article.article.is_archived">В архиве</v-card-subtitle>
 
       <v-img
         :src="articleImage"
         height="300"
-        cover
+        contain
         class="article-image"
         :style="{ maxWidth: articleImageIsDefault ? '480px' : null }"
       >
@@ -18,6 +18,8 @@
           <AirplaneSVG />
         </template>
       </v-img>
+
+      <Aircraft :aircraft="article.aircraft" />
 
       <v-card-text>
         <p v-html="renderedContent"></p>
@@ -41,7 +43,7 @@
       v-if="showScrollTop"
       fab
       icon
-      color="primary"
+      color="secondary"
       class="scroll-top-btn"
       @click="scrollToTop"
       fixed
@@ -51,7 +53,7 @@
       <v-icon>mdi-arrow-up</v-icon>
     </v-btn>
 
-    <v-meta v-if="article" :title="article.meta_title" :description="article.meta_description" :keywords="article.seo_keywords"></v-meta>
+    <v-meta v-if="article" :title="article.article.meta_title" :description="article.article.meta_description" :keywords="article.article.seo_keywords"></v-meta>
 
   </v-container>
 </template>
@@ -63,12 +65,14 @@ import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import AirplaneSVG from "@/components/AirplaneSVG.vue";
+import Aircraft from '@/components/Aircraft.vue';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export default {
   components: {
     AirplaneSVG,
+    Aircraft,
     'v-meta': {
       props: ['title', 'description', 'keywords'],
       template: `
@@ -103,11 +107,11 @@ export default {
     const breadcrumbs = computed(() => [
       { title: 'Главная', href: '/' },
       { title: 'Статьи', disabled: true },
-      { title: article.value?.title || 'Статья не найдена', disabled: true },
+      { title: article.value?.article.title || 'Статья не найдена', disabled: true },
     ]);
 
     const formattedDate = computed(() => {
-      const dateString = article.value?.published_at || article.value?.created_at;
+      const dateString = article.value?.article.published_at || article.value?.article.created_at;
       if (!dateString) return 'Дата не указана';
 
       const date = new Date(dateString);
@@ -116,17 +120,17 @@ export default {
     });
 
     const articleImage = computed(() => {
-      if (!article.value) return '';
-      return article.value.image_url;
+      if (!article.value.article) return '';
+      return article.value.aircraft.image_url;
     });
 
     const articleImageIsDefault = computed(() => {
-      return !article.value?.image_url;
+      return !article.value?.aircraft.image_url;
     });
 
     const renderedContent = computed(() => {
-      if (!article.value?.content) return '';
-      const html = marked(article.value.content);
+      if (!article.value?.article.content) return '';
+      const html = marked(article.value.article.content);
       const cleanHtml = DOMPurify.sanitize(html, {
         USE_PROFILES: { html: true },  // разрешаем HTML
         ADD_ATTR: ['target', 'rel']
@@ -158,10 +162,10 @@ export default {
         showScrollTop.value = true;
       }
 
-      // запуск таймера на скрытие кнопки через 2 секунды
-      scrollTimer.value = setTimeout(() => {
-        showScrollTop.value = false;
-      }, 2000);
+      // запуск таймера на скрытие кнопки через 3 секунды
+      // scrollTimer.value = setTimeout(() => {
+      //   showScrollTop.value = false;
+      // }, 3000);
     };
 
     // прокрутка страницы на начало
@@ -212,6 +216,10 @@ export default {
 </script>
 
 <style scoped>
+.article-image >>> img {
+  object-position: left center;
+}
+
 @media (max-width: 768px) {
   .article-image {
     height: auto !important;
@@ -222,8 +230,8 @@ export default {
 
 .scroll-top-btn {
   position: fixed !important;
-  bottom: 20px !important;
-  right: 20px !important;
+  bottom: 23px !important;
+  right: 23px !important;
   z-index: 9999;
 }
 </style>
