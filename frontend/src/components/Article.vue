@@ -1,74 +1,103 @@
 <template>
   <v-container>
-    <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
+    <div class="article-container">
+      <div class="article-content">
+        <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
 
-    <v-card v-if="article">
-      <v-card-title class="pb-2">{{ article.article.title }}</v-card-title>
+        <v-card v-if="article">
+          <v-card-title class="pb-2">{{ article.article.title }}</v-card-title>
 
-      <v-card-subtitle v-if="article.article.is_archived">В архиве</v-card-subtitle>
+          <v-card-subtitle v-if="article.article.is_archived">В архиве</v-card-subtitle>
 
-      <!-- Изображение -->
-      <v-img
-        :src="articleImage"
-        height="300"
-        contain
-        class="article-image clickable-image"
-        :style="{ maxWidth: articleImageIsDefault ? '480px' : null }"
-        @click="openImageDialog"
-      >
-        <template v-if="articleImageIsDefault" #placeholder>
-          <AirplaneSVG />
-        </template>
-      </v-img>
-
-      <!-- Модальное окно -->
-      <v-dialog v-model="imageDialog" max-width="900">
-        <v-card>
+          <!-- Изображение -->
           <v-img
             :src="articleImage"
-            :alt="article.aircraft.name || 'Изображение воздушного судна'"
-            max-height="80vh"
+            height="300"
             contain
-          />
-          <v-card-text v-if="imageCaption.title || imageCaption.description" class="pt-2 pb-0">
-            <div class="modal-image-caption">
-              <h4 v-if="imageCaption.title" class="text-h6 font-weight-medium mb-1">
-                {{ imageCaption.title }}
-              </h4>
-              <p v-if="imageCaption.description" class="text-body-2 text--secondary mb-0">
-                {{ imageCaption.description }}
-              </p>
-            </div>
+            class="article-image clickable-image"
+            :style="{ maxWidth: articleImageIsDefault ? '480px' : null }"
+            @click="openImageDialog"
+          >
+            <template v-if="articleImageIsDefault" #placeholder>
+              <AirplaneSVG />
+            </template>
+          </v-img>
+
+          <!-- Модальное окно -->
+          <v-dialog v-model="imageDialog" max-width="900">
+            <v-card>
+              <v-img
+                :src="articleImage"
+                :alt="article.aircraft.name || 'Изображение воздушного судна'"
+                max-height="80vh"
+                contain
+              />
+              <v-card-text v-if="imageCaption.title || imageCaption.description" class="pt-2 pb-0">
+                <div class="modal-image-caption">
+                  <h4 v-if="imageCaption.title" class="text-h6 font-weight-medium mb-1">
+                    {{ imageCaption.title }}
+                  </h4>
+                  <p v-if="imageCaption.description" class="text-body-2 text--secondary mb-0">
+                    {{ imageCaption.description }}
+                  </p>
+                </div>
+              </v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn @click="closeImageDialog" icon>
+                  <v-icon>mdi-close</v-icon>
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <Aircraft :aircraft="article.aircraft" />
+
+          <v-card-text class="pt-0">
+            <div id="article-content" v-html="renderedContent"></div>
           </v-card-text>
+
           <v-card-actions>
             <v-spacer></v-spacer>
-            <v-btn @click="closeImageDialog" icon>
-              <v-icon>mdi-close</v-icon>
-            </v-btn>
+            <v-card-text>Опубликовано: {{ formattedDate }}</v-card-text>
           </v-card-actions>
         </v-card>
-      </v-dialog>
 
-      <Aircraft :aircraft="article.aircraft" />
+        <v-alert
+          v-else-if="error"
+          type="error"
+          title="Ошибка"
+        >
+          Статья не найдена.
+        </v-alert>
+      </div>
 
-      <v-card-text class="pt-0">
-        <p v-html="renderedContent"></p>
-      </v-card-text>
+      <!-- Оглавление -->
+      <div v-if="toc.length > 0" class="toc-wrapper">
+        <v-card
+          class="toc-card"
+          elevation=0
+        >
+          <v-card-title>Содержание</v-card-title>
+          <v-card-text>
+            <ul class="toc-list">
+              <li
+                v-for="item in toc"
+                :key="item.id"
+                :class="{ 'active': activeTocItem === item.id }"
+                @click="scrollToSection(item.id)"
+              >
+                <a href="#" @click.prevent="scrollToSection(item.id)">
+                  {{ item.text }}
+                </a>
+              </li>
+            </ul>
+          </v-card-text>
+        </v-card>
+      </div>
+    </div>
 
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-card-text>Опубликовано: {{ formattedDate }}</v-card-text>
-      </v-card-actions>
-    </v-card>
-
-    <v-alert
-      v-else-if="error"
-      type="error"
-      title="Ошибка"
-    >
-      Статья не найдена.
-    </v-alert>
-
+    <!-- FAB -->
     <v-btn
       v-if="showScrollTop"
       fab
@@ -91,7 +120,7 @@
 <script>
 import axios from 'axios';
 import { useRoute } from 'vue-router';
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import {onMounted, onUnmounted, ref, computed, nextTick} from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import AirplaneSVG from "@/components/AirplaneSVG.vue";
@@ -134,6 +163,10 @@ export default {
     const showScrollTop = ref(false);
     const scrollTimer = ref(null);
 
+    const toc = ref([]);
+    const activeTocItem = ref(null);
+    let observer = null;
+
     const breadcrumbs = computed(() => [
       { title: 'Главная', href: '/' },
       { title: 'Статьи', disabled: true },
@@ -168,6 +201,7 @@ export default {
       imageDialog.value = false;
     };
 
+    // заголовок изображения в модалке
     const imageCaption = computed(() => {
       const { name, original_name, image_description } = article.value.aircraft || {};
       let title = '';
@@ -184,8 +218,10 @@ export default {
       };
     });
 
+    // конвертация текста из MD в HTML
     const renderedContent = computed(() => {
       if (!article.value?.article.content) return '';
+
       const html = marked(article.value.article.content);
       const cleanHtml = DOMPurify.sanitize(html, {
         USE_PROFILES: { html: true },  // разрешаем HTML
@@ -194,8 +230,28 @@ export default {
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanHtml, 'text/html');
-      const links = doc.querySelectorAll('a');
+      // const links = doc.querySelectorAll('a');
 
+      // links.forEach(link => {
+      //   link.setAttribute('target', '_blank');
+      //   link.setAttribute('rel', 'noopener noreferrer');
+      // });
+
+      // находим заголовки и добавляем им id
+      const headings = doc.querySelectorAll('h1, h2, h3, h4');
+      toc.value = [];
+
+      headings.forEach((el, index) => {
+        const id = `heading-${index}`;
+        el.id = id;
+        toc.value.push({
+          id,
+          text: el.textContent.trim(),
+          level: parseInt(el.tagName.charAt(1))
+        });
+      });
+
+      const links = doc.querySelectorAll('a');
       links.forEach(link => {
         link.setAttribute('target', '_blank');
         link.setAttribute('rel', 'noopener noreferrer');
@@ -203,6 +259,41 @@ export default {
 
       return doc.body.innerHTML;
     });
+
+    const scrollToSection = (id) => {
+      const element = document.getElementById(id);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth' });
+      }
+    };
+
+    // содержание статьи
+    const initObserver = () => {
+      nextTick(() => {
+        const headings = document.querySelectorAll('#article-content h1, #article-content h2, #article-content h3, #article-content h4');
+
+        if (observer) {
+          observer.disconnect();
+        }
+
+        observer = new IntersectionObserver(
+          (entries) => {
+            entries.forEach(entry => {
+              if (entry.isIntersecting) {
+                activeTocItem.value = entry.target.id;
+              }
+            });
+          },
+          {
+            rootMargin: '-20% 0px -80% 0px'
+          }
+        );
+
+        headings.forEach((el) => {
+          observer.observe(el);
+        });
+      });
+    };
 
     // отображение кнопки прокрутки на начало страницы
     const handleScroll = () => {
@@ -233,6 +324,7 @@ export default {
     };
 
     onMounted(async () => {
+      // загрузка статьи
       try {
         const response = await axios.get(`${API_BASE_URL}/articles/${slug}`);
         if (response.data.status === "ok") {
@@ -246,6 +338,10 @@ export default {
         error.value = true;
         console.error("Ошибка при загрузке данных статьи:", e);
       }
+
+      // инициализируем observer после загрузки статьи
+      await nextTick(); // ждём обновления DOM
+      initObserver();
     });
 
     onMounted(() => {
@@ -253,6 +349,9 @@ export default {
     });
 
     onUnmounted(() => {
+      if (observer) {
+        observer.disconnect();
+      }
       window.removeEventListener('scroll', handleScroll);
     });
 
@@ -270,6 +369,9 @@ export default {
       renderedContent,
       showScrollTop,
       scrollToTop,
+      toc,
+      scrollToSection,
+      activeTocItem,
     };
   },
 };
@@ -302,7 +404,62 @@ export default {
   padding-top: 0;
 }
 
+.article-container {
+  display: flex;
+  gap: 1rem;
+}
+
+.article-content {
+  flex: 1;
+}
+
+.toc-wrapper {
+  position: relative;
+  width: 300px;
+}
+
+.toc-card {
+  position: sticky;
+  top: 130px; /* Высота тулбара */
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+  padding: 0;
+
+  font-size: 1.1rem;
+  font-weight: bold;
+}
+
+.toc-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc-list li {
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.toc-list li:hover {
+  text-decoration: underline;
+}
+
+.toc-list li.active a {
+  font-weight: bold;
+}
+
+.toc-list a {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  padding: 4px 0;
+}
+
 @media (max-width: 768px) {
+  .toc-card {
+    display: none;
+  }
+
   .article-image {
     height: auto !important;
     margin-top: 1rem !important;
