@@ -11,9 +11,9 @@ class ArticlesRepository(BaseRepository):
 
     model = Articles
 
-    async def select_random_articles(self, limit: int = None):
+    async def get_random_articles(self, limit: int = None):
         """
-        Получение случайных статей
+        Загрузка случайных статей
         """
 
         query = (
@@ -25,5 +25,18 @@ class ArticlesRepository(BaseRepository):
             .limit(limit)
         )
         result = await self.session.execute(query)
-
         return result.mappings().all()
+
+    async def get_article_by_slug(self, slug: str):
+        """
+        Загрузка статьи и карточки воздушного судна
+        """
+
+        query = (
+            select(Articles, Aircraft)
+            .outerjoin(Aircraft, Articles.id == Aircraft.article_id)
+            .filter(Articles.slug == slug)
+            .limit(1)
+        )
+        result = await self.session.execute(query)
+        return result.mappings().one_or_none()
