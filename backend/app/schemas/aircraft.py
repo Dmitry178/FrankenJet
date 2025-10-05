@@ -24,6 +24,7 @@ class SAircraft(BaseModel):
 
     slug: str = Field(..., max_length=64, description="Строковый идентификатор")
     name: str = Field(..., max_length=32, description="Название")
+    original_name: str = Field(..., max_length=32, description="Название на оригинальном языке")
     manufacturer_id: UUID | None = Field(None, description="ID производителя")
     country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
     aircraft_type: str | None = Field(None, max_length=16, description="Тип воздушного судна")
