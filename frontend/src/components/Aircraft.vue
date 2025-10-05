@@ -1,8 +1,9 @@
 <template>
-  <v-card-text>
-    <v-expansion-panels>
+  <!-- Панель с характеристиками -->
+  <v-card-text class="pb-0 pt-6">
+    <v-expansion-panels flat tile>
       <v-expansion-panel>
-        <v-expansion-panel-title>Технические характеристики</v-expansion-panel-title>
+        <v-expansion-panel-title class="pb-0 pt-0 pl-4 pr-4">Технические характеристики</v-expansion-panel-title>
         <v-expansion-panel-text>
           <v-table density="compact" class="spec-table">
             <thead>
@@ -120,6 +121,20 @@ const formatValue = (value, fieldKey) => {
 </script>
 
 <style scoped>
+:deep(.v-expansion-panel) {
+  border-top: 1px solid rgb(var(--v-theme-border));
+  border-bottom: 1px solid rgb(var(--v-theme-border));
+}
+
+:deep(.v-expansion-panel-text__wrapper) {
+  padding: 0 !important;
+}
+
+:deep(.v-expansion-panel-title),
+:deep(.v-expansion-panel-title--active) {
+  min-height: 2.5rem !important;
+}
+
 .spec-table {
   table-layout: auto;
   width: 100%;
@@ -129,7 +144,7 @@ const formatValue = (value, fieldKey) => {
 .spec-table td {
   padding: 8px;
   text-align: left;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid rgba(var(--v-theme-border), 0.12);
   white-space: nowrap;
 }
 
@@ -148,6 +163,11 @@ const formatValue = (value, fieldKey) => {
 
 .spec-table th {
   font-weight: bold;
+  background-color: rgba(var(--v-theme-border), 0.25);
+}
+
+.spec-table tbody tr:hover {
+  background-color: rgba(var(--v-theme-border), 0.25);
 }
 
 @media (max-width: 768px) {
