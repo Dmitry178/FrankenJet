@@ -1,5 +1,5 @@
 from datetime import date
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ConfigDict
 from uuid import UUID
 
 from app.db.models.aircraft import EngineTypes, AircraftStatus
@@ -19,6 +19,8 @@ class SAircraft(BaseModel):
     """
     Схема воздушного судна
     """
+
+    model_config = ConfigDict(from_attributes=True)
 
     slug: str = Field(..., max_length=64, description="Строковый идентификатор")
     name: str = Field(..., max_length=32, description="Название")
