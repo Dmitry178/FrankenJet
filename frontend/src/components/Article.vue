@@ -3,25 +3,55 @@
     <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
 
     <v-card v-if="article">
-      <v-card-title>{{ article.article.title }}</v-card-title>
+      <v-card-title class="pb-2">{{ article.article.title }}</v-card-title>
 
       <v-card-subtitle v-if="article.article.is_archived">В архиве</v-card-subtitle>
 
+      <!-- Изображение -->
       <v-img
         :src="articleImage"
         height="300"
         contain
-        class="article-image"
+        class="article-image clickable-image"
         :style="{ maxWidth: articleImageIsDefault ? '480px' : null }"
+        @click="openImageDialog"
       >
         <template v-if="articleImageIsDefault" #placeholder>
           <AirplaneSVG />
         </template>
       </v-img>
 
+      <!-- Модальное окно -->
+      <v-dialog v-model="imageDialog" max-width="900">
+        <v-card>
+          <v-img
+            :src="articleImage"
+            :alt="article.aircraft.name || 'Изображение воздушного судна'"
+            max-height="80vh"
+            contain
+          />
+          <v-card-text v-if="imageCaption.title || imageCaption.description" class="pt-2 pb-0">
+            <div class="modal-image-caption">
+              <h4 v-if="imageCaption.title" class="text-h6 font-weight-medium mb-1">
+                {{ imageCaption.title }}
+              </h4>
+              <p v-if="imageCaption.description" class="text-body-2 text--secondary mb-0">
+                {{ imageCaption.description }}
+              </p>
+            </div>
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn @click="closeImageDialog" icon>
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+
       <Aircraft :aircraft="article.aircraft" />
 
-      <v-card-text>
+      <v-card-text class="pt-0">
         <p v-html="renderedContent"></p>
       </v-card-text>
 
@@ -128,6 +158,32 @@ export default {
       return !article.value?.aircraft.image_url;
     });
 
+    const imageDialog = ref(false);
+
+    const openImageDialog = () => {
+      imageDialog.value = true;
+    };
+
+    const closeImageDialog = () => {
+      imageDialog.value = false;
+    };
+
+    const imageCaption = computed(() => {
+      const { name, original_name, image_description } = article.value.aircraft || {};
+      let title = '';
+
+      if (name && original_name && name !== original_name) {
+        title = `${name} (${original_name})`;
+      } else if (name) {
+        title = name;
+      }
+
+      return {
+        title,
+        description: image_description || null
+      };
+    });
+
     const renderedContent = computed(() => {
       if (!article.value?.article.content) return '';
       const html = marked(article.value.article.content);
@@ -207,6 +263,10 @@ export default {
       error,
       articleImage,
       articleImageIsDefault,
+      imageDialog,
+      imageCaption,
+      openImageDialog,
+      closeImageDialog,
       renderedContent,
       showScrollTop,
       scrollToTop,
@@ -218,6 +278,28 @@ export default {
 <style scoped>
 .article-image >>> img {
   object-position: left center;
+}
+
+.clickable-image {
+  cursor: pointer;
+}
+
+.modal-image-caption {
+  text-align: center;
+  padding: 0.5rem 0 0 0;
+}
+
+.modal-image-caption h4 {
+  margin: 0;
+}
+
+.modal-image-caption p {
+  margin: 0;
+  opacity: 0.8;
+}
+
+.v-card-actions {
+  padding-top: 0;
 }
 
 @media (max-width: 768px) {
