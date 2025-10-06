@@ -12,7 +12,7 @@
 
 ### Технологии
 
-Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend). Упор в проекте сделан на **Backend**.
+Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
 
 * **Backend:**
   * Python 3.12, PostgreSQL 17 (AsyncPG, SQLAlchemy 2 ORM), API (async FastAPI, WebSocket, AIOHTTP), S3 MiniO (AIOBoto3), RabbitMQ (FastStream).
@@ -104,6 +104,7 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend). Упор в проекте
   * Базовая структура веб-приложения:
     * главная страница с выводом 3-х случайных статей и 5-ю интересными фактами;
     * страница статей с техническими характеристиками воздушных судов.
+  * Сделано содержание статей с навигацией.
   * Реализованы различные цветовые схемы (в т.ч. тёмная тема), сделано переключение между ними.
   * Адаптивный дизайн (версия для десктоп, планшета, телефона).
   * Вывод метаданных для SEO-оптимизации.
