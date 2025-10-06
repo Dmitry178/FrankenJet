@@ -40,8 +40,17 @@ blockquote {
 }
 
 .v-breadcrumbs {
-  padding-top: 0 !important;
-  padding-bottom: 0 !important;
+  margin: 0 !important;
+  padding: 1rem 1.5rem 0.5rem 1.5rem !important;
+  font-size: 0.9rem !important;
+}
+
+.v-breadcrumbs a {
+  color: rgb(var(--v-theme-on-surface)) !important;
+}
+
+.v-breadcrumbs > a:hover {
+  text-decoration: underline;
 }
 
 .v-img {
@@ -66,16 +75,16 @@ blockquote {
 @media (max-width: 1279px) {
   .v-container,
   .v-app-bar {
-    padding-left: 50px !important;
-    padding-right: 50px !important;
+    padding-left: 100px !important;
+    padding-right: 100px !important;
   }
 }
 
 @media (min-width: 1280px) {
   .v-container,
   .v-app-bar {
-    padding-left: 150px !important;
-    padding-right: 150px !important;
+    padding-left: 300px !important;
+    padding-right: 300px !important;
   }
 }
 
