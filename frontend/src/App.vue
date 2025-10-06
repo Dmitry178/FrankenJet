@@ -1,62 +1,58 @@
 <template>
-  <v-responsive class="border" style="border: none">
-    <v-app>
-      <v-app-bar app flat>
-        <v-container class="d-flex align-center">
-          <router-link
-              to="/"
-              style="text-decoration: none; color: inherit; display: flex; align-items: center;"
-          >
-            <v-icon icon="mdi-airplane" class="mr-1" size="x-large" color="primary"></v-icon>
-            <v-toolbar-title class="font-weight-bold">Franken Jet</v-toolbar-title>
-          </router-link>
+  <v-app>
+    <!-- Тулбар -->
+    <v-app-bar app flat>
+      <router-link
+          to="/"
+          style="text-decoration: none; color: inherit; display: flex; align-items: center;"
+      >
+        <v-icon icon="mdi-airplane" class="mr-1" size="x-large" color="primary"></v-icon>
+        <v-toolbar-title class="font-weight-bold">Franken Jet</v-toolbar-title>
+      </router-link>
 
-          <!--  Строка поиска  -->
-          <v-text-field
-            v-model="searchQuery"
-            label="Поиск..."
-            append-icon="mdi-magnify"
-            @click:append="search"
-            @keydown.enter="search"
-            class="ml-4 hidden-sm-and-down"
-            style="max-width: 300px;"
-            hide-details
-            rounded="pill"
-            clearable
-          ></v-text-field>
+      <!--  Строка поиска  -->
+      <v-text-field
+        v-model="searchQuery"
+        label="Поиск..."
+        append-icon="mdi-magnify"
+        @click:append="search"
+        @keydown.enter="search"
+        class="ml-4 hidden-sm-and-down"
+        style="max-width: 300px;"
+        hide-details
+        rounded="pill"
+        clearable
+      ></v-text-field>
 
-          <v-spacer></v-spacer>
+      <v-spacer></v-spacer>
 
-          <v-btn icon @click="toggleTheme" class="mr-2">
-            <v-icon>{{ themeIcon }}</v-icon>
-          </v-btn>
+      <v-btn icon @click="toggleTheme" class="mr-2">
+        <v-icon>{{ themeIcon }}</v-icon>
+      </v-btn>
 
-          <v-divider vertical></v-divider>
+      <v-divider vertical></v-divider>
 
-          <Login v-if="!isLoggedIn" />
-          <Logout v-else />
+      <Login v-if="!isLoggedIn" />
+      <Logout v-else />
+    </v-app-bar>
 
-        </v-container>
-      </v-app-bar>
-
-      <v-main>
-        <v-container>
-          <router-view></router-view>
-        </v-container>
-      </v-main>
-    </v-app>
-  </v-responsive>
+    <!-- Основной контент -->
+    <v-main>
+      <router-view></router-view>
+    </v-main>
+  </v-app>
 </template>
 
 <script>
-import Login from '@/components/Login.vue';
-import Logout from '@/components/Logout.vue';
-import {computed, onMounted, ref} from 'vue';
+
+import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
 import { useRouter } from 'vue-router';
 import { useTheme } from 'vuetify';
 import vuetifyConfig from '@/vuetify.config.js';
+import Login from '@/components/Login.vue';
+import Logout from '@/components/Logout.vue';
 
 export default {
   name: 'App',
