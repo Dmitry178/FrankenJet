@@ -17,9 +17,9 @@ const light = {
 const dark = {
   dark: true,
   colors: {
-    primary: '#A1887F',
-    secondary: '#CDAB8F',
-    accent: '#E8D5C4',
+    primary: '#9E9E9E',
+    secondary: '#757575',
+    accent: '#BDBDBD',
     error: '#FFBABA',
     info: '#89CFF0',
     success: '#90EE90',
@@ -27,6 +27,22 @@ const dark = {
     background: '#333333',
     surface: '#555555',
     border: '#777777',
+  }
+}
+
+const skyDeep = {
+  dark: true,
+  colors: {
+    primary: '#1177FF',
+    secondary: '#5C9BFF',
+    accent: '#8BB8FF',
+    error: '#FF6B6B',
+    info: '#1177FF',
+    success: '#51CF66',
+    warning: '#F9C74F',
+    background: '#0D0F15',
+    surface: '#1A1D26',
+    border: '#2D323E',
   }
 }
 
@@ -68,8 +84,9 @@ export default {
     themes: {
       light: light,
       dark: dark,
-      sky: sky,
-      skyDark: skyDark,
+      skyDeep: skyDeep,
+      // sky: sky,
+      // skyDark: skyDark,
     },
   },
   defaults: {
