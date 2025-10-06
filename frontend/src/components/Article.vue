@@ -241,7 +241,9 @@ export default {
 
       // находим заголовки и добавляем им id
       const headings = doc.querySelectorAll('h1, h2, h3, h4');
-      toc.value = [];
+      toc.value = [
+          { id: 'top', text: 'Начало', level: 1 },
+      ];
 
       headings.forEach((el, index) => {
         const id = `heading-${index}`;
@@ -262,10 +264,23 @@ export default {
       return doc.body.innerHTML;
     });
 
+    // скроллинг к пунктам таблицы содержания
     const scrollToSection = (id) => {
-      const element = document.getElementById(id);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
+      if (id === 'top') {
+        window.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+        activeTocItem.value = 'top';
+      } else {
+        const element = document.getElementById(id);
+        if (element) {
+          const offsetTop = element.offsetTop;
+          window.scrollTo({
+            top: offsetTop,
+            behavior: 'smooth'
+          });
+        }
       }
     };
 
@@ -273,6 +288,10 @@ export default {
     const initObserver = () => {
       nextTick(() => {
         const headings = document.querySelectorAll('#article-content h1, #article-content h2, #article-content h3, #article-content h4');
+
+        toc.value = [
+          { id: 'top', text: 'Начало', level: 1 },
+        ];
 
         if (observer) {
           observer.disconnect();
@@ -295,6 +314,21 @@ export default {
           observer.observe(el);
         });
       });
+    };
+
+    // отслеживание активного пункта оглавления
+    const handleScrollActiveToc = () => {
+      const scrolled = window.scrollY;
+
+      if (scrolled < 100) {
+        activeTocItem.value = 'top';
+        return;
+      }
+
+      const scrolledToBottom = window.innerHeight + window.scrollY >= document.body.offsetHeight - 100;
+      if (scrolledToBottom && toc.value.length > 0) {
+        activeTocItem.value = toc.value[toc.value.length - 1].id;
+      }
     };
 
     // отображение кнопки прокрутки на начало страницы
@@ -323,6 +357,7 @@ export default {
         top: 0,
         behavior: 'smooth'
       });
+      activeTocItem.value = 'top';
     };
 
     onMounted(async () => {
@@ -344,10 +379,11 @@ export default {
       // инициализируем observer после загрузки статьи
       await nextTick(); // ждём обновления DOM
       initObserver();
-    });
 
-    onMounted(() => {
+      activeTocItem.value = 'top';
+
       window.addEventListener('scroll', handleScroll);
+      window.addEventListener('scroll', handleScrollActiveToc);
     });
 
     onUnmounted(() => {
@@ -355,6 +391,7 @@ export default {
         observer.disconnect();
       }
       window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('scroll', handleScrollActiveToc);
     });
 
     return {
