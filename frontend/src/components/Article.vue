@@ -2,9 +2,10 @@
   <v-container>
     <div class="article-container">
       <div class="article-content">
-        <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
-
         <v-card v-if="article">
+          <v-breadcrumbs :items="breadcrumbs"></v-breadcrumbs>
+          <v-divider class="ml-7 mr-7"></v-divider>
+
           <v-card-title class="pb-2">{{ article.article.title }}</v-card-title>
 
           <v-card-subtitle v-if="article.article.is_archived">В архиве</v-card-subtitle>
@@ -51,6 +52,7 @@
             </v-card>
           </v-dialog>
 
+          <!-- Технические характеристики воздушного судна -->
           <Aircraft :aircraft="article.aircraft" />
 
           <v-card-text class="pt-0">
@@ -400,10 +402,6 @@ export default {
   opacity: 0.8;
 }
 
-.v-card-actions {
-  padding-top: 0;
-}
-
 .article-container {
   display: flex;
   gap: 1rem;
@@ -414,17 +412,16 @@ export default {
 }
 
 .toc-wrapper {
-  position: relative;
+  position: sticky;
+  top: 64px; /* Высота тулбара */
+  height: calc(100vh - 64px);
   width: 300px;
+  overflow-y: auto;
+  padding: 0;
 }
 
 .toc-card {
-  position: sticky;
-  top: 130px; /* Высота тулбара */
-  max-height: calc(100vh - 80px);
-  overflow-y: auto;
   padding: 0;
-
   font-size: 1.1rem;
   font-weight: bold;
 }
