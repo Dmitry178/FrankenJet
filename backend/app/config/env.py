@@ -48,6 +48,10 @@ class Settings(BaseSettings):
     DB_CONN: str  # строка соединения с базой
     RMQ_CONN: str | None = None  # строка подключения к RabbitMQ
 
+    # настройки Redis
+    REDIS_URL: str | None = None
+    REDIS_PASSWORD: str | None = None
+
     # учётная запись админа по умолчанию (создаётся при первом запуске)
     ADMIN_USER: str | None = None
     ADMIN_PASS: str | None = None
