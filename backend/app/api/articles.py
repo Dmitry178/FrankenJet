@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Path, Query, Depends
 from uuid import UUID
 
+from app.core import cache_manager
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
@@ -13,6 +14,7 @@ articles_router = APIRouter(prefix="/articles", tags=["Articles"])
 
 
 @articles_router.get("/{slug}", summary="Статья")
+@cache_manager.cached(ttl=3600)
 async def get_article(
         db: DDB,
         slug: str = Path(..., description="Строковый идентификатор"),
