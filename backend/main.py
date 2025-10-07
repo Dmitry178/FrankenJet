@@ -13,12 +13,12 @@ from app.api import router
 from app.api.local import index_local_router
 from app.config.env import settings, AppMode
 from app.consumers.startup import run_consumers
-from app.core import rmq_manager
+from app.core import rmq_manager, cache_manager
 from app.core.logs import logger
 
 
 @asynccontextmanager
-async def lifespan(fastapi_app: FastAPI):
+async def lifespan(fastapi_app: FastAPI):  # noqa
     """
     Точка входа при запуске и завершении FastAPI
     """
@@ -27,10 +27,18 @@ async def lifespan(fastapi_app: FastAPI):
         await rmq_manager.start()
         logger.info("RabbitMQ connected")
 
+    if cache_manager.url:
+        await cache_manager.start()
+        logger.info("Redis connected")
+
     message = f"App started at: {datetime.now()} [{settings.BUILD}]"
     logger.info(message)
 
     yield
+
+    if cache_manager.url:
+        await cache_manager.close()
+        logger.info("Redis disconnected")
 
     if rmq_manager.url:
         await rmq_manager.close()
