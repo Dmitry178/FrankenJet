@@ -17,7 +17,7 @@
 
 ### Технологии
 
-Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
+Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend) + Aiogram (микросервис).
 
 * **Backend:**
   * Python 3.12, PostgreSQL 17 (AsyncPG, SQLAlchemy 2 ORM), API (async FastAPI, WebSocket, AIOHTTP), S3 MiniO (AIOBoto3), RabbitMQ (FastStream), Redis (FastApi-Cache2).
@@ -107,7 +107,8 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
   * Модели базы данных для хранения информации о пользователях, токенах, статьях, воздушных судах, конструкторских бюро, конструкторах и производителях.
   * API для получения данных по каждой категории.
   * Настроены миграции через Alembic для разных режимов работы приложения.
-  * Контекстные менеджеры для базы данных, RabbitMQ, S3 и WebSocket.
+  * Контекстные менеджеры для базы данных, RabbitMQ и S3, менеджеры для Redis и WebSocket.
+  * Кэширование настроек приложения и статьей.
   * Скрипты для:
     * создания и инициализации базы данных;
     * добавления первичных данных и статей;
@@ -123,7 +124,7 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
   * SEO-метаданные.
 
 * **Микросервисы:**
-  * Бот уведомлений: получает события об аутентификации администратора и новых комментариях (через RabbitMQ).
+  * Бот уведомлений (выводит события в бэкенде, получает события об аутентификации администратора и новых комментариях), работает через RabbitMQ.
 
 * **CI/CD:**
   * Настроен автоматизированный процесс сборки и деплоя с использованием GitLab CI/CD.
@@ -135,7 +136,6 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend).
   * Менеджер AIOHTTP.
   * Модели/API персоналий и исторических событий.
   * Задачи (Celery).
-  * Кэширование (Redis).
   * Тесты.
   * Мониторинг.
 
@@ -172,19 +172,19 @@ cd FrankenJet
 
 ### Запуск приложения
 
-#### Лайт-версия (без RabbitMQ и бота уведомлений)
+#### Лайт-версия (без Redis, RabbitMQ и бота уведомлений)
 
 Запустите:
 ```bash
 docker-compose up -d --build
 ```
 
-#### Версия с RabbitMQ и ботом уведомлений
+#### Версия с Redis, RabbitMQ и ботом уведомлений
 
 1. Откройте `/notifications/bot.env`.
 2. Укажите свои значения:
-   * TELEGRAM_ADMIN_ID — ваш Telegram ID (можно получить у @userinfobot),
-   * TELEGRAM_API_TOKEN — токен бота (можно получить у @BotFather).
+   * **TELEGRAM_ADMIN_ID** — ваш Telegram ID (можно получить у @userinfobot),
+   * **TELEGRAM_API_TOKEN** — токен бота (можно получить у @BotFather).
 3. Сохраните файл.
 4. Запустите:
    ```bash
@@ -210,7 +210,7 @@ docker-compose -f docker-compose-bot.yml down
 
 ### Данные по умолчанию
 
-**Внимание!** Используются **нестандартные** порты, чтобы избежать возможных конфликтов с установленными локально сервисами. Перед запуском убедитесь, что используемые приложением порты, указанные в docker-compose.yml свободны. 
+**Внимание!** Используются **нестандартные** порты, чтобы избежать возможных конфликтов с установленными локально сервисами. Перед запуском убедитесь, что используемые приложением порты, указанные в docker-compose.yml, свободны. 
 
 | Сервис      | Порт (API) | Порт (UI/Console) | Логин   | Пароль   | URL                                                      |
 |-------------|------------|-------------------|---------|----------|----------------------------------------------------------|
@@ -220,6 +220,7 @@ docker-compose -f docker-compose-bot.yml down
 | RabbitMQ    | 5676       | 15676             | admin   | password | [http://localhost:15676](http://localhost:15676)         |
 | Backend     | 8100       | —                 | admin   | password | [http://localhost:8100/docs](http://localhost:8100/docs) |
 | Frontend    | 3100       | —                 | —       | —        | [http://localhost:3100](http://localhost:3100)           |
+| Bot         | —          | —                 | —       | —        | —                                                        |
 
 ---
 
@@ -286,4 +287,4 @@ docker-compose -f docker-compose-bot.yml down
 
 ## Автор
 
-Дмитрий Одегов ([Dmitry178](https://github.com/Dmitry178))
+Дмитрий Одегов ([Dmitry178](https://t.me/dmitry178))
