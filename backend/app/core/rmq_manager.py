@@ -1,3 +1,5 @@
+""" Контекстный менеджер брокера RabbitMQ """
+
 import asyncio
 
 from aiormq import AMQPConnectionError, ChannelClosed, AMQPError

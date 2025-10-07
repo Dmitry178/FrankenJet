@@ -1,3 +1,5 @@
+""" Менеджер WebSocket """
+
 from fastapi import WebSocket, WebSocketDisconnect
 from typing import Dict, List
 from uuid import UUID
