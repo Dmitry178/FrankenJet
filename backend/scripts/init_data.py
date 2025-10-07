@@ -39,13 +39,15 @@ T = TypeVar("T", bound=Base)
 # путь к статьям
 BASE_ARTICLES_PATH = "./scripts/articles"
 
-# расширения базы данных для установки
+# расширения базы данных для установки,
+# выполняется sql-запрос: CREATE EXTENSION IF NOT EXISTS {extension}
 extensions = [
     # "citext",
     "uuid-ossp",
 ]
 
-# схемы базы данных
+# схемы базы данных,
+# выполняется sql-запрос: CREATE SCHEMA IF NOT EXISTS {schema}
 schemas = [
     "articles",
     "users"
