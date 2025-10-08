@@ -1,7 +1,8 @@
-import aiohttp
 import base64
 import hashlib
 import json
+
+import aiohttp
 import jwt
 import secrets
 import urllib.parse
@@ -10,7 +11,9 @@ from aiohttp import ContentTypeError
 
 from app.config.app import OAUTH2_GOOGLE_URL, OAUTH2_GOOGLE_TOKEN_URL, OAUTH2_GOOGLE_REDIRECT_URL, \
     OAUTH2_VK_URL, OAUTH2_VK_REDIRECT_URL
-from app.config.env import settings
+from app.config.env import settings, AppMode
+from app.core import HTTPManager
+from app.core.logs import logger
 from app.exceptions.oauth2 import OAuth2ErrorEx
 from app.schemas.users import SUserCreateOAuth2
 from app.types import ABody
@@ -46,6 +49,11 @@ class OAuth2Services:
 
     class Google:
 
+        http: HTTPManager | None
+
+        def __init__(self, http: HTTPManager | None = None) -> None:
+            self.http = http
+
         @staticmethod
         async def get_oauth2_redirect_url():
             """
@@ -65,8 +73,7 @@ class OAuth2Services:
 
             return f"{OAUTH2_GOOGLE_URL}?{query_string}"
 
-        @staticmethod
-        async def get_oauth2_user_data(code: ABody, state: ABody) -> SUserCreateOAuth2:
+        async def get_oauth2_user_data(self, code: ABody, state: ABody) -> SUserCreateOAuth2:
             """
             Получение данных пользователя
             """
@@ -82,40 +89,55 @@ class OAuth2Services:
                 "code": code,
             }
 
-            # TODO: сделать менеджер сессий
             async with aiohttp.ClientSession() as session, session.post(
-                    url=OAUTH2_GOOGLE_TOKEN_URL, data=data, ssl=False  # TODO: убрать ssl=False при production
+                    url=OAUTH2_GOOGLE_TOKEN_URL, data=data, ssl=(settings.APP_MODE != AppMode.local)
             ) as response:
+                print(response.status)
 
-                if response.status != 200:
-                    # error_text = await response.text()  # TODO: добавить логи
+            try:
+                response = await self.http.request(
+                    method="POST",
+                    url=OAUTH2_GOOGLE_TOKEN_URL,
+                    data=data,
+                    ssl=(settings.APP_MODE != AppMode.local)
+                )
+            except Exception as ex:
+                logger.error(f"Ошибка при запросе к Google OAuth2")
+                logger.exception(ex)
+                raise OAuth2ErrorEx from ex
+
+            if response.status != 200:
+                logger.error("Ошибка статуса ответа")
+                logger.error(await response.text())
+                raise OAuth2ErrorEx
+
+            # проверка content-type
+            content_type = response.headers.get('content-type', '')
+            if 'application/json' not in content_type:
+                logger.error("Контент ответа не json")
+                logger.error(await response.text())
+                raise  # TODO: добавить вызов кастомной ошибки
+
+            try:
+                result = await response.json()
+
+                id_token = result.get("id_token")
+                # access_token = result.get("access_token")
+                # refresh_token = result.get("refresh_token")
+                data = jwt.decode(
+                    id_token,
+                    algorithms=["RS256"],
+                    options={"verify_signature": False},  # TODO: сделать запрос public key для проверки токена
+                )
+
+                # дополнительная проверка на ошибки Google OAuth
+                if 'error' in result:
                     raise OAuth2ErrorEx
 
-                # проверка content-type
-                content_type = response.headers.get('content-type', '')
-                if 'application/json' not in content_type:
-                    # error_text = await response.text()  # TODO: добавить логи
-                    raise  # TODO: добавить вызов кастомной ошибки
-
-                try:
-                    result = await response.json()
-
-                    id_token = result.get("id_token")
-                    # access_token = result.get("access_token")
-                    # refresh_token = result.get("refresh_token")
-                    data = jwt.decode(
-                        id_token,
-                        algorithms=["RS256"],
-                        options={"verify_signature": False},  # TODO: сделать запрос public key для проверки токена
-                    )
-
-                    # дополнительная проверка на ошибки Google OAuth
-                    if 'error' in result:
-                        raise OAuth2ErrorEx
-
-                except (ContentTypeError, json.JSONDecodeError) as ex:
-                    # error_text = await response.text()  # TODO: добавить логи
-                    raise OAuth2ErrorEx from ex
+            except (ContentTypeError, json.JSONDecodeError) as ex:
+                logger.exception(ex)
+                logger.error(await response.text())
+                raise OAuth2ErrorEx from ex
 
             # упаковка данных от гугла в схему SUserCreateOAuth2
             user_data = SUserCreateOAuth2(
