@@ -39,6 +39,7 @@ async def get_article(
 
 
 @articles_router.get("/list", summary="Список статей")
+@cache_manager.cached(ttl=1800)
 async def get_article_list(
         db: DDB,
         filters: str | None = Query(None, description="Фильтр"),
