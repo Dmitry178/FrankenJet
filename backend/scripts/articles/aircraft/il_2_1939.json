@@ -1,7 +1,6 @@
 {
   "id": "8d81d48a-069e-4177-be99-37a22345e667",
   "article_id": "ac17d461-8a42-4c3f-ada3-6b2f6c25c3dd",
-  "slug": "il-2",
   "country_id": "su",
   "manufacturer_id": null,
   "name": "Ил-2",
@@ -12,6 +11,7 @@
   "image_license": "Общественное достояние",
   "image_source": "https://upload.wikimedia.org/wikipedia/commons/2/23/Il2_sturmovik.jpg",
   "image_author": "",
+  "image_author_url": "",
   "first_flight": "1939-10-02",
   "wingspan": 14.6,
   "length": 11.6,

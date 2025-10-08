@@ -1,7 +1,6 @@
 {
   "id": "c138088f-265b-4ac4-b49b-032e6c89e918",
   "article_id": "3db36721-5385-4545-8488-43784f364570",
-  "slug": "graf-zeppelin",
   "country_id": "de",
   "manufacturer_id": null,
   "name": "Граф Цеппелин",
@@ -12,6 +11,7 @@
   "image_license": "Общественное достояние",
   "image_source": "https://upload.wikimedia.org/wikipedia/commons/e/e5/Graf_zeppelin.jpg",
   "image_author": "",
+  "image_author_url": "",
   "first_flight": "1928-09-18",
   "wingspan": null,
   "length": 236.6,

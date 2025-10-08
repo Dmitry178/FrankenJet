@@ -1,7 +1,6 @@
 {
   "id": "933f4835-c781-4b2b-937f-d4ac8d6ba223",
   "article_id": "bfe94054-a0da-426a-862c-cdb90e1fa66e",
-  "slug": "wright-flyer",
   "country_id": "us",
   "manufacturer_id": null,
   "name": "Самолёт братьев Райт",
@@ -12,6 +11,7 @@
   "image_license": "Общественное достояние",
   "image_source": "https://upload.wikimedia.org/wikipedia/commons/9/95/Wrightflyer.jpg",
   "image_author": "",
+  "image_author_url": "",
   "first_flight": "1903-12-17",
   "wingspan": 12.3,
   "length": 6.4,
