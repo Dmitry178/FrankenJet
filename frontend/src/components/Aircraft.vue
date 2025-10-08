@@ -58,8 +58,6 @@ const fieldDescriptions = {
   year_of_manufacture: "Год начала производства",
   first_used: "Начало эксплуатации",
   last_used: "Окончание эксплуатации",
-  image_license: "Лицензия изображения",
-  image_author: "Автор изображения"
 };
 
 const specs = computed(() => {
@@ -68,6 +66,12 @@ const specs = computed(() => {
 
   for (const [key, label] of Object.entries(fieldDescriptions)) {
     const value = specData[key];
+
+    // пропуск вывода оригинального названия, если совпадает с названием
+    if (key === 'original_name' && specData.name && specData.name === value) {
+      continue;
+    }
+
     if (value !== null && value !== undefined && value !== "") {
       result.push({ key: label, value, originalKey: key });
     }
