@@ -3,6 +3,7 @@ from starlette import status
 from starlette.responses import RedirectResponse
 
 from app.dependencies.db import DDB
+from app.dependencies.http import DHTTP
 from app.exceptions.oauth2 import OAuth2ErrorEx
 from app.services.auth import AuthServices
 from app.services.oauth2 import OAuth2Services
@@ -13,12 +14,12 @@ oauth_router = APIRouter(prefix="/oauth", tags=["Auth"])
 
 
 @oauth_router.get("/google")
-async def get_google_oauth2_redirect():
+async def get_google_oauth2_redirect(http: DHTTP):
     """
     Генерация перенаправления для Google-аутентификации
     """
 
-    url = await OAuth2Services.Google.get_oauth2_redirect_url()
+    url = await OAuth2Services.Google(http).get_oauth2_redirect_url()
     return RedirectResponse(url=url, status_code=302)
 
 
