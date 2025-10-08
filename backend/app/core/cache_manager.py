@@ -9,6 +9,8 @@ from fastapi_cache.decorator import cache
 from functools import wraps
 from typing import Callable, Awaitable
 
+from app.config.env import settings, AppMode
+
 
 class CacheManager:
     def __init__(self, url: str | None = None, password: str | None = None):
@@ -32,8 +34,8 @@ class CacheManager:
         Декоратор для кэширования функций
         """
 
-        if not self.url:
-            # если Redis не настроен — возвращаем оригинальную функцию
+        if not self.url or settings.APP_MODE == AppMode.local:
+            # если Redis не настроен или приложение в локальной разработке — возвращаем оригинальную функцию
             def null_cached(func: Callable[..., Awaitable]):
                 @wraps(func)
                 async def wrapper(*args, **kwargs):
@@ -41,7 +43,7 @@ class CacheManager:
                 return wrapper
             return null_cached
 
-        # если Redis настроен — используем оригинальный декоратор fastapi-cache2
+        # если Redis настроен и приложение не в режиме разработки — используем оригинальный декоратор fastapi-cache2
         def actual_cached(func: Callable[..., Awaitable]):
             return cache(namespace=namespace, expire=ttl)(func)
 
