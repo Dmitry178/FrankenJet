@@ -354,7 +354,7 @@ async def main() -> None:
                 # дополнительная обработка фотографий
                 if has_image and s3manager and (image_name := json_data.get("image_url")):
                     image_path = directory / image_name
-                    s3_key = f"/aircraft/{image_name}"
+                    s3_key = "/aircraft/" + str(image_name).lstrip('_').replace("_", "-")
                     if await s3manager.upload_file(BUCKET_IMAGES, image_path, s3_key=s3_key):
                         json_data["image_url"] = f"/{BUCKET_IMAGES}{s3_key}"
                     else:
