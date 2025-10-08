@@ -13,6 +13,27 @@ from app.types import status_ok, status_error
 articles_router = APIRouter(prefix="/articles", tags=["Articles"])
 
 
+@articles_router.get("/list", summary="Список статей")
+@cache_manager.cached(ttl=1800)
+async def get_article_list(
+        db: DDB,
+        filters: str | None = Query(None, description="Фильтр"),
+        page: int = Query(1, ge=1, description="Номер страницы"),
+        page_size: int = Query(20, ge=1, le=100, description="Количество элементов на странице"),
+):
+    """
+    Получение списка статей с фильтром
+    """
+
+    try:
+        data = await ArticlesServices(db).get_articles_list(page, page_size, filters)
+        return {**status_ok, "data": data}
+
+    except Exception as ex:
+        logger.exception(ex)
+        return status_error
+
+
 @articles_router.get("/{slug}", summary="Статья")
 @cache_manager.cached(ttl=3600)
 async def get_article(
@@ -32,27 +53,6 @@ async def get_article(
 
     except ArticleNotFoundEx:
         raise article_not_found
-
-    except Exception as ex:
-        logger.exception(ex)
-        return status_error
-
-
-@articles_router.get("/list", summary="Список статей")
-@cache_manager.cached(ttl=1800)
-async def get_article_list(
-        db: DDB,
-        filters: str | None = Query(None, description="Фильтр"),
-        page: int = Query(1, ge=1, description="Номер страницы"),
-        page_size: int = Query(20, ge=1, le=100, description="Количество элементов на странице"),
-):
-    """
-    Получение списка статей с фильтром
-    """
-
-    try:
-        data = await ArticlesServices(db).get_articles_list(page, page_size, filters)
-        return {**status_ok, "data": data}
 
     except Exception as ex:
         logger.exception(ex)
