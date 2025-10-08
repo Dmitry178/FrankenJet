@@ -22,7 +22,6 @@ class SAircraft(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    slug: str = Field(..., max_length=64, description="Строковый идентификатор")
     name: str = Field(..., max_length=32, description="Название")
     original_name: str = Field(..., max_length=32, description="Название на оригинальном языке")
     manufacturer_id: UUID | None = Field(None, description="ID производителя")
@@ -33,6 +32,7 @@ class SAircraft(BaseModel):
     image_license: str | None = Field(None, max_length=32, description="Лицензия изображения")
     image_source: str | None = Field(None, max_length=128, description="Источник изображения")
     image_author: str | None = Field(None, max_length=64, description="Автор изображения")
+    image_author_url: str | None = Field(None, max_length=128, description="Ссылка на автора изображения")
     first_flight: date | None = Field(None, description="Первый полёт")
     wingspan: float | None = Field(None, description="Размах крыльев в метрах")
     length: float | None = Field(None, description="Длина воздушного судна в метрах")

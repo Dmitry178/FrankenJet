@@ -71,7 +71,6 @@ class Aircraft(Base, TimestampMixin):
     country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
     manufacturer_id: Mapped[fk_manufacturer | None]  # id производителя
 
-    slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название воздушного судна
     original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
     aircraft_type: Mapped[str_16 | None] = mapped_column(Enum(AircraftTypes, native_enum=False, length=16))  # тип ВС
@@ -80,6 +79,7 @@ class Aircraft(Base, TimestampMixin):
     image_license: Mapped[str_32 | None]  # лицензия изображения
     image_source: Mapped[str_128 | None]  # источник изображения
     image_author: Mapped[str_64 | None]  # автор изображения
+    image_author_url: Mapped[str_128 | None]  # ссылка на автора изображения
     first_flight: Mapped[date | None]  # первый полёт
     wingspan: Mapped[float | None]  # размах крыльев в метрах
     length: Mapped[float | None]  # длина воздушного судна в метрах
