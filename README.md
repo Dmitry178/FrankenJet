@@ -107,7 +107,7 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend) + Aiogram (микросер
   * Модели базы данных для хранения информации о пользователях, токенах, статьях, воздушных судах, конструкторских бюро, конструкторах и производителях.
   * API для получения данных по каждой категории.
   * Настроены миграции через Alembic для разных режимов работы приложения.
-  * Контекстные менеджеры для базы данных, RabbitMQ и S3, менеджеры для Redis и WebSocket.
+  * Контекстные менеджеры для базы данных, HTTP, RabbitMQ и S3, менеджеры для Redis и WebSocket.
   * Кэширование настроек приложения и статьей.
   * Скрипты для:
     * создания и инициализации базы данных;
@@ -133,7 +133,6 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend) + Aiogram (микросер
 ### Планируется (roadmap)
 
 * **Backend:**
-  * Менеджер AIOHTTP.
   * Модели/API персоналий и исторических событий.
   * Задачи (Celery).
   * Тесты.
@@ -183,8 +182,8 @@ docker-compose up -d --build
 
 1. Откройте `/notifications/bot.env`.
 2. Укажите свои значения:
-   * **TELEGRAM_ADMIN_ID** — ваш Telegram ID (можно получить у @userinfobot),
-   * **TELEGRAM_API_TOKEN** — токен бота (можно получить у @BotFather).
+   * **TELEGRAM_ADMIN_ID** — ваш `Telegram ID` (можно получить у @userinfobot),
+   * **TELEGRAM_API_TOKEN** — `токен бота` (можно получить у @BotFather).
 3. Сохраните файл.
 4. Запустите:
    ```bash
@@ -218,8 +217,8 @@ docker-compose -f docker-compose-bot.yml down
 | Redis       | 6380       | —                 | —       | password | —                                                        |
 | MiniO       | 9910       | 9911              | admin   | password | [http://localhost:9910](http://localhost:9910)           |
 | RabbitMQ    | 5676       | 15676             | admin   | password | [http://localhost:15676](http://localhost:15676)         |
-| Backend     | 8100       | —                 | admin   | password | [http://localhost:8100/docs](http://localhost:8100/docs) |
-| Frontend    | 3100       | —                 | —       | —        | [http://localhost:3100](http://localhost:3100)           |
+| Frontend    | 3100       | —                 | admin   | password | [http://localhost:3100](http://localhost:3100)           |
+| Backend     | 8100       | —                 | —       | —        | [http://localhost:8100/docs](http://localhost:8100/docs) |
 | Bot         | —          | —                 | —       | —        | —                                                        |
 
 ---
@@ -250,25 +249,25 @@ docker-compose -f docker-compose-bot.yml down
 
 #### ENV_BACKEND
 
-- **Type:** File
-- **Visibility:** Visible
-- **Flags:** Expand variable reference (убрать Protect variable, если есть)
+- **Type:** `File`
+- **Visibility:** `Visible`
+- **Flags:** `Expand variable reference` (убрать `Protect variable`, если есть)
 - **Key:** `ENV_BACKEND`
 - **Value:** содержимое файла `example.env` из проекта бэкенда с вашими значениями
 
 #### ENV_FRONTEND
 
-- **Type:** File
-- **Visibility:** Visible
-- **Flags:** Expand variable reference
+- **Type:** `File`
+- **Visibility:** `Visible`
+- **Flags:** `Expand variable reference`
 - **Key:** `ENV_FRONTEND`
 - **Value:** содержимое файла `example.env` из проекта фронтенда с вашими значениями
 
 #### ENV_BOT
 
-- **Type:** File
-- **Visibility:** Visible
-- **Flags:** Expand variable reference
+- **Type:** `File`
+- **Visibility:** `Visible`
+- **Flags:** `Expand variable reference`
 - **Key:** `ENV_BOT`
 - **Value:** содержимое файла `example.env` из проекта бота с вашими значениями
 
@@ -281,7 +280,7 @@ docker-compose -f docker-compose-bot.yml down
 - `bot` — деплой бота уведомлений,
 - `main` — деплой всех сервисов.
 
-После Merge Request дождитесь завершения пайплайна в разделе **CI/CD → Pipelines**.
+После Merge дождитесь завершения пайплайна в разделе **CI/CD → Pipelines**.
 
 ---
 
