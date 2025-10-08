@@ -1,5 +1,11 @@
 /* Общие стили */
 
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap');
+
+body {
+  font-family: 'Source Serif Pro', sans-serif;
+}
+
 h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1rem;
   margin-top: 1.5rem;
@@ -62,14 +68,19 @@ blockquote {
 }
 
 .v-card-title,
-.v-card-text
-{
+.v-card-text {
   margin-left: 0.75rem;
   margin-right: 0.75rem;
 }
 
 .v-card-title {
   margin-top: 0.5rem;
+}
+
+.article-content p,
+.article-content a {
+  font-size: 1.05rem;
+  line-height: 1.65;
 }
 
 @media (max-width: 1279px) {
