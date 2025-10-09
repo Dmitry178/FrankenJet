@@ -152,7 +152,6 @@ class Designers(Base, TimestampMixin):
     id: Mapped[uid_pk]
     country_id: Mapped[fk_country]
 
-    slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # имя конструктора
     original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # имя на оригинальном языке
     birth_date: Mapped[date | None] = mapped_column(Date)
@@ -207,7 +206,6 @@ class Manufacturers(Base, TimestampMixin):
     id: Mapped[uid_pk]
     country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
 
-    slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название производителя
     original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
     description: Mapped[str] = mapped_column(Text)  # описание производителя
@@ -251,7 +249,6 @@ class DesignBureaus(Base, TimestampMixin):
     id: Mapped[uid_pk]
     country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
 
-    slug: Mapped[str_64] = mapped_column(unique=True)  # строковый идентификатор
     name: Mapped[str_32] = mapped_column(unique=True)  # название конструкторского бюро
     original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
     description: Mapped[str] = mapped_column(Text)  # описание конструкторского бюро

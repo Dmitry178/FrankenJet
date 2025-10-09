@@ -80,7 +80,6 @@ class SDesigners(BaseModel):
     """
 
     country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
-    slug: str = Field(..., max_length=64, description="Строковый идентификатор")
     name: str = Field(..., max_length=32, description="Имя конструктора")
     birth_date: date | None = Field(None)
     death_date: date | None = Field(None)
@@ -95,7 +94,6 @@ class SDesignBureaus(BaseModel):
     """
 
     country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
-    slug: str = Field(..., max_length=64, description="Строковый идентификатор")
     name: str = Field(..., max_length=32, description="Название конструкторского бюро")
     description: str = Field(..., description="Описание конструкторского бюро")
 
@@ -106,6 +104,5 @@ class SManufacturers(BaseModel):
     """
 
     country_id: str = Field(..., min_length=2, max_length=2, description="Двухбуквенный ISO-код страны")
-    slug: str = Field(..., max_length=64, description="Строковый идентификатор")
     name: str = Field(..., max_length=32, description="Название производителя")
     description: str = Field(..., description="Описание производителя")
