@@ -38,7 +38,7 @@ async def get_aircraft_list(
         engine_type: EngineTypes | None = Query(None, description="Фильтр по типу двигателя"),
         status: AircraftStatus | None = Query(None, description="Фильтр по статусу воздушного судна"),
         page: int = Query(1, ge=1, description="Номер страницы"),
-        page_size: int = Query(20, ge=1, le=100, description="Количество элементов на странице"),
+        per_page: int = Query(20, ge=1, le=100, description="Количество элементов на странице"),
 ):
     """
     Получение списка воздушных судов
@@ -51,7 +51,7 @@ async def get_aircraft_list(
             status=status,
         )
 
-        data = await AircraftServices(db).get_aircraft_list(name, page, page_size, filters)
+        data = await AircraftServices(db).get_aircraft_list(name, page, per_page, filters)
         return {**status_ok, "data": data}
 
     except Exception as ex:
