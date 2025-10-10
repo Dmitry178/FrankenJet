@@ -13,7 +13,7 @@ from app.api import router
 from app.api.local import index_local_router
 from app.config.env import settings, AppMode
 from app.consumers.startup import run_consumers
-from app.core import rmq_manager, cache_manager
+from app.core import rmq_manager, cache_manager, es_manager
 from app.core.logs import logger
 
 
@@ -31,10 +31,18 @@ async def lifespan(fastapi_app: FastAPI):  # noqa
         await cache_manager.start()
         logger.info("Redis connected")
 
+    if es_manager.url:
+        await es_manager.start()
+        logger.info("ElasticSearch connected")
+
     message = f"App started at: {datetime.now()} [{settings.BUILD}]"
     logger.info(message)
 
     yield
+
+    if es_manager.url:
+        await es_manager.stop()
+        logger.info("ElasticSearch stopped")
 
     if cache_manager.url:
         await cache_manager.close()
