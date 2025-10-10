@@ -1,20 +1,20 @@
 import asyncio
 
 from contextlib import asynccontextmanager
-from typing import Optional, Dict, Any
+from typing import Dict, Any
 
 from elasticsearch import AsyncElasticsearch
-from elasticsearch.exceptions import ConnectionError, NotFoundError, ConflictError
+from elasticsearch.exceptions import ConnectionError, NotFoundError
 
 from app.core.logs import logger
 
 
 class ESManager:
 
-    def __init__(self, url: Optional[str] = None, max_retries: int = 3):
+    def __init__(self, url: str | None = None, max_retries: int = 3):
         self.url = url
         self.max_retries = max_retries
-        self.es: Optional[AsyncElasticsearch] = AsyncElasticsearch([url]) if url else None
+        self.es: AsyncElasticsearch | None = AsyncElasticsearch([url]) if url else None
 
     async def start(self):
         """
@@ -29,7 +29,7 @@ class ESManager:
 
             except Exception as e:
                 logger.error(f"Elasticsearch недоступен: {e}")
-                self.es = None  # отключаем, если не доступен
+                self.es = None  # отключаем, если недоступен
 
     async def close(self):
         if self.es:
@@ -43,9 +43,9 @@ class ESManager:
         finally:
             await self.close()
 
-    async def search(self, query: Dict[str, Any], index="articles") -> Optional[Dict[str, Any]]:
+    async def search(self, query: Dict[str, Any], index="articles") -> Dict[str, Any] | None:
         """
-        Поиск
+        Индексированный поиск
         """
 
         if not self.es:
