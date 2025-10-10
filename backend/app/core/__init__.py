@@ -8,7 +8,7 @@ from app.core.rmq_manager import RMQManager
 rmq_manager = RMQManager(url=settings.RMQ_CONN)
 
 # инициализация Cache-менеджера на основе Fastapi-cache2
-cache_manager = CacheManager(url=settings.REDIS_URL, password=settings.REDIS_PASSWORD)
+cache_manager = CacheManager(url=settings.REDIS_URL)
 
 # инициализация ElasticSearch
 es_manager = ESManager(url=settings.ELASTICSEARCH_URL)
