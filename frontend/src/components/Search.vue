@@ -1,17 +1,18 @@
 <template>
   <v-container>
     <v-card class="search-card mb-4">
+      <!--  Строка поиска  -->
       <v-card-text>
         <v-text-field
           v-model="searchQuery"
           label="Поиск..."
           append-inner-icon="mdi-magnify"
-          @click:append-inner="performSearch"
-          @keydown.enter="performSearch"
-          clearable
+          @click:append-inner="search"
+          @keydown.enter="search"
           hide-details
           rounded="pill"
           variant="outlined"
+          clearable
         ></v-text-field>
       </v-card-text>
     </v-card>
@@ -111,13 +112,14 @@
         </v-row>
 
         <!-- Пагинация -->
-        <div class="d-flex justify-center mt-6">
+        <div v-if="searchResults.metadata.total_pages > 1" class="d-flex justify-center mt-6">
           <v-pagination
             v-model="currentPage"
             :length="searchResults.metadata.total_pages"
             @update:modelValue="changePage"
           ></v-pagination>
         </div>
+
       </v-card-text>
     </v-card>
 
@@ -129,8 +131,8 @@
 </template>
 
 <script>
-import { ref, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
+import {onMounted, ref, watch} from 'vue';
+import {useRoute, useRouter} from 'vue-router';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
@@ -147,14 +149,15 @@ export default {
     const error = ref(null);
     const currentPage = ref(1);
 
-    const performSearch = async () => {
+    const search = async () => {
       if (!searchQuery.value.trim()) {
+        searchResults.value = null;
+        error.value = null;
         return;
       }
 
       loading.value = true;
       error.value = null;
-      searchResults.value = null;
 
       try {
         const response = await axios.get(`${API_BASE_URL}/search`, {
@@ -180,7 +183,15 @@ export default {
 
     const changePage = async (page) => {
       currentPage.value = page;
-      await performSearch();
+      // обновление URL при смене страницы, без вызова push, если это первоначальная загрузка
+      await router.push({
+        query: {
+          ...route.query,
+          q: searchQuery.value,
+          page: page
+        }
+      });
+      await search();
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
 
@@ -198,9 +209,68 @@ export default {
       const query = route.query.q;
       if (query) {
         searchQuery.value = query;
-        performSearch();
+      }
+      // устанавливаем currentPage из URL, если он есть, иначе 1
+      currentPage.value = parseInt(route.query.page) || 1;
+      search();
+    });
+
+    /*
+    // следим за набором текста в строке поиска
+    watch(searchQuery, (newQuery) => {
+      if (newQuery !== route.query.q) {
+        const newQueryParams = {
+          ...route.query,
+          q: newQuery || undefined, // если пустой, удаляем параметр
+          page: newQuery ? 1 : undefined // если новый запрос, сбрасываем на страницу 1, иначе удаляем page
+        };
+        if (newQuery) {
+          newQueryParams.page = 1; // всегда сбрасываем на первую страницу при новом поиске
+          currentPage.value = 1; // синхронизируем локальное состояние
+        }
+        router.replace({ query: newQueryParams });
+        if (newQuery) {
+          search();
+        } else {
+          // очищаем результаты, если запрос пустой
+          searchResults.value = null;
+          error.value = null;
+        }
       }
     });
+    */
+
+    // следим за изменением currentPage в URL (например, при навигации назад/вперед)
+    watch(
+      () => route.query.page,
+      (newPageFromUrl) => {
+        const newPage = parseInt(newPageFromUrl) || 1;
+        if (newPage !== currentPage.value) {
+          currentPage.value = newPage;
+          search();
+        }
+      }
+    );
+
+    /*
+    // следим за изменением searchQuery в URL (например, при навигации назад/вперед или вводе в адресной строке)
+    watch(
+      () => route.query.q,
+      (newQueryFromUrl) => {
+        if (newQueryFromUrl !== searchQuery.value) {
+          searchQuery.value = newQueryFromUrl || '';
+          // Если в URL есть новый запрос, сбрасываем на 1 страницу, если не указана другая
+          currentPage.value = parseInt(route.query.page) || 1;
+          if (newQueryFromUrl) {
+            search();
+          } else {
+            searchResults.value = null;
+            error.value = null;
+          }
+        }
+      }
+    );
+    */
 
     return {
       searchQuery,
@@ -208,7 +278,7 @@ export default {
       loading,
       error,
       currentPage,
-      performSearch,
+      search,
       changePage,
       formatDate
     };
@@ -223,11 +293,11 @@ export default {
 
 .search-result-card {
   cursor: pointer;
-  /* transition: transform 0.2s ease; */
+  transition: transform 0.2s;
 }
 
 .search-result-card:hover {
-  /* transform: scale(1.05); */
+  transform: scale(1.005);
   text-decoration: none;
 }
 
