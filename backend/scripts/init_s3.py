@@ -1,3 +1,7 @@
+"""
+Создание бакетов S3
+"""
+
 import asyncio
 
 from environs import Env
