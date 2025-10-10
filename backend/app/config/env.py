@@ -47,10 +47,13 @@ class Settings(BaseSettings):
 
     DB_CONN: str  # строка соединения с базой
     RMQ_CONN: str | None = None  # строка подключения к RabbitMQ
+    REDIS_URL: str | None = None  # строка подключения к Redis
+    ELASTICSEARCH_URL: str | None = None  # строка подключения к ElasticSearch
 
-    # настройки Redis
-    REDIS_URL: str | None = None
-    REDIS_PASSWORD: str | None = None
+    # подключение к S3
+    S3_ACCESS_KEY_ID: str | None = None
+    S3_SECRET_ACCESS_KEY: str | None = None
+    S3_ENDPOINT_URL: str | None = None
 
     # учётная запись админа по умолчанию (создаётся при первом запуске)
     ADMIN_USER: str | None = None
@@ -68,14 +71,6 @@ class Settings(BaseSettings):
     OAUTH2_GOOGLE_CLIENT_SECRET: str | None = None
     OAUTH2_VK_CLIENT_ID: str | None = None
     OAUTH2_VK_CLIENT_SECRET: str | None = None
-
-    # подключение к S3
-    S3_ACCESS_KEY_ID: str | None = None
-    S3_SECRET_ACCESS_KEY: str | None = None
-    S3_ENDPOINT_URL: str | None = None
-
-    # подключение к ElasticSearch
-    ELASTICSEARCH_URL: str | None = None
 
     @property
     def db_url(self):
