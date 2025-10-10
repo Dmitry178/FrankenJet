@@ -24,6 +24,7 @@ class ArticleCategories(str, enum.Enum):
     designer = "designer"
     manufacturer = "manufacturer"
     design_bureau = "design_bureau"
+    facts = "facts"
 
 
 class Articles(Base, TimestampMixin):
