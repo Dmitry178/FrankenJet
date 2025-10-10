@@ -74,6 +74,9 @@ class Settings(BaseSettings):
     S3_SECRET_ACCESS_KEY: str | None = None
     S3_ENDPOINT_URL: str | None = None
 
+    # подключение к ElasticSearch
+    ELASTICSEARCH_URL: str | None = None
+
     @property
     def db_url(self):
         return f"postgresql+asyncpg://{self.DB_CONN}"
