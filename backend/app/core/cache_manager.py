@@ -13,15 +13,14 @@ from app.config.env import settings, AppMode
 
 
 class CacheManager:
-    def __init__(self, url: str | None = None, password: str | None = None):
-        self.password = password
+    def __init__(self, url: str | None = None):
         self.url = url
         self._backend = None
         self._redis_client = None
 
     async def start(self):
         if self.url:
-            self._redis_client = redis.from_url(self.url, password=self.password)
+            self._redis_client = redis.from_url(self.url)
             self._backend = RedisBackend(self._redis_client)
             FastAPICache.init(self._backend, prefix="cache")
 
