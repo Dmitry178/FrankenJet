@@ -12,15 +12,17 @@
 
       <!--  Строка поиска  -->
       <v-text-field
+        v-if="!isSearchRoute"
         v-model="searchQuery"
         label="Поиск..."
-        append-icon="mdi-magnify"
-        @click:append="search"
+        append-inner-icon="mdi-magnify"
+        @click:append-inner="search"
         @keydown.enter="search"
         class="ml-4 hidden-sm-and-down"
         style="max-width: 300px;"
         hide-details
         rounded="pill"
+        variant="outlined"
         clearable
       ></v-text-field>
 
@@ -48,7 +50,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import { useTheme } from 'vuetify';
 import vuetifyConfig from '@/vuetify.config.js';
 import Login from '@/components/Login.vue';
@@ -64,10 +66,14 @@ export default {
     const authStore = useAuthStore();
     const settingsStore = useSettingsStore();
     const router = useRouter();
+    const route = useRoute();
     const theme = useTheme();
 
     const isLoggedIn = computed(() => authStore.accessToken !== null);
     const searchQuery = ref('');
+
+    // true, если текущий маршрут - /search
+    const isSearchRoute = computed(() => route.path === '/search');
 
     const search = () => {
       router.push({ path: "/search", query: { q: searchQuery.value } });
@@ -111,6 +117,7 @@ export default {
 
     return {
       isLoggedIn,
+      isSearchRoute,
       settingsStore,
       searchQuery,
       search,
