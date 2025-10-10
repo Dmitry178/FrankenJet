@@ -44,49 +44,34 @@ class ArticlesRepository(BaseRepository):
         result = await self.session.execute(query)
         return result.mappings().one_or_none()
 
-    async def search(self, query: str, page: int, per_page: int):
+    async def search(self, query: str, categories: list, page: int, per_page: int):
         """
         Поиск по всем категориям
         """
 
+        # TODO: добавить категории в поиск
+
         search_term = f"%{query}%"
 
         # подзапросы для каждой сущности
-        article_query = (
+        aircraft_query = (
             select(
                 cast(Articles.id, String).label("id"),
+                Articles.article_category.label("category"),
                 Articles.slug,
                 Articles.title,
                 Articles.summary,
-                Articles.content,
-                Articles.article_category,
-                literal("article").label("entity_type"),
                 Articles.published_at,
+                Aircraft.image_url,
             )
+            .select_from(Articles)
+            .outerjoin(Aircraft, Aircraft.article_id == Articles.id)
             .where(
                 Articles.is_published.is_(True),
                 Articles.is_archived.is_(False),
                 Articles.title.ilike(search_term) |
                 Articles.summary.ilike(search_term) |
-                Articles.content.ilike(search_term)
-            )
-        )
-
-        aircraft_query = (
-            select(
-                cast(Aircraft.id, String).label("id"),
-                Articles.slug,
-                Aircraft.name.label("title"),
-                Aircraft.original_name.label("summary"),
-                literal(None).label("content"),
-                literal(None).label("article_category"),
-                literal("aircraft").label("entity_type"),
-                Articles.published_at,
-            )
-            .join(Articles, Aircraft.article_id == Articles.id)
-            .where(
-                Articles.is_published.is_(True),
-                Articles.is_archived.is_(False),
+                Articles.content.ilike(search_term) |
                 Aircraft.name.ilike(search_term) |
                 Aircraft.original_name.ilike(search_term) |
                 Aircraft.icao_designator.ilike(search_term) |
@@ -94,57 +79,62 @@ class ArticlesRepository(BaseRepository):
             )
         )
 
-        fact_query = (
+        facts_query = (
             select(
                 cast(Facts.id, String).label("id"),
+                literal("facts").label("category"),
                 literal(None).label("slug"),
-                Facts.fact.label("title"),
-                literal(None).label("summary"),
-                literal(None).label("content"),
-                literal(None).label("article_category"),
-                literal("fact").label("entity_type"),
+                literal(None).label("title"),
+                Facts.fact.label("summary"),
                 literal(None).label("published_at"),
+                literal(None).label("image_url"),
             )
             .where(Facts.fact.ilike(search_term))
         )
 
-        # Объединяем все подзапросы
+        # TODO: добавить остальные сущности
+
+        # объединение всех подзапросов
         combined_query = union_all(
-            article_query,
             aircraft_query,
-            fact_query
+            facts_query
         ).alias("combined")
 
-        # Подсчитываем общее количество
+        # подсчёт общего количества статей
         total_count_query = select(func.count()).select_from(combined_query)
         total_count_result = await self.session.execute(total_count_query)
         total_count = total_count_result.scalar()
 
-        # Подсчитываем количество по категориям
+        # подсчёт количества категорий
+        all_categories_query = select(combined_query.c.category).distinct()
+        all_categories_result = await self.session.execute(all_categories_query)
+        all_categories = [row.category for row in all_categories_result.fetchall()]
+
+        # подсчёт количества по категориям
         category_counts_query = select(
             func.sum(
                 case(
-                    (combined_query.c.entity_type == "aircraft", 1),  # noqa
+                    (combined_query.c.category == "aircraft", 1),  # noqa
                     else_=0
                 )
-            ).label('aircraft_count'),
+            ).label("aircraft_count"),
             func.sum(
                 case(
-                    (combined_query.c.entity_type == "fact", 1),  # noqa
+                    (combined_query.c.category == "facts", 1),  # noqa
                     else_=0
                 )
-            ).label('fact_count')
+            ).label("facts_count")
         ).select_from(combined_query)
 
         category_counts_result = await self.session.execute(category_counts_query)
         counts = category_counts_result.fetchone()
 
         total_categories = (
-                (1 if counts.aircraft_count else 0) +
-                (1 if counts.fact_count else 0)
+            (1 if counts.aircraft_count else 0) +
+            (1 if counts.facts_count else 0)
         )
 
-        # Выбираем результаты с пагинацией
+        # выбираем результаты с пагинацией
         offset_value = (page - 1) * per_page
         paginated_query = (
             select(combined_query)
@@ -156,20 +146,24 @@ class ArticlesRepository(BaseRepository):
         result = await self.session.execute(paginated_query)
         rows = result.fetchall()
 
-        # Возвращаем результат
+        # возвращаем результат
         return {
             "results": [
                 {
                     "id": row.id,
+                    "category": row.category,
                     "slug": row.slug,
                     "title": row.title,
                     "summary": row.summary,
-                    "entity_type": row.entity_type,
                     "published_at": row.published_at,
+                    "image_url": row.image_url,
                 }
                 for row in rows
             ],
-            "total_count": total_count,
-            "total_pages": (total_count + per_page - 1) // per_page,
-            "total_categories": total_categories
+            "metadata": {
+                "total_count": total_count,
+                "total_pages": (total_count + per_page - 1) // per_page,
+                "total_categories": total_categories,
+            },
+            "categories": all_categories,
         }
