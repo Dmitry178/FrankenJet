@@ -12,17 +12,17 @@ from app.types import status_ok, status_error
 aircraft_router = APIRouter(prefix="/aircraft", tags=["Aircraft"])
 
 
-@aircraft_router.get("/{slug}", summary="Карточка воздушного судна")
+@aircraft_router.get("/{aircraft_id}", summary="Карточка воздушного судна")
 async def get_aircraft(
         db: DDB,
-        slug: str = Path(..., description="Название воздушного судна"),
+        aircraft_id: UUID = Path(..., description="id воздушного судна"),
 ):
     """
     Карточка воздушного судна
     """
 
     try:
-        data = await AircraftServices(db).get_aircraft(slug)
+        data = await AircraftServices(db).get_aircraft(aircraft_id)
         return {**status_ok, "data": data}
 
     except Exception as ex:
