@@ -1,0 +1,38 @@
+[
+  {
+    "id": "bfe94054-a0da-426a-862c-cdb90e1fa66e",
+    "article_category": "aircraft",
+    "slug": "wright-flyer",
+    "title": "Самолёт братьев Райт (Wright Flyer)",
+    "summary": "summary",
+    "content": "wright_flyer_1903.md",
+    "meta_title": "meta_title",
+    "meta_description": "meta_description",
+    "seo_keywords": "seo_keywords",
+    "is_published": true
+  },
+  {
+    "id": "3db36721-5385-4545-8488-43784f364570",
+    "article_category": "aircraft",
+    "slug": "graf-zeppelin",
+    "title": "Граф Цеппелин (Graf Zeppelin)",
+    "summary": "summary",
+    "content": "graf_zeppelin_1928.md",
+    "meta_title": "meta_title",
+    "meta_description": "meta_description",
+    "seo_keywords": "seo_keywords",
+    "is_published": true
+  },
+  {
+    "id": "ac17d461-8a42-4c3f-ada3-6b2f6c25c3dd",
+    "article_category": "aircraft",
+    "slug": "il-2",
+    "title": "Ил-2 (Штурмовик)",
+    "summary": "summary",
+    "content": "il_2_1939.md",
+    "meta_title": "meta_title",
+    "meta_description": "meta_description",
+    "seo_keywords": "seo_keywords",
+    "is_published": true
+  }
+]
