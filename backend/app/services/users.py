@@ -1,5 +1,4 @@
-from asyncpg import UniqueViolationError
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 
 from app.core.db_manager import DBManager
 from app.core.logs import logger
@@ -25,12 +24,13 @@ class UsersServices:
             hashed_password = SecurityService().hash_password(user_data.password)
             new_user_data = SRegisterUser(email=user_data.email, hashed_password=hashed_password)
 
-            user = await self.db.users.insert_one(new_user_data, scalar=True)
+            user = await self.db.users.insert_one(new_user_data, scalars=True)
             await self.db.commit()
 
             return user.id
 
-        except UniqueViolationError as ex:
+        except IntegrityError as ex:
+            # TODO: сделать дополнительную проверку на UniqueViolationError
             # пользователь уже существует, ошибка
             raise UserExistsEx from ex
 
