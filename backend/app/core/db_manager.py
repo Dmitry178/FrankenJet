@@ -5,6 +5,7 @@ from app.db.repository.aircraft import AircraftRepository, CountriesRepository, 
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
 from app.db.repository.facts import FactsRepository
+from app.db.repository.roles import RolesRepository
 from app.db.repository.users import UsersRepository
 
 
@@ -17,6 +18,7 @@ class DBManager:
             self.session = session
 
             self.refresh_tokens = RefreshTokensRepository(self.session)
+            self.roles = RolesRepository(self.session)
 
     class AircraftDBManager:
         def __init__(self, session):
