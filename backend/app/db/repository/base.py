@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 from sqlalchemy import select, insert, exists, delete, func, over, update
-from typing import Type
+from typing import Type, List, Dict
 
 from app.db import Base
 
@@ -155,9 +155,25 @@ class BaseRepository:
         result = await self.session.execute(stmt)
 
         if commit:
-            self.session.commit()
+            await self.session.commit()
 
         return result.scalars().one() if scalars else result.mappings().one()
+
+    async def insert_bulk(self, data: BaseModel | None = None, values: List[Dict] | None = None, commit=False) -> None:
+        """
+        Добавление массива данных
+        """
+
+        if not values and not data:
+            return
+
+        stmt = insert(self.model).values(values) if values else insert(**data.model_dump())
+        await self.session.execute(stmt)
+
+        if commit:
+            await self.session.commit()
+
+        return None
 
     async def update_one(
             self,
@@ -181,7 +197,7 @@ class BaseRepository:
         result = await self.session.execute(stmt)
 
         if commit:
-            self.session.commit()
+            await self.session.commit()
 
         return result.scalars().one() if scalars else result.mappings().one()
 
@@ -198,6 +214,6 @@ class BaseRepository:
         result = await self.session.execute(stmt)
 
         if commit:
-            self.session.commit()
+            await self.session.commit()
 
         return result.rowcount
