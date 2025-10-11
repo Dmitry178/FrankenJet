@@ -1,7 +1,7 @@
+import bcrypt
 import jwt
 
 from datetime import datetime, timezone, timedelta
-from passlib.context import CryptContext
 
 from app.config.app import JWT_ALGORITHM
 from app.config.env import settings
@@ -9,13 +9,17 @@ from app.config.env import settings
 
 class SecurityService:
 
-    pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+    @staticmethod
+    def hash_password(password: str) -> str:
+        pwd_bytes = password.encode("utf-8")
+        hashed = bcrypt.hashpw(pwd_bytes, bcrypt.gensalt())
+        return hashed.decode("utf-8")
 
-    def verify_password(self, plain_password, hashed_password):
-        return self.pwd_context.verify(plain_password, hashed_password)
-
-    def hash_password(self, password: str) -> str:
-        return self.pwd_context.hash(password)
+    @staticmethod
+    def verify_password(plain_password, hashed_password):
+        pwd_bytes = plain_password.encode("utf-8")
+        hash_bytes = hashed_password.encode("utf-8")
+        return bcrypt.checkpw(pwd_bytes, hash_bytes)
 
     @staticmethod
     def create_jwt_token(payload_data: dict, expire: int) -> str:
