@@ -21,8 +21,9 @@ class SBotAuthNotification(BaseModel):
     client_ip: str | None = Field(None, alias="client-ip")  # ip-адрес
     user_agent: str | None = Field(None, alias="user-agent")  # данные браузера
 
-    class Config:
-        populate_by_name = True
+    model_config = {
+        "populate_by_name": True
+    }
 
 
 class SBotModeration(BaseModel):
