@@ -43,7 +43,10 @@ async def user_register(db: DDB, data: SLoginUser = Body(openapi_examples=login_
         await UsersServices(db).create_user_by_email(data)
         return status_ok
 
-    except (UserCreationErrorEx, UserExistsEx):
+    except UserExistsEx:
+        return {**status_error, "detail": "Пользователь уже создан"}
+
+    except UserCreationErrorEx:
         return {**status_error, "detail": "Ошибка создания пользователя"}
 
     except Exception as ex:
