@@ -41,7 +41,7 @@
         <!-- Заголовок и категории -->
         <div class="mb-4">
           <p class="text-h6">
-            Найдено {{ searchResults.metadata.total_count }} результатов в {{ searchResults.metadata.total_categories }} категориях
+            {{ formatResultText(searchResults.metadata.total_count) }} в {{ formatCategoryText(searchResults.metadata.total_categories) }}
           </p>
           <div class="mt-2">
             <v-chip
@@ -148,6 +148,44 @@ export default {
     const loading = ref(false);
     const error = ref(null);
     const currentPage = ref(1);
+
+    // функции для склонения
+    const pluralize = (n, forms) => {
+
+      // приводим к числу, если строка
+      n = Math.abs(parseInt(n)) || 0;
+
+      // остаток от деления на 100
+      const mod100 = n % 100;
+      // остаток от деления на 10
+      const mod10 = mod100 % 10;
+
+      if (mod100 >= 11 && mod100 <= 20) {
+        return forms[2]; // для 11-20 всегда форма "много"
+      }
+
+      if (mod10 === 1) {
+        return forms[0]; // один
+      }
+
+      if (mod10 >= 2 && mod10 <= 4) {
+        return forms[1]; // два-четыре
+      }
+
+      return forms[2]; // пять-десять, ноль, остальное
+    };
+
+    const formatResultText = (count) => {
+      const form = pluralize(count, ['результат', 'результата', 'результатов']);
+      // добавляем "о" к "Найден" если count != 1
+      return `Найден${count === 1 ? '' : 'о'} ${count} ${form}`;
+    };
+
+    const formatCategoryText = (count) => {
+      // та же логика склонения, что и для результата
+      const form = pluralize(count, ['категории', 'категориях', 'категорий']);
+      return `${count} ${form}`;
+    };
 
     const search = async () => {
       if (!searchQuery.value.trim()) {
@@ -280,7 +318,9 @@ export default {
       currentPage,
       search,
       changePage,
-      formatDate
+      formatDate,
+      formatResultText,
+      formatCategoryText
     };
   }
 };
