@@ -38,12 +38,12 @@ class AircraftServices:
 
         return [AircraftStatus(item).value for item in AircraftStatus]
 
-    async def get_aircraft(self, slug: str) -> Aircraft:
+    async def get_aircraft(self, aircraft_id: UUID) -> Aircraft:
         """
         Получение карточки воздушного судна
         """
 
-        return await self.db.aircraft.select_one_or_none(slug=slug)
+        return await self.db.aircraft.aircraft.select_one_or_none(id=aircraft_id)
 
     async def get_aircraft_list(
             self,
