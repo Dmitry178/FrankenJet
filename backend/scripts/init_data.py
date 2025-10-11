@@ -74,6 +74,91 @@ class SS3Creds(BaseModel):
     endpoint_url: str
 
 
+class DataUtils:
+    """
+    Класс обработки json перед добавлением в базу данных
+    """
+
+    @staticmethod
+    def safe_parse_date(value: str) -> date | None:
+        """
+        Конвертация строк в даты, поддерживаются неполные даты (год и год-месяц)
+        """
+
+        if not value:
+            return None
+
+        try:
+            # полная дата
+            return date.fromisoformat(value)
+
+        except ValueError:
+            # только год
+            if len(value) == 4 and value.isdigit():
+                return date(int(value), 1, 1)
+
+            # год-месяц
+            if len(value) == 7 and value[4] == '-':
+                year, month = value.split('-')
+                if year.isdigit() and month.isdigit():
+                    return date(int(year), int(month), 1)
+
+        return None
+
+    def convert_data_types(self, model, data: list[dict]) -> list[dict]:
+        """
+        Замена типов данных в строковом представлении на соответствующие типы в моделях базы (datetime.date и UUID)
+        """
+
+        mapper = inspect(model)
+
+        # поля типа datetime.date
+        date_columns = {
+            col.key for col in mapper.columns
+            if col.type.python_type is date
+        }
+
+        # поля типа UUID
+        uuid_columns = {
+            col.key for col in mapper.columns
+            if col.type.python_type is UUID
+        }
+
+        # nullable-поля
+        nullable_columns = {
+            col.key for col in mapper.columns
+            if col.nullable
+        }
+
+        # конвертация типов данных
+        for row in data:
+            for key, value in row.items():
+                try:
+                    # обработка полей типа datetime.date
+                    if key in date_columns and isinstance(value, str):
+                        row[key] = self.safe_parse_date(value)
+
+                    # обработка полей типа UUID
+                    elif key in uuid_columns and isinstance(value, str):
+                        if value:
+                            # строка не пустая
+                            row[key] = UUID(value)
+                        else:
+                            # строка пустая
+                            if key in nullable_columns:
+                                # строка nullable
+                                row[key] = None
+                            else:
+                                # строка не nullable
+                                raise ValueError
+
+                except (ValueError, AttributeError):
+                    # входящие данные не соответствуют структуре базы данных
+                    raise Exception
+
+        return data
+
+
 class DataCreator:
     """
     Запуск миграций, добавление первичных данных
@@ -119,7 +204,7 @@ class DataCreator:
 
             # создание расширений
             for extension in extensions:
-                await conn.execute(DDL(f'CREATE EXTENSION IF NOT EXISTS "{extension}"'))
+                await conn.execute(DDL(f'CREATE EXTENSION IF NOT EXISTS "{extension}"'))  # noqa
 
             # создание схем
             for schema in schemas:
@@ -217,85 +302,6 @@ class DataCreator:
 
         return None
 
-    @staticmethod
-    def safe_parse_date(value: str) -> date | None:
-        """
-        Конвертация строк в даты, поддерживаются неполные даты (год и год-месяц)
-        """
-
-        if not value:
-            return None
-
-        try:
-            # полная дата
-            return date.fromisoformat(value)
-
-        except ValueError:
-            # только год
-            if len(value) == 4 and value.isdigit():
-                return date(int(value), 1, 1)
-
-            # год-месяц
-            if len(value) == 7 and value[4] == '-':
-                year, month = value.split('-')
-                if year.isdigit() and month.isdigit():
-                    return date(int(year), int(month), 1)
-
-        return None
-
-    def convert_data_types(self, model, data: list[dict]) -> list[dict]:
-        """
-        Замена типов данных в строковом представлении на соответствующие типы в моделях базы (datetime.date и UUID)
-        """
-
-        mapper = inspect(model)
-
-        # поля типа datetime.date
-        date_columns = {
-            col.key for col in mapper.columns
-            if col.type.python_type is date
-        }
-
-        # поля типа UUID
-        uuid_columns = {
-            col.key for col in mapper.columns
-            if col.type.python_type is UUID
-        }
-
-        # nullable-поля
-        nullable_columns = {
-            col.key for col in mapper.columns
-            if col.nullable
-        }
-
-        # конвертация типов данных
-        for row in data:
-            for key, value in row.items():
-                try:
-                    # обработка полей типа datetime.date
-                    if key in date_columns and isinstance(value, str):
-                        row[key] = self.safe_parse_date(value)
-
-                    # обработка полей типа UUID
-                    elif key in uuid_columns and isinstance(value, str):
-                        if value:
-                            # строка не пустая
-                            row[key] = UUID(value)
-                        else:
-                            # строка пустая
-                            if key in nullable_columns:
-                                # строка nullable
-                                row[key] = None
-                            else:
-                                # строка не nullable
-                                raise ValueError
-
-                except (ValueError, AttributeError):
-                    # входящие данные не соответствуют структуре базы данных
-                    raise Exception
-
-        return data
-
     async def add_data(self, model: Type[T], data: list[dict]) -> None:
         """
         Добавление данных в таблицу
@@ -305,7 +311,7 @@ class DataCreator:
             return None
 
         # замена дат в строковом представлении на datetime.data
-        data = self.convert_data_types(model, data)
+        data = DataUtils().convert_data_types(model, data)
 
         stmt = insert(model).values(data).on_conflict_do_nothing()
         await self.session.execute(stmt)
