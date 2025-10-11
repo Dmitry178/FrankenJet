@@ -28,14 +28,20 @@ dev = [
     "mypy>=1.15.0",
     "ruff>=0.11.5",
 ]
+tests = [
+    "pytest>=8.4.2",
+    "pytest-asyncio>=1.2.0",
+    "pytest-cov>=7.0.0",
+    "pytest-dotenv>=0.5.2",
+]
 
 [tool.black]
-line-length = 121
-skip-string-normalization = true
+line-length = 120
+skip-string-normalization = false
 
 [tool.ruff]
 exclude = [
     "alembic",
 ]
-line-length = 121
+line-length = 120
 unfixable = ["E712"]
