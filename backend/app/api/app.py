@@ -2,8 +2,9 @@ from fastapi import APIRouter
 
 from app.core import cache_manager
 from app.core.logs import logger
+from app.exceptions.api import settings_error
 from app.services.app import AppServices
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 app_router = APIRouter(tags=["App"])
 
@@ -19,6 +20,6 @@ async def get_app_settings():
         data = await AppServices.get_settings()
         return {**status_ok, "data": data}
 
-    except Exception as ex:
+    except (AttributeError, TypeError, Exception) as ex:
         logger.exception(ex)
-        return status_error
+        return settings_error
