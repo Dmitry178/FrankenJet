@@ -1,6 +1,7 @@
 from app.config.env import settings
 from app.core import ESManager
 from app.core.db_manager import DBManager
+from app.decorators.db_errors import handle_basic_db_errors
 
 
 class SearchService:
@@ -12,12 +13,13 @@ class SearchService:
         self.db = db
         self.es = es
 
+    @handle_basic_db_errors
     async def search(self, query: str, categories: str, page: int, per_page: int):
         """
         Обработка поискового запроса
         """
 
-        # если ES доступен, ищем через него
+        # если Elasticsearch доступен, ищем через него
         if self.es:
             search_body = {
                 "query": {
@@ -69,7 +71,7 @@ class SearchService:
                     "per_page": per_page
                 }
 
-        # если ElasticSearch не настроен, либо выдал ошибку, то запускаем простой поиск по базе
+        # если Elasticsearch не настроен, либо выдал ошибку, то запускаем простой поиск по базе
         fallback_result = await self.db.articles.search(query, categories, page, per_page)
         for item in fallback_result["results"]:
             if item.get("image_url"):
