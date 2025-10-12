@@ -1,39 +1,49 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, Body
 from starlette import status
 
 from app.api.openapi_examples import login_example
 from app.core.logs import logger
 from app.dependencies.auth import DAuthUserId, DAuthToken
 from app.dependencies.db import DDB
+from app.exceptions.api import http_error_500
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx, \
     UserCreationErrorEx
+from app.schemas.api import SuccessResponse
 from app.schemas.auth import SLoginUser
 from app.services.auth import AuthServices
 from app.services.users import UsersServices
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
-@auth_router.post("/login", summary="Аутентификация пользователя по email и паролю")
+@auth_router.post(
+    "/login",
+    summary="Аутентификация по email и паролю",
+    status_code=status.HTTP_201_CREATED,
+)
 async def user_login(db: DDB, data: SLoginUser = Body(openapi_examples=login_example)):
     """
-    Аутентификация пользователя
+    Аутентификация пользователя по email и паролю
     """
 
     try:
         result = await AuthServices(db).login(data)
         return {**status_ok, "data": result}
 
-    except (UserNotFoundEx, PasswordIncorrectEx):
-        return {**status_error, "detail": "Пользователь или пароль неверный"}
+    except (UserNotFoundEx, PasswordIncorrectEx) as ex:
+        return ex.json_response
 
     except Exception as ex:
         logger.exception(ex)
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return http_error_500
 
 
-@auth_router.post("/register", summary="Регистрация пользователя")
+@auth_router.post(
+    "/register",
+    summary="Регистрация пользователя",
+    status_code=status.HTTP_201_CREATED,
+)
 async def user_register(db: DDB, data: SLoginUser = Body(openapi_examples=login_example)):
     """
     Регистрация пользователя
@@ -41,35 +51,39 @@ async def user_register(db: DDB, data: SLoginUser = Body(openapi_examples=login_
 
     try:
         await UsersServices(db).create_user_by_email(data)
-        return status_ok
+        return SuccessResponse()
 
-    except UserExistsEx:
-        return {**status_error, "detail": "Пользователь уже создан"}
+    except UserExistsEx as ex:
+        return ex.json_response
 
-    except UserCreationErrorEx:
-        return {**status_error, "detail": "Ошибка создания пользователя"}
+    except UserCreationErrorEx as ex:
+        return ex.json_response
 
     except Exception as ex:
         logger.exception(ex)
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return http_error_500
 
 
-@auth_router.post("/refresh", summary="Перевыпуск токенов")
+@auth_router.post(
+    "/refresh",
+    summary="Перевыпуск токенов",
+    status_code=status.HTTP_201_CREATED,
+)
 async def refresh_tokens(refresh_token: DAuthToken, db: DDB):
     """
     Перевыпуск access и refresh токенов по refresh-токену
     """
 
     try:
-        result = await AuthServices(db).refresh(refresh_token)
-        return {**status_ok, "data": result}
+        data = await AuthServices(db).refresh(refresh_token)
+        return {**status_ok, "data": data}
 
     except (TokenInvalidEx, TokenTypeErrorEx, UserNotFoundEx) as ex:
-        raise HTTPException(status_code=ex.status_code, detail=ex.detail)
+        raise ex.http_exception
 
     except Exception as ex:
         logger.exception(ex)
-        raise HTTPException(status_code=status.HTTP_503_SERVICE_UNAVAILABLE)
+        return http_error_500
 
 
 @auth_router.get("/info", summary="Информация о пользователе")
@@ -79,12 +93,12 @@ async def get_user_info(user_id: DAuthUserId, db: DDB):
     """
 
     try:
-        user_info = await AuthServices(db).get_user_info(user_id)
-        return {**status_ok, "data": user_info}
+        data = await AuthServices(db).get_user_info(user_id)
+        return {**status_ok, "data": data}
 
-    except UserNotFoundEx:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+    except UserNotFoundEx as ex:
+        return ex.json_response
 
     except Exception as ex:
         logger.exception(ex)
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED)
+        return http_error_500
