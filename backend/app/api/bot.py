@@ -1,18 +1,22 @@
-""" Роутер для проверки бота уведомлений """
+""" Роутер для отправки сообщений в бот уведомлений (только для админа) """
 
 import json
 
-from fastapi import Body, Request, Depends, APIRouter
+from fastapi import Body, Depends, APIRouter
+from starlette import status
 
 from app.api.openapi_examples import notification_example, moderation_example
 from app.config.app import RMQ_NOTIFICATIONS_QUEUE, RMQ_ADMIN_AUTH_QUEUE, RMQ_MODERATION_QUEUE
 from app.core import RMQManager
 from app.core.logs import logger
+from app.dependencies.api import get_client_info
 from app.dependencies.auth import get_auth_user_info, get_auth_admin_id
 from app.dependencies.rmq import get_rmq
-from app.exceptions.bot import bot_user_forbidden_403
+from app.exceptions.api import http_error_500, rabbitmq_not_available
+from app.schemas.api import SClientInfo, SuccessResponse
+from app.schemas.auth import SAuthUserInfo
 from app.schemas.bot import SBotNotification, SBotAuthNotification, SBotModeration
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 bot_router = APIRouter(prefix="/bot", tags=["Notification Bot"])
 
@@ -20,7 +24,8 @@ bot_router = APIRouter(prefix="/bot", tags=["Notification Bot"])
 @bot_router.post(
     "/notifications",
     summary="Отправка уведомления в бот",
-    # dependencies=[Depends(get_auth_admin_id)],  # отправить уведомление может только админ
+    dependencies=[Depends(get_auth_admin_id)],
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def send_notification(
         data: SBotNotification = Body(openapi_examples=notification_example),
@@ -31,28 +36,30 @@ async def send_notification(
     """
 
     if not rmq.url:
-        return {**status_error, "detail": "RabbitMQ не установлен"}
+        return rabbitmq_not_available
 
     try:
         await rmq.publish(
             data.notification,
             queue=RMQ_NOTIFICATIONS_QUEUE,
         )
-        return status_ok
+
+        return SuccessResponse()
 
     except Exception as ex:
         logger.exception(ex)
-        return status_error
+        return http_error_500
 
 
 @bot_router.post(
     "/auth-notification",
     summary="Уведомление об аутентификации",
     dependencies=[Depends(get_auth_admin_id)],
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def send_auth_notification(
-        request: Request,
-        user_info=Depends(get_auth_user_info),
+        user_info: SAuthUserInfo = Depends(get_auth_user_info),
+        client_info: SClientInfo = Depends(get_client_info),
         rmq: RMQManager = Depends(get_rmq),
 ):
     """
@@ -60,23 +67,16 @@ async def send_auth_notification(
     """
 
     if not rmq.url:
-        return {**status_error, "detail": "RabbitMQ не установлен"}
+        return rabbitmq_not_available
 
     try:
-        roles = user_info.roles
-        if "admin" not in roles:
-            raise bot_user_forbidden_403
-
-        client_ip = request.client.host
-        user_agent = request.headers.get("user-agent")
-
         data = SBotAuthNotification(
             user_id=user_info.id,
             user_name=user_info.name,
             email=user_info.email,
             roles=user_info.roles,
-            client_ip=client_ip,
-            user_agent=user_agent,
+            client_ip=client_info.client_ip,
+            user_agent=client_info.user_agent,
         )
 
         await rmq.broker.publish(
@@ -84,17 +84,18 @@ async def send_auth_notification(
             queue=RMQ_ADMIN_AUTH_QUEUE,
         )
 
-        return status_ok
+        return SuccessResponse()
 
     except Exception as ex:
         logger.exception(ex)
-        return status_error
+        return http_error_500
 
 
 @bot_router.post(
     "/moderation",
     summary="Модерация комментария",
-    # dependencies=[Depends(get_auth_admin_id)],
+    dependencies=[Depends(get_auth_admin_id)],
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def send_comment_to_moderation(
         data: SBotModeration = Body(openapi_examples=moderation_example),
@@ -105,7 +106,7 @@ async def send_comment_to_moderation(
     """
 
     if not rmq.url:
-        return {**status_error, "detail": "RabbitMQ не установлен"}
+        return rabbitmq_not_available
 
     try:
         json_data = {
@@ -117,8 +118,9 @@ async def send_comment_to_moderation(
             json.dumps(json_data),
             queue=RMQ_MODERATION_QUEUE,
         )
-        return status_ok
+
+        return SuccessResponse()
 
     except Exception as ex:
         logger.exception(ex)
-        return status_error
+        return http_error_500
