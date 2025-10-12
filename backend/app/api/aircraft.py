@@ -1,13 +1,15 @@
 from fastapi import APIRouter, Query, Path, Depends
+from starlette import status as http_status
 from uuid import UUID
 
 from app.core.logs import logger
 from app.db.models.aircraft import EngineTypes, AircraftStatus
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
+from app.exceptions.base import BaseCustomException
 from app.schemas.aircraft import SAircraftFilters, SAircraft
 from app.services.aircraft import AircraftServices
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 aircraft_router = APIRouter(prefix="/aircraft", tags=["Aircraft"])
 
@@ -25,9 +27,9 @@ async def get_aircraft(
         data = await AircraftServices(db).get_aircraft(aircraft_id)
         return {**status_ok, "data": data}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @aircraft_router.get("/list", summary="Список воздушных судов")
@@ -54,15 +56,16 @@ async def get_aircraft_list(
         data = await AircraftServices(db).get_aircraft_list(name, page, per_page, filters)
         return {**status_ok, "data": data}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @aircraft_router.post(
     "",
     summary="Добавление воздушного судна",
     dependencies=[Depends(get_auth_editor_id)],
+    status_code=http_status.HTTP_201_CREATED,
 )
 async def add_aircraft(data: SAircraft, db: DDB):
     """
@@ -73,9 +76,9 @@ async def add_aircraft(data: SAircraft, db: DDB):
         result = AircraftServices(db).add_aircraft(data)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @aircraft_router.put(
@@ -92,9 +95,9 @@ async def edit_aircraft_put(aircraft_id: UUID, data: SAircraft, db: DDB):
         result = AircraftServices(db).edit_aircraft(aircraft_id, data)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @aircraft_router.patch(
@@ -111,9 +114,9 @@ async def edit_aircraft_post(aircraft_id: UUID, data: SAircraft, db: DDB):
         result = AircraftServices(db).edit_aircraft(aircraft_id, data, exclude_unset=True)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @aircraft_router.delete(
@@ -127,12 +130,15 @@ async def delete_aircraft(aircraft_id: UUID, db: DDB):
     """
 
     try:
-        result = AircraftServices(db).delete_aircraft(aircraft_id)
-        return {**status_ok, "data": result}
+        row_count = AircraftServices(db).delete_aircraft(aircraft_id)
+        return {
+            **status_ok,
+            "data": {"rows": row_count}
+        }
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @aircraft_router.get("/types", summary="Список типов воздушных судов")
