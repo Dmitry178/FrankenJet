@@ -1,52 +1,46 @@
 from fastapi import HTTPException
 from starlette import status
 
-
-class BaseAuthException(Exception):
-    detail = "Error"
-    status_code = status.HTTP_400_BAD_REQUEST
-
-    def __init__(self, *args, **kwargs):  # noqa
-        super().__init__(self.detail, *args)
+from app.exceptions.base import BaseCustomException
 
 
-class UserNotFoundEx(BaseAuthException):
-    detail = "User not found"
+class UserNotFoundEx(BaseCustomException):
     status_code = status.HTTP_404_NOT_FOUND
+    detail = "Пользователь или пароль неверный"
 
 
-class PasswordIncorrectEx(BaseAuthException):
-    detail = "Password incorrect"
+class PasswordIncorrectEx(BaseCustomException):
     status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Пользователь или пароль неверный"
 
 
-class UserExistsEx(BaseAuthException):
-    detail = "User already exists"
+class UserExistsEx(BaseCustomException):
     status_code = status.HTTP_409_CONFLICT
+    detail = "Пользователь уже создан"
 
 
-class UserCreationErrorEx(BaseAuthException):
-    detail = "User creation failed"
+class UserCreationErrorEx(BaseCustomException):
+    detail = "Ошибка создания пользователя"
 
 
-class TokenInvalidEx(BaseAuthException):
-    detail = "Invalid token"
+class TokenInvalidEx(BaseCustomException):
     status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Ошибка токена"
 
 
-class TokenTypeErrorEx(BaseAuthException):
-    detail = "Token type error"
+class TokenTypeErrorEx(BaseCustomException):
     status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Ошибка типа токена"
 
 
-class AuthUserErrorEx(BaseAuthException):
-    detail = "Auth user error"
+class AuthUserErrorEx(BaseCustomException):
     status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Ошибка аутентификации"
 
 
-class AuthRoleErrorEx(BaseAuthException):
-    detail = "Auth role error"
+class AuthRoleErrorEx(BaseCustomException):
     status_code = status.HTTP_403_FORBIDDEN
+    detail = "Ошибка авторизации"
 
 
 unauthorized_401 = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
