@@ -2,7 +2,7 @@ from fastapi import HTTPException
 from starlette import status
 from starlette.responses import JSONResponse
 
-from app.types import status_error
+from app.schemas.api import ErrorResponse
 
 
 class BaseCustomException(Exception):
@@ -16,7 +16,7 @@ class BaseCustomException(Exception):
     def json_response(self):
         return JSONResponse(
             status_code=self.status_code,
-            content={**status_error, "detail": self.detail}
+            content=ErrorResponse(detail=self.detail)
         )
 
     @property
@@ -34,7 +34,12 @@ class DatabaseMultipleResultsError(BaseCustomException):
     detail = "Множественные объекты"
 
 
-class DatabaseError(BaseCustomException):
+class DatabaseUniqueFieldError(BaseCustomException):
+    status_code = status.HTTP_409_CONFLICT
+    detail = "Объект уже существует"
+
+
+class DatabaseServiceError(BaseCustomException):
     status_code = status.HTTP_503_SERVICE_UNAVAILABLE
     detail = "Ошибка базы данных"
 
