@@ -138,7 +138,8 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend) + Aiogram (микросер
 
 * **Backend:**
   * Доработать полнотекстовый поиск (Elasticsearch), сделать индексацию статей.
-  * Добавить теги.
+  * Теги.
+  * Rate limiter.
   * Модели/API персоналий и исторических событий.
   * Задачи (Celery).
   * Тесты.
