@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from app.core.db_manager import DBManager
+from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.aircraft import SCountriesFilters, SDesigners
 
 
@@ -11,6 +12,7 @@ class DesignersServices:
     def __init__(self, db: DBManager | None = None) -> None:
         self.db = db
 
+    @handle_basic_db_errors
     async def get_designers(self, filters: SCountriesFilters | None = None):
         """
         Получение списка конструкторов
@@ -19,6 +21,7 @@ class DesignersServices:
         filter_by = filters.model_dump(exclude_none=True) if filters else {}
         return await self.db.aircraft.designers.select_all(filter_by)
 
+    @handle_basic_db_errors
     async def add_designer(self, data: SDesigners):
         """
         Добавление карточки конструктора
@@ -26,21 +29,23 @@ class DesignersServices:
 
         return await self.db.aircraft.designers.insert_one(data)
 
+    @handle_basic_db_errors
     async def edit_designer(self, designer_id: UUID, data: SDesigners, exclude_unset=False):
         """
         Редактирование карточки конструктора
         """
 
-        return await self.db.aircraft.designers.update_one(
+        return await self.db.aircraft.designers.update(
             data,
             id=designer_id,
             exclude_unset=exclude_unset,
             commit=True,
         )
 
+    @handle_basic_db_errors
     async def delete_designer(self, designer_id: UUID):
         """
         Удаление карточки конструктора
         """
 
-        return await self.db.aircraft.designers.delete_one(id=designer_id)
+        return await self.db.aircraft.designers.delete(id=designer_id)

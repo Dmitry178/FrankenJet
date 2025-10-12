@@ -4,6 +4,7 @@ from uuid import UUID
 from app.config.env import settings
 from app.core.db_manager import DBManager
 from app.db.models.articles import ArticleCategories, Articles
+from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.aircraft import SAircraft
 from app.schemas.articles import SArticles
 
@@ -23,9 +24,10 @@ class ArticlesServices:
 
         return [ArticleCategories(item).value for item in ArticleCategories]
 
+    @handle_basic_db_errors
     async def get_article(self, slug: str) -> dict:
         """
-        Загрузка статьи
+        Загрузка статьи по slug
         """
 
         data = await self.db.articles.get_article_by_slug(slug)
@@ -43,6 +45,7 @@ class ArticlesServices:
 
         return result
 
+    @handle_basic_db_errors
     async def get_articles_list(
             self,
             page: int | None = None,
@@ -65,6 +68,7 @@ class ArticlesServices:
             offset, limit, *filter_conditions
         )
 
+    @handle_basic_db_errors
     async def add_article(self, data: SArticles):
         """
         Добавление статьи
@@ -72,21 +76,23 @@ class ArticlesServices:
 
         return await self.db.articles.insert_one(data)
 
+    @handle_basic_db_errors
     async def edit_article(self, article_id: UUID, data: SArticles, exclude_unset=False):
         """
         Редактирование статьи
         """
 
-        return await self.db.articles.update_one(
+        return await self.db.articles.update(
             data,
             id=article_id,
             exclude_unset=exclude_unset,
             commit=True,
         )
 
+    @handle_basic_db_errors
     async def delete_article(self, article_id: UUID):
         """
         Удаление статьи
         """
 
-        return await self.db.articles.delete_one(id=article_id)
+        return await self.db.articles.delete(id=article_id)

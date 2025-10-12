@@ -1,5 +1,6 @@
 from app.config.env import settings
 from app.core.db_manager import DBManager
+from app.decorators.db_errors import handle_basic_db_errors
 
 
 class PagesService:
@@ -9,6 +10,7 @@ class PagesService:
     def __init__(self, db: DBManager | None = None) -> None:
         self.db = db
 
+    @handle_basic_db_errors
     async def home(self) -> dict:
         """
         Информация для главной страницы
