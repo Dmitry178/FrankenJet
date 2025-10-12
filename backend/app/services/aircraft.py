@@ -1,9 +1,13 @@
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
+
 from typing import List
 from uuid import UUID
 
 from app.core.db_manager import DBManager
 from app.db.models import Aircraft
 from app.db.models.aircraft import AircraftTypes, EngineTypes, AircraftStatus
+from app.exceptions.base import BaseCustomException, DatabaseError, ServiceError, DatabaseNoResultError, \
+    DatabaseMultipleResultsError
 from app.schemas.aircraft import SAircraftFilters, SAircraft
 
 
@@ -43,7 +47,17 @@ class AircraftServices:
         Получение карточки воздушного судна
         """
 
-        return await self.db.aircraft.aircraft.select_one_or_none(id=aircraft_id)
+        try:
+            return await self.db.aircraft.aircraft.select_one_or_none(id=aircraft_id)
+
+        except MultipleResultsFound as ex:
+            raise DatabaseMultipleResultsError from ex
+
+        except (IntegrityError, SQLAlchemyError) as ex:
+            raise DatabaseError from ex
+
+        except Exception as ex:
+            raise ServiceError from ex
 
     async def get_aircraft_list(
             self,
@@ -56,43 +70,81 @@ class AircraftServices:
         Получение списка воздушных судов по фильтру
         """
 
-        filter_conditions = [Aircraft.name.ilike(f"%{name}%")] if name else []
-        filter_by_conditions = filters.model_dump(exclude_none=True) if filters else {}
+        try:
+            filter_conditions = [Aircraft.name.ilike(f"%{name}%")] if name else []
+            filter_by_conditions = filters.model_dump(exclude_none=True) if filters else {}
 
-        if page is None or per_page is None:
-            return await self.db.aircraft.aircraft.select_all(
-                *filter_conditions, **filter_by_conditions
+            if page is None or per_page is None:
+                return await self.db.aircraft.aircraft.select_all(
+                    *filter_conditions, **filter_by_conditions
+                )
+
+            offset = (page-1) * per_page
+            limit = per_page
+
+            return await self.db.aircraft.aircraft.select_all_paginated(
+                offset, limit, *filter_conditions, **filter_by_conditions
             )
 
-        offset = (page-1) * per_page
-        limit = per_page
+        except (IntegrityError, SQLAlchemyError) as ex:
+            raise DatabaseError from ex
 
-        return await self.db.aircraft.aircraft.select_all_paginated(
-            offset, limit, *filter_conditions, **filter_by_conditions
-        )
+        except Exception as ex:
+            raise ServiceError from ex
 
     async def add_aircraft(self, data: SAircraft):
         """
         Добавление карточки воздушного судна
         """
 
-        return await self.db.aircraft.aircraft.insert_one(data)
+        try:
+            return await self.db.aircraft.aircraft.insert_one(data)
+
+        except (IntegrityError, SQLAlchemyError) as ex:
+            raise DatabaseError from ex
+
+        except Exception as ex:
+            raise ServiceError from ex
 
     async def edit_aircraft(self, aircraft_id: UUID, data: SAircraft, exclude_unset=False):
         """
         Редактирование карточки воздушного судна
         """
 
-        return await self.db.aircraft.aircraft.update_one(
-            data,
-            id=aircraft_id,
-            exclude_unset=exclude_unset,
-            commit=True,
-        )
+        try:
+            result = await self.db.aircraft.aircraft.update(
+                data,
+                id=aircraft_id,
+                exclude_unset=exclude_unset,
+            )
+
+            if len(result) == 0:
+                raise DatabaseNoResultError()
+            elif len(result) > 1:
+                raise DatabaseMultipleResultsError()
+
+            await self.db.commit()
+            return result[0]
+
+        except BaseCustomException as ex:
+            raise ex
+
+        except (IntegrityError, SQLAlchemyError) as ex:
+            raise DatabaseError from ex
+
+        except Exception as ex:
+            raise ServiceError from ex
 
     async def delete_aircraft(self, aircraft_id: UUID):
         """
         Удаление карточки воздушного судна
         """
 
-        return await self.db.aircraft.aircraft.delete_one(id=aircraft_id)
+        try:
+            return await self.db.aircraft.aircraft.delete(id=aircraft_id)
+
+        except (IntegrityError, SQLAlchemyError) as ex:
+            raise DatabaseError from ex
+
+        except Exception as ex:
+            raise ServiceError from ex
