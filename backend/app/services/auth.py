@@ -137,7 +137,7 @@ class AuthServices:
         """
 
         try:
-            await self.db.auth.refresh_tokens.delete_one(
+            await self.db.auth.refresh_tokens.delete(
                 user_id=user_id, jti=jti
             )
             await self.db.commit()

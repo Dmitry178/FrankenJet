@@ -31,7 +31,7 @@ class ManufacturersServices:
         Редактирование карточки производителя
         """
 
-        return await self.db.aircraft.manufacturers.update_one(
+        return await self.db.aircraft.manufacturers.update(
             data,
             id=manufacturer_id,
             exclude_unset=exclude_unset,
@@ -43,4 +43,4 @@ class ManufacturersServices:
         Удаление карточки производителя
         """
 
-        return await self.db.aircraft.manufacturers.delete_one(id=manufacturer_id)
+        return await self.db.aircraft.manufacturers.delete(id=manufacturer_id)
