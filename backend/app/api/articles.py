@@ -1,14 +1,17 @@
 from fastapi import APIRouter, Path, Query, Depends
+from starlette import status
 from uuid import UUID
 
 from app.core import cache_manager
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
-from app.exceptions.articles import article_not_found, ArticleNotFoundEx
+from app.exceptions.articles import ArticleNotFoundEx
+from app.exceptions.base import BaseCustomException
+from app.schemas.api import SuccessResponse, ApiResponse
 from app.schemas.articles import SArticles
 from app.services.articles import ArticlesServices
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 articles_router = APIRouter(prefix="/articles", tags=["Articles"])
 
@@ -29,9 +32,9 @@ async def get_article_list(
         data = await ArticlesServices(db).get_articles_list(page, page_size, filters)
         return {**status_ok, "data": data}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @articles_router.get("/{slug}", summary="Статья")
@@ -51,18 +54,16 @@ async def get_article(
 
         return {**status_ok, "data": data}
 
-    except ArticleNotFoundEx:
-        raise article_not_found
-
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @articles_router.post(
     "",
     summary="Добавление статьи",
     dependencies=[Depends(get_auth_editor_id)],
+    status_code=status.HTTP_201_CREATED,
 )
 async def add_article(data: SArticles, db: DDB):
     """
@@ -73,9 +74,9 @@ async def add_article(data: SArticles, db: DDB):
         result = ArticlesServices(db).add_article(data)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @articles_router.put(
@@ -92,9 +93,9 @@ async def edit_article_put(article_id: UUID, data: SArticles, db: DDB):
         result = ArticlesServices(db).edit_article(article_id, data)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @articles_router.patch(
@@ -111,9 +112,9 @@ async def edit_article_post(article_id: UUID, data: SArticles, db: DDB):
         result = ArticlesServices(db).edit_article(article_id, data, exclude_unset=True)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @articles_router.delete(
@@ -127,9 +128,9 @@ async def delete_article(article_id: UUID, db: DDB):
     """
 
     try:
-        result = ArticlesServices(db).delete_article(article_id)
-        return {**status_ok, "data": result}
+        row_count = ArticlesServices(db).delete_article(article_id)
+        return SuccessResponse(data={"rows": row_count})
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response

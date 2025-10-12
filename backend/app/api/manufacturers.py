@@ -1,10 +1,12 @@
 from fastapi import APIRouter, Query, Depends
+from starlette import status
 from uuid import UUID
 
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
 from app.schemas.aircraft import SCountriesFilters, SManufacturers
+from app.schemas.api import SuccessResponse
 from app.services.manufacturers import ManufacturersServices
 from app.types import status_ok, status_error
 
@@ -34,6 +36,7 @@ async def get_manufacturers(
     "/manufacturers",
     summary="Добавление производителя",
     dependencies=[Depends(get_auth_editor_id)],
+    status_code=status.HTTP_201_CREATED,
 )
 async def add_manufacturer(data: SManufacturers, db: DDB):
     """
@@ -98,8 +101,8 @@ async def delete_manufacturer(manufacturer_id: UUID, db: DDB):
     """
 
     try:
-        result = ManufacturersServices(db).delete_manufacturer(manufacturer_id)
-        return {**status_ok, "data": result}
+        row_count = ManufacturersServices(db).delete_manufacturer(manufacturer_id)
+        return SuccessResponse(data={"rows": row_count})
 
     except Exception as ex:
         logger.exception(ex)

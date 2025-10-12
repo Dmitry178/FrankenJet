@@ -1,12 +1,15 @@
 from fastapi import APIRouter, Query, Depends
+from starlette import status
 from uuid import UUID
 
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
+from app.exceptions.base import BaseCustomException
 from app.schemas.aircraft import SCountriesFilters, SDesigners
+from app.schemas.api import SuccessResponse
 from app.services.designers import DesignersServices
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 designers_router = APIRouter(prefix="/aircraft", tags=["Aircraft"])
 
@@ -25,15 +28,16 @@ async def get_designers(
         data = await DesignersServices(db).get_designers(filters)
         return {**status_ok, "data": data}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @designers_router.post(
     "/designers",
     summary="Добавление конструктора",
     dependencies=[Depends(get_auth_editor_id)],
+    status_code=status.HTTP_201_CREATED,
 )
 async def add_design_bureau(data: SDesigners, db: DDB):
     """
@@ -44,9 +48,9 @@ async def add_design_bureau(data: SDesigners, db: DDB):
         result = DesignersServices(db).add_designer(data)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @designers_router.put(
@@ -63,9 +67,9 @@ async def edit_designer_put(designer_id: UUID, data: SDesigners, db: DDB):
         result = DesignersServices(db).edit_designer(designer_id, data)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
 
 
 @designers_router.patch(
@@ -82,9 +86,9 @@ async def edit_designer_post(designer_id: UUID, data: SDesigners, db: DDB):
         result = DesignersServices(db).edit_designer(designer_id, data, exclude_unset=True)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
-        logger.error(ex)
-        return status_error
+    except BaseCustomException as ex:
+        logger.exception(ex)
+        return ex.json_response
 
 
 @designers_router.delete(
@@ -98,9 +102,9 @@ async def delete_designer(designer_id: UUID, db: DDB):
     """
 
     try:
-        result = DesignersServices(db).delete_designer(designer_id)
-        return {**status_ok, "data": result}
+        row_count = DesignersServices(db).delete_designer(designer_id)
+        return SuccessResponse(data={"rows": row_count})
 
-    except Exception as ex:
-        logger.error(ex)
-        return status_error
+    except BaseCustomException as ex:
+        logger.exception(ex)
+        return ex.json_response
