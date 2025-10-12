@@ -41,7 +41,7 @@ class BaseRepository:
 
     async def select_one_or_none(self, scalars=False, *filters, **filter_by):
         """
-        Получение записи по фильтру
+        Получение одной (или ни одной) записи по фильтру
         """
 
         query = (
@@ -175,7 +175,7 @@ class BaseRepository:
 
         return None
 
-    async def update_one(
+    async def update(
             self,
             data: BaseModel | None = None,
             exclude_unset: bool = False,
@@ -199,9 +199,9 @@ class BaseRepository:
         if commit:
             await self.session.commit()
 
-        return result.scalars().one() if scalars else result.mappings().one()
+        return result.scalars().all() if scalars else result.mappings().all()
 
-    async def delete_one(self, commit=False, *filters, **filter_by) -> int:
+    async def delete(self, commit=False, *filters, **filter_by) -> int:
         """
         Удаление данных
         """
@@ -216,4 +216,4 @@ class BaseRepository:
         if commit:
             await self.session.commit()
 
-        return result.rowcount
+        return result.rowcount  # количество удалённых строк
