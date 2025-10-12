@@ -17,3 +17,8 @@ rabbitmq_not_available = JSONResponse(
     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
     content={**status_error, "detail": "Брокер сообщений не установлен"}
 )
+
+settings_error = JSONResponse(
+    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    content={**status_error, "detail": "Ошибка получения настроек приложения"}
+)
