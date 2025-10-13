@@ -1,14 +1,12 @@
 from fastapi import APIRouter, Depends
-from uuid import UUID
-
 from starlette import status
 
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
-from app.schemas.aircraft import SCountries
 from app.schemas.api import SuccessResponse
+from app.schemas.countries import SCountries
 from app.services.countries import CountriesServices
 from app.types import status_ok
 
@@ -55,7 +53,7 @@ async def add_country(data: SCountries, db: DDB):
     summary="Изменение страны",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def edit_country_put(country_id: UUID, data: SCountries, db: DDB):
+async def edit_country_put(country_id: str, data: SCountries, db: DDB):
     """
     Редактирование карточки страны (put)
     """
@@ -74,7 +72,7 @@ async def edit_country_put(country_id: UUID, data: SCountries, db: DDB):
     summary="Изменение страны",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def edit_country_post(country_id: UUID, data: SCountries, db: DDB):
+async def edit_country_post(country_id: str, data: SCountries, db: DDB):
     """
     Редактирование карточки страны (patch)
     """
@@ -93,7 +91,7 @@ async def edit_country_post(country_id: UUID, data: SCountries, db: DDB):
     summary="Удаление страны",
     dependencies=[Depends(get_auth_admin_id)],  # удалять страны может только админ
 )
-async def delete_country(country_id: UUID, db: DDB):
+async def delete_country(country_id: str, db: DDB):
     """
     Удаление карточки страны
     """
