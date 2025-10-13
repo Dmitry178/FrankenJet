@@ -1,8 +1,6 @@
-from uuid import UUID
-
 from app.core.db_manager import DBManager
 from app.decorators.db_errors import handle_basic_db_errors
-from app.schemas.aircraft import SCountries
+from app.schemas.countries import SCountries
 
 
 class CountriesServices:
@@ -18,7 +16,7 @@ class CountriesServices:
         Получение списка стран
         """
 
-        return await self.db.aircraft.countries.select_all()
+        return await self.db.directory.countries.select_all()
 
     @handle_basic_db_errors
     async def add_country(self, data: SCountries):
@@ -26,25 +24,25 @@ class CountriesServices:
         Добавление карточки страны
         """
 
-        return await self.db.aircraft.countries.insert_one(data)
+        return await self.db.directory.countries.insert_one(data)
 
     @handle_basic_db_errors
-    async def edit_country(self, aircraft_id: UUID, data: SCountries, exclude_unset=False):
+    async def edit_country(self, country_id: str, data: SCountries, exclude_unset=False):
         """
         Редактирование карточки страны
         """
 
-        return await self.db.aircraft.countries.update(
+        return await self.db.directory.countries.update(
             data,
-            id=aircraft_id,
+            id=country_id,
             exclude_unset=exclude_unset,
             commit=True,
         )
 
     @handle_basic_db_errors
-    async def delete_country(self, aircraft_id: UUID):
+    async def delete_country(self, country_id: str):
         """
         Удаление карточки страны
         """
 
-        return await self.db.aircraft.countries.delete(id=aircraft_id)
+        return await self.db.directory.countries.delete(id=country_id)
