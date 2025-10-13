@@ -202,7 +202,7 @@ export default {
           params: {
             q: searchQuery.value,
             page: currentPage.value,
-            limit: 10
+            per_page: 10
           }
         });
 
@@ -253,31 +253,6 @@ export default {
       search();
     });
 
-    /*
-    // следим за набором текста в строке поиска
-    watch(searchQuery, (newQuery) => {
-      if (newQuery !== route.query.q) {
-        const newQueryParams = {
-          ...route.query,
-          q: newQuery || undefined, // если пустой, удаляем параметр
-          page: newQuery ? 1 : undefined // если новый запрос, сбрасываем на страницу 1, иначе удаляем page
-        };
-        if (newQuery) {
-          newQueryParams.page = 1; // всегда сбрасываем на первую страницу при новом поиске
-          currentPage.value = 1; // синхронизируем локальное состояние
-        }
-        router.replace({ query: newQueryParams });
-        if (newQuery) {
-          search();
-        } else {
-          // очищаем результаты, если запрос пустой
-          searchResults.value = null;
-          error.value = null;
-        }
-      }
-    });
-    */
-
     // следим за изменением currentPage в URL (например, при навигации назад/вперед)
     watch(
       () => route.query.page,
@@ -289,26 +264,6 @@ export default {
         }
       }
     );
-
-    /*
-    // следим за изменением searchQuery в URL (например, при навигации назад/вперед или вводе в адресной строке)
-    watch(
-      () => route.query.q,
-      (newQueryFromUrl) => {
-        if (newQueryFromUrl !== searchQuery.value) {
-          searchQuery.value = newQueryFromUrl || '';
-          // Если в URL есть новый запрос, сбрасываем на 1 страницу, если не указана другая
-          currentPage.value = parseInt(route.query.page) || 1;
-          if (newQueryFromUrl) {
-            search();
-          } else {
-            searchResults.value = null;
-            error.value = null;
-          }
-        }
-      }
-    );
-    */
 
     return {
       searchQuery,
