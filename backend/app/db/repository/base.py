@@ -159,7 +159,7 @@ class BaseRepository:
 
         return result.scalars().one() if scalars else result.mappings().one()
 
-    async def insert_bulk(self, data: BaseModel | None = None, values: List[Dict] | None = None, commit=False) -> None:
+    async def insert_all(self, data: BaseModel | None = None, values: List[Dict] | None = None, commit=False) -> None:
         """
         Добавление массива данных
         """
