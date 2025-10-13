@@ -2,6 +2,7 @@ from app.config.env import settings
 from app.core import ESManager
 from app.core.db_manager import DBManager
 from app.decorators.db_errors import handle_basic_db_errors
+from app.schemas.search import SSearch
 
 
 class SearchService:
@@ -14,7 +15,7 @@ class SearchService:
         self.es = es
 
     @handle_basic_db_errors
-    async def search(self, query: str, categories: str, page: int, per_page: int):
+    async def search(self, data: SSearch):
         """
         Обработка поискового запроса
         """
@@ -27,15 +28,15 @@ class SearchService:
                         "must": [
                             {
                                 "multi_match": {
-                                    "query": query,
+                                    "query": data.query,
                                     "fields": ["title^2", "content", "tags^1.5", "summary^1.2"]
                                 }
                             }
                         ]
                     }
                 },
-                "from": (page - 1) * per_page,
-                "size": per_page,
+                "from": (data.page - 1) * data.per_page,
+                "size": data.per_page,
                 "highlight": {
                     "fields": {
                         "title": {},
@@ -46,9 +47,9 @@ class SearchService:
             }
 
             # фильтрация по категориям
-            if categories:
+            if data.categories:
                 search_body["query"]["bool"]["filter"] = [
-                    {"terms": {"category": categories}}
+                    {"terms": {"category": ", ".join(data.categories)}}
                 ]
 
             result = await self.es.search(search_body)
@@ -67,8 +68,8 @@ class SearchService:
                 return {
                     "items": formatted_results,
                     "total": total,
-                    "page": page,
-                    "per_page": per_page
+                    "page": data.page,
+                    "per_page": data.per_page
                 }
 
         # если Elasticsearch не настроен, либо выдал ошибку, то запускаем простой поиск по базе

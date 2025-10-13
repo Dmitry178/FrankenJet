@@ -2,6 +2,7 @@ from sqlalchemy import select, func, true, case, literal, union_all, cast, Strin
 
 from app.db.models import Articles, Aircraft, Designers, Manufacturers, DesignBureaus, Facts
 from app.db.repository.base import BaseRepository
+from app.schemas.search import SSearch
 
 
 class ArticlesRepository(BaseRepository):
@@ -44,10 +45,15 @@ class ArticlesRepository(BaseRepository):
         result = await self.session.execute(query)
         return result.mappings().one_or_none()
 
-    async def search(self, query: str, categories: list, page: int, per_page: int):
+    async def search(self, data: SSearch):
         """
         Поиск по всем категориям
         """
+
+        query = data.query
+        # categories = data.categories
+        page = data.page
+        per_page = data.per_page
 
         # TODO: добавить категории в поиск
 
