@@ -1,11 +1,13 @@
 """ Контекстный менеджер базы данных """
 
-from app.db.repository.aircraft import AircraftRepository, CountriesRepository, DesignersRepository, \
+from app.db.repository.aircraft import AircraftRepository, DesignersRepository, \
     ManufacturersRepository, DesignBureausRepository
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
+from app.db.repository.countries import CountriesRepository
 from app.db.repository.facts import FactsRepository
 from app.db.repository.roles import RolesRepository
+from app.db.repository.tags import TagsRepository
 from app.db.repository.users import UsersRepository
 
 
@@ -14,6 +16,10 @@ class DBManager:
         self.session_factory = session_factory
 
     class AuthDBManager:
+        """
+        Менеджер БД авторизации/аутентификации
+        """
+
         def __init__(self, session):
             self.session = session
 
@@ -21,14 +27,28 @@ class DBManager:
             self.roles = RolesRepository(self.session)
 
     class AircraftDBManager:
+        """
+        Менеджер БД воздушных судов
+        """
+
         def __init__(self, session):
             self.session = session
 
             self.aircraft = AircraftRepository(self.session)
-            self.countries = CountriesRepository(self.session)
             self.design_bureaus = DesignBureausRepository(self.session)
             self.designers = DesignersRepository(self.session)
             self.manufacturers = ManufacturersRepository(self.session)
+
+    class DirectoryDBManager:
+        """
+        Менеджер БД справочников
+        """
+
+        def __init__(self, session):
+            self.session = session
+
+            self.countries = CountriesRepository(self.session)
+            self.tags = TagsRepository(self.session)
 
     async def __aenter__(self):
         self.session = self.session_factory()
@@ -37,6 +57,7 @@ class DBManager:
         self.auth = self.AuthDBManager(self.session)
 
         self.articles = ArticlesRepository(self.session)
+        self.directory = self.DirectoryDBManager(self.session)
         self.facts = FactsRepository(self.session)
         self.users = UsersRepository(self.session)
 
