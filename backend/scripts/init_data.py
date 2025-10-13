@@ -223,47 +223,6 @@ class DataCreator:
 
         return None
 
-    async def insert_countries(self) -> None:
-        """
-        Заполнение таблицы стран
-        """
-
-        countries = [
-            {"id": "ru", "name": "Россия", "iso_code": "RUS"},
-            {"id": "su", "name": "СССР", "iso_code": None},
-            {"id": "us", "name": "США", "iso_code": "USA"},
-            {"id": "de", "name": "Германия", "iso_code": "GER"},
-            {"id": "fr", "name": "Франция", "iso_code": "FRA"},
-        ]
-
-        stmt = insert(Countries).values(countries).on_conflict_do_nothing()
-        await self.session.execute(stmt)
-        await self.session.commit()
-
-        logger.info("Таблица стран заполнена")
-
-        return None
-
-    async def insert_roles(self) -> None:
-        """
-        Заполнение таблицы ролей пользователей
-        """
-
-        roles = [
-            {"role": "admin"},  # админская роль
-            {"role": "demo"},  # админская роль с правами read only
-            {"role": "editor"},  # редактор карточек с данными
-            {"role": "moderator"},  # модератор комментариев
-        ]
-
-        stmt = insert(Roles).values(roles).on_conflict_do_nothing()
-        await self.session.execute(stmt)
-        await self.session.commit()
-
-        logger.info("Таблица ролей заполнена")
-
-        return None
-
     async def insert_users(self, users: list[SUserCreds] | None = None) -> None:
         """
         Заполнение таблицы пользователей
@@ -327,7 +286,7 @@ async def main() -> None:
     Запуск скриптов инициализации данных
     """
 
-    async def read_json(path: str, is_article=False, has_image=False, s3manager=None) -> list[dict]:
+    async def assemble_json(path: str, is_article=False, has_image=False, s3manager=None) -> list[dict]:
         """
         Сборка json из файлов
         """
@@ -369,6 +328,15 @@ async def main() -> None:
                 result.append(json_data)
 
         return result
+
+    async def read_json(file: str) -> list:
+        """
+        Чтение json
+        """
+
+        file_path = Path(f"{os.getcwd()}/{file}")
+        with open(file_path, "r", encoding="utf-8") as f:
+            return json.load(f)
 
     async def read_text(file: str) -> list:
         """
@@ -420,21 +388,29 @@ async def main() -> None:
             await db_handler.create_tables()
 
         logger.info("Заполнение базы первичными данными")
-        await db_handler.insert_roles()
+
+        logger.info("Добавление ролей пользователей")
+        data = await read_json("/scripts/data/roles.json")
+        await db_handler.add_data(Roles, data)
+
+        logger.info("Добавление пользователей")
         await db_handler.insert_users(users)
-        await db_handler.insert_countries()
+
+        logger.info("Добавление стран")
+        data = await read_json("/scripts/data/countries.json")
+        await db_handler.add_data(Countries, data)
 
         logger.info("Добавление фактов")
-        facts = await read_text("/scripts/facts/facts.txt")
+        facts = await read_text("/scripts/data/facts.txt")
         data = [{"fact": fact} for fact in facts]
         await db_handler.add_data(Facts, data)
 
         logger.info("Добавление статей")
-        data = await read_json(BASE_ARTICLES_PATH, is_article=True)
+        data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
         await db_handler.add_data(Articles, data)
 
         logger.info("Добавление карточек воздушных судов")
-        data = await read_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
+        data = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
         await db_handler.add_data(Aircraft, data)
 
     logger.info("Добавление данных завершено")
