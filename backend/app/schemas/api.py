@@ -1,20 +1,31 @@
 from pydantic import BaseModel
 from typing import Any
 
-from app.types import status_ok, status_error
+from app.types import StatusEnum
 
 
 class SuccessResponse(BaseModel):
-    status: str = status_ok.get("status")
+    status: str = StatusEnum.ok
     data: Any | None = None
 
 
 class ErrorResponse(BaseModel):
-    status: str = status_error.get("status")
+    status: str = StatusEnum.error
     detail: str | None = None
 
 
-ApiResponse = SuccessResponse | ErrorResponse  # стандартный ответ от API
+class ApiResponse(BaseModel):
+    status: StatusEnum
+    data: Any | None = None
+    detail: str | None = None
+
+    @classmethod
+    def success(cls, data: Any = None):
+        return cls(status=StatusEnum.ok, data=data)
+
+    @classmethod
+    def error(cls, detail: str | None = None):
+        return cls(status=StatusEnum.error, detail=detail)
 
 
 class SClientInfo(BaseModel):
