@@ -198,13 +198,13 @@ export default {
       error.value = null;
 
       try {
-        const response = await axios.get(`${API_BASE_URL}/search`, {
-          params: {
-            q: searchQuery.value,
-            page: currentPage.value,
-            per_page: 10
-          }
-        });
+        const requestData = {
+          query: searchQuery.value,
+          page: currentPage.value,
+          per_page: 10,
+        };
+
+        const response = await axios.post(`${API_BASE_URL}/search`, requestData);
 
         if (response.data.status === 'ok') {
           searchResults.value = response.data.data;
