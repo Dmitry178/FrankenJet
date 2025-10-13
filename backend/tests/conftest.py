@@ -67,11 +67,11 @@ async def init_database(check_test_mode):
     print("Добавление исходных данных")
 
     async with DBManager(session_factory=async_session_maker_null_pool) as db_:
-        await db_.auth.roles.insert_bulk(values=mock_roles)
-        await db_.aircraft.countries.insert_bulk(values=mock_countries)
-        await db_.articles.insert_bulk(values=mock_articles)
-        await db_.aircraft.aircraft.insert_bulk(values=mock_aircraft)
-        await db_.facts.insert_bulk(values=mock_facts)
+        await db_.auth.roles.insert_all(values=mock_roles)
+        await db_.aircraft.countries.insert_all(values=mock_countries)
+        await db_.articles.insert_all(values=mock_articles)
+        await db_.aircraft.aircraft.insert_all(values=mock_aircraft)
+        await db_.facts.insert_all(values=mock_facts)
         await db_.commit()
 
 
