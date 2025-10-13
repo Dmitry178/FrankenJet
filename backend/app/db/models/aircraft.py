@@ -2,7 +2,7 @@ import enum
 
 from datetime import date
 
-from sqlalchemy import Date, Text, String, Enum
+from sqlalchemy import Text, String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from typing import List, TYPE_CHECKING
@@ -13,7 +13,7 @@ from app.db.types import uid_pk, str_16, str_24, str_32, str_64, str_128, fk_man
     fk_aircraft, fk_design_bureau, fk_article
 
 if TYPE_CHECKING:
-    from app.db.models import Articles
+    from app.db.models import Articles, AircraftDesignersAssociation, Countries, Designers
 
 
 class AircraftTypes(str, enum.Enum):
@@ -25,13 +25,13 @@ class AircraftTypes(str, enum.Enum):
     airship = "дирижабль"
     helicopter = "вертолёт"
     rocket = "ракета"
-    glider = "планер"
+    glider = "планёр"
     ornithopter = "орнитоптер"
     autogiro = "автожир"
     gyrodyne = "винтокрыл"
     wige = "экраноплан"
     balloon = "воздушный шар"
-    blimp = "дирижабль"
+    uav = "беспилотник"
 
 
 class EngineTypes(str, enum.Enum):
@@ -43,7 +43,7 @@ class EngineTypes(str, enum.Enum):
     turbojet = "турбореактивный"
     turboprop = "турбовинтовой"
     turbofan = "турбовентиляторный"
-    ramjet = "прямоточный воздушно-реактивный"
+    ramjet = "воздушно-реактивный"
     rocket = "ракетный"
     electric = "электрический"
 
@@ -119,80 +119,6 @@ class Aircraft(Base, TimestampMixin):
         back_populates="aircraft",
         viewonly=True,
     )
-
-
-class Countries(Base):
-    """
-    Страны
-    """
-
-    __tablename__ = "countries"
-    __table_args__ = {"schema": "articles"}
-
-    id: Mapped[str] = mapped_column(String(2), primary_key=True)  # двухбуквенный ISO-код страны
-
-    name: Mapped[str_32] = mapped_column(unique=True)  # название страны
-    iso_code: Mapped[str | None] = mapped_column(String(3), unique=True, nullable=True)  # трёхбуквенный ISO-код страны
-    flag_image_url: Mapped[str_128 | None]  # URL изображения флага страны
-
-    aircraft: Mapped[List["Aircraft"]] = relationship(back_populates="country")
-    design_bureaus: Mapped[List["DesignBureaus"]] = relationship(back_populates="country")
-    designers: Mapped[List["Designers"]] = relationship(back_populates="country")
-    manufacturers: Mapped[List["Manufacturers"]] = relationship(back_populates="country")
-
-
-class Designers(Base, TimestampMixin):
-    """
-    Конструкторы
-    """
-
-    __tablename__ = "designers"
-    __table_args__ = {"schema": "articles"}
-
-    id: Mapped[uid_pk]
-    country_id: Mapped[fk_country]
-
-    name: Mapped[str_32] = mapped_column(unique=True)  # имя конструктора
-    original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # имя на оригинальном языке
-    birth_date: Mapped[date | None] = mapped_column(Date)
-    death_date: Mapped[date | None] = mapped_column(Date)
-    known_for: Mapped[str | None] = mapped_column(Text)  # чем знаменит конструктор
-    biography: Mapped[str] = mapped_column(Text)  # биография
-    image_url: Mapped[str_128 | None]  # URL основного изображения
-
-    country: Mapped["Countries"] = relationship(back_populates="designers")
-    aircraft_association: Mapped[List["AircraftDesignersAssociation"]] = relationship(
-        back_populates="designer"
-    )
-    aircraft: Mapped[List["Aircraft"]] = relationship(
-        secondary="articles.aircraft_designers_as",
-        back_populates="designers",
-        viewonly=True,  # для предотвращения прямого добавления самолетов через designer.aircraft
-    )
-    bureau_association: Mapped[List["DesignersBureausAssociation"]] = relationship(
-        back_populates="designer"
-    )
-    design_bureaus: Mapped[List["DesignBureaus"]] = relationship(
-        secondary="articles.designers_bureaus_as",
-        back_populates="designers",
-        viewonly=True,  # для предотвращения прямого добавления КБ через конструктора
-    )
-
-
-class AircraftDesignersAssociation(Base):
-    """
-    Ассоциативная таблица для связи самолётов и конструкторов
-    """
-
-    __tablename__ = "aircraft_designers_as"
-    __table_args__ = {"schema": "articles"}
-
-    aircraft_id: Mapped[fk_aircraft] = mapped_column(primary_key=True)
-    designer_id: Mapped[fk_designer] = mapped_column(primary_key=True)
-    role: Mapped[str_64 | None]  # роли ("главный конструктор", "ведущий инженер", ...)
-
-    aircraft: Mapped["Aircraft"] = relationship(back_populates="designers_association")
-    designer: Mapped["Designers"] = relationship(back_populates="aircraft_association")
 
 
 class Manufacturers(Base, TimestampMixin):
