@@ -1,14 +1,6 @@
-from app.db.models import Aircraft, Countries, Designers
+from app.db.models import Aircraft, Designers
 from app.db.models.aircraft import Manufacturers, DesignBureaus
 from app.db.repository.base import BaseRepository
-
-
-class CountriesRepository(BaseRepository):
-    """
-    Репозиторий модели стран
-    """
-
-    model = Countries
 
 
 class AircraftRepository(BaseRepository):
