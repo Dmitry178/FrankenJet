@@ -1,5 +1,3 @@
-from sqlalchemy.exc import IntegrityError, SQLAlchemyError, MultipleResultsFound
-
 from typing import List
 from uuid import UUID
 
@@ -7,7 +5,7 @@ from app.core.db_manager import DBManager
 from app.db.models import Aircraft
 from app.db.models.aircraft import AircraftTypes, EngineTypes, AircraftStatus
 from app.decorators.db_errors import handle_basic_db_errors
-from app.exceptions.base import DatabaseServiceError, ServiceError, DatabaseNoResultError, DatabaseMultipleResultsError
+from app.exceptions.base import DatabaseNoResultError, DatabaseMultipleResultsError
 from app.schemas.aircraft import SAircraftFilters, SAircraft
 
 
@@ -42,22 +40,13 @@ class AircraftServices:
 
         return [AircraftStatus(item).value for item in AircraftStatus]
 
+    @handle_basic_db_errors
     async def get_aircraft(self, aircraft_id: UUID) -> Aircraft:
         """
         Получение карточки воздушного судна
         """
 
-        try:
-            return await self.db.aircraft.aircraft.select_one_or_none(id=aircraft_id)
-
-        except MultipleResultsFound as ex:
-            raise DatabaseMultipleResultsError from ex
-
-        except (IntegrityError, SQLAlchemyError) as ex:
-            raise DatabaseServiceError from ex
-
-        except Exception as ex:
-            raise ServiceError from ex
+        return await self.db.aircraft.aircraft.select_one_or_none(id=aircraft_id)
 
     @handle_basic_db_errors
     async def get_aircraft_list(
