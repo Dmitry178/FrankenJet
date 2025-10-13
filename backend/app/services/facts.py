@@ -1,5 +1,3 @@
-from uuid import UUID
-
 from app.core.db_manager import DBManager
 from app.decorators.db_errors import handle_basic_db_errors
 
@@ -20,7 +18,7 @@ class FactsServices:
         return await self.db.facts.insert_one(fact=fact)
 
     @handle_basic_db_errors
-    async def edit_fact(self, fact_id: UUID, fact: str):
+    async def edit_fact(self, fact_id: int, fact: str):
         """
         Редактирование факта
         """
