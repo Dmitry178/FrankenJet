@@ -1,0 +1,6 @@
+[
+  {"role": "admin"},
+  {"role": "demo"},
+  {"role": "editor"},
+  {"role": "moderator"}
+]
