@@ -64,8 +64,10 @@ if settings.get_cors:
         CORSMiddleware,  # noqa
         allow_origins=settings.get_cors,
         allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        allow_methods=["OPTIONS", "GET", "POST", "PUT", "PATCH", "DELETE"],  # отключаем TRACE и CONNECT
+        allow_headers=["*"],  # "Content-Type", "Authorization", "Accept", "X-Requested-With", # "User-Agent"  # TODO
+        # expose_headers=[],
+        # max_age=600,
     )
 
 
