@@ -2,14 +2,14 @@ import enum
 
 from datetime import datetime
 
-from sqlalchemy import Text, Enum, Integer
+from sqlalchemy import Text, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import uid_pk, int_0, str_64, str_256, str_512, str_1024, bool_false
+from app.db.types import uid_pk, int_0, str_32, str_64, str_256, str_512, str_1024, bool_false, fk_article, fk_tag
 
 if TYPE_CHECKING:
     from app.db.models import Aircraft
@@ -54,14 +54,41 @@ class Articles(Base, TimestampMixin):
 
     aircraft: Mapped["Aircraft"] = relationship(back_populates="article")
 
+    tags_association: Mapped[List["ArticlesTagsAssociation"]] = relationship(back_populates="articles")
+    tags: Mapped[List["Tags"]] = relationship(
+        secondary="articles.articles_tags_at",
+        back_populates="articles",
+    )
 
-class Facts(Base):
+
+class Tags(Base):
     """
-    Модель фактов об авиации
+    Модель тегов к статьям
     """
 
-    __tablename__ = "facts"
+    __tablename__ = "tags"
     __table_args__ = {"schema": "articles"}
 
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    fact: Mapped[str_256]  # факт об авиации
+    tag_id: Mapped[str_32] = mapped_column(primary_key=True)
+
+    articles_association: Mapped[List["ArticlesTagsAssociation"]] = relationship(back_populates="tags")
+    articles: Mapped[List["Articles"]] = relationship(
+        secondary="articles.articles_tags_at",
+        back_populates="tags",
+        viewonly=True,
+    )
+
+
+class ArticlesTagsAssociation(Base):
+    """
+    Ассоциативная таблица для связи самолётов и конструкторов
+    """
+
+    __tablename__ = "articles_tags_at"
+    __table_args__ = {"schema": "articles"}
+
+    article_id: Mapped[fk_article] = mapped_column(primary_key=True)
+    tag_id: Mapped[fk_tag] = mapped_column(primary_key=True)
+
+    articles: Mapped["Articles"] = relationship(back_populates="tags_association")
+    tags: Mapped["Tags"] = relationship(back_populates="articles_association")
