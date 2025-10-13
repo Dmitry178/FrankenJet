@@ -1,0 +1,8 @@
+[
+  {"id": "ru", "name": "Россия", "iso_code": "RUS"},
+  {"id": "su", "name": "СССР", "iso_code": null},
+  {"id": "us", "name": "США", "iso_code": "USA"},
+  {"id": "de", "name": "Германия", "iso_code": "GER"},
+  {"id": "fr", "name": "Франция", "iso_code": "FRA"},
+  {"id": "gb", "name": "Великобритания", "iso_code": "GBR"}
+]
