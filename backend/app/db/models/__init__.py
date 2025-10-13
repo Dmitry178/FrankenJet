@@ -2,16 +2,25 @@
 
 from app.db.models.aircraft import (
     Aircraft,
-    AircraftDesignersAssociation,
     AircraftManufacturersAssociation,
-    Countries,
     DesignBureaus,
-    Designers,
     DesignersBureausAssociation,
     Manufacturers,
 )
+from app.db.models.designers import (
+    AircraftDesignersAssociation,
+    Designers,
+)
 from app.db.models.articles import (
-    Articles, Facts,
+    Articles,
+    ArticlesTagsAssociation,
+    Tags,
+)
+from app.db.models.facts import (
+    Facts,
+)
+from app.db.models.countries import (
+    Countries,
 )
 from app.db.models.auth import (
     RefreshTokens,
@@ -27,6 +36,7 @@ __all__ = [
     "AircraftDesignersAssociation",
     "AircraftManufacturersAssociation",
     "Articles",
+    "ArticlesTagsAssociation",
     "Countries",
     "DesignBureaus",
     "Designers",
@@ -35,6 +45,7 @@ __all__ = [
     "Manufacturers",
     "RefreshTokens",
     "Roles",
+    "Tags",
     "Users",
     "UsersRolesAssociation",
 ]
