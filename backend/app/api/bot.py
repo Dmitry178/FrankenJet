@@ -16,7 +16,6 @@ from app.exceptions.api import http_error_500, rabbitmq_not_available
 from app.schemas.api import SClientInfo, SuccessResponse
 from app.schemas.auth import SAuthUserInfo
 from app.schemas.bot import SBotNotification, SBotAuthNotification, SBotModeration
-from app.types import status_ok
 
 bot_router = APIRouter(prefix="/bot", tags=["Notification Bot"])
 

@@ -8,7 +8,7 @@ from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
 from app.exceptions.articles import ArticleNotFoundEx
 from app.exceptions.base import BaseCustomException
-from app.schemas.api import SuccessResponse, ApiResponse
+from app.schemas.api import SuccessResponse
 from app.schemas.articles import SArticles
 from app.services.articles import ArticlesServices
 from app.types import status_ok
