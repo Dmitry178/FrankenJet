@@ -12,6 +12,7 @@ from app.api.manufacturers import manufacturers_router
 from app.api.oauth2 import oauth_router
 from app.api.pages import pages_router
 from app.api.search import search_router
+from app.api.tags import tags_router
 
 router = APIRouter()
 
@@ -21,6 +22,7 @@ router.include_router(oauth_router)
 router.include_router(pages_router)
 router.include_router(search_router)
 router.include_router(articles_router)
+router.include_router(tags_router)
 router.include_router(aircraft_router)
 router.include_router(countries_router)
 router.include_router(bureaus_router)
