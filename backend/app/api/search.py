@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 
 from app.core.logs import logger
 from app.dependencies.db import DDB
@@ -7,15 +7,11 @@ from app.schemas.search import SSearch
 from app.services.search import SearchService
 from app.types import status_error, status_ok
 
-search_router = APIRouter(prefix="/search", tags=["Search"])
+search_router = APIRouter(prefix="/search", tags=["Pages"])
 
 
 @search_router.post("", summary="Поиск")
-async def search(
-        db: DDB,
-        es: DES,
-        data: SSearch,
-):
+async def search(db: DDB, es: DES, data: SSearch):
     """
     Поиск по всем сущностям
     """
