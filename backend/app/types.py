@@ -1,9 +1,16 @@
 """ Аннотированные типы """
 
+from enum import Enum
 from fastapi import Body
 from typing import Annotated
 
-status_ok = {"status": "ok"}
-status_error = {"status": "error"}
+
+class StatusEnum(str, Enum):
+    ok = "ok"
+    error = "error"
+
+
+status_ok = {"status": StatusEnum.ok}
+status_error = {"status": StatusEnum.error}
 
 ABody = Annotated[str, Body()]
