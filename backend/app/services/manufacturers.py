@@ -1,7 +1,8 @@
 from uuid import UUID
 
 from app.core.db_manager import DBManager
-from app.schemas.aircraft import SCountriesFilters, SManufacturers
+from app.schemas.countries import SCountriesFilters
+from app.schemas.manufacturers import SManufacturers
 
 
 class ManufacturersServices:

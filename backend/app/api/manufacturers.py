@@ -5,8 +5,9 @@ from uuid import UUID
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
-from app.schemas.aircraft import SCountriesFilters, SManufacturers
 from app.schemas.api import SuccessResponse
+from app.schemas.countries import SCountriesFilters
+from app.schemas.manufacturers import SManufacturers
 from app.services.manufacturers import ManufacturersServices
 from app.types import status_ok, status_error
 

@@ -1,4 +1,4 @@
-from app.db.models.articles import Facts
+from app.db.models import Facts
 from app.db.repository.base import BaseRepository
 
 

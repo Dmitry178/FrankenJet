@@ -2,7 +2,8 @@ from uuid import UUID
 
 from app.core.db_manager import DBManager
 from app.decorators.db_errors import handle_basic_db_errors
-from app.schemas.aircraft import SCountriesFilters, SDesignBureaus
+from app.schemas.countries import SCountriesFilters
+from app.schemas.design_bureaus import SDesignBureaus
 
 
 class BureausServices:

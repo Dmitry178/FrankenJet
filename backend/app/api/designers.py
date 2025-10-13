@@ -6,8 +6,9 @@ from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
-from app.schemas.aircraft import SCountriesFilters, SDesigners
 from app.schemas.api import SuccessResponse
+from app.schemas.countries import SCountriesFilters
+from app.schemas.designers import SDesigners
 from app.services.designers import DesignersServices
 from app.types import status_ok
 
