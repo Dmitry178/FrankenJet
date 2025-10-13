@@ -3,8 +3,9 @@ from fastapi import APIRouter
 from app.core import cache_manager
 from app.core.logs import logger
 from app.dependencies.db import DDB
+from app.exceptions.base import BaseCustomException
 from app.services.pages import PagesService
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 pages_router = APIRouter(prefix="/pages", tags=["Pages"])
 
@@ -20,6 +21,6 @@ async def home(db: DDB):
         data = await PagesService(db).home()
         return {**status_ok, "data": data}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response

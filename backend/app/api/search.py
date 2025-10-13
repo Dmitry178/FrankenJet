@@ -3,9 +3,11 @@ from fastapi import APIRouter
 from app.core.logs import logger
 from app.dependencies.db import DDB
 from app.dependencies.es import DES
+from app.exceptions.base import BaseCustomException
+from app.schemas.api import ApiResponse
 from app.schemas.search import SSearch
 from app.services.search import SearchService
-from app.types import status_error, status_ok
+from app.types import status_ok
 
 search_router = APIRouter(prefix="/search", tags=["Pages"])
 
@@ -17,12 +19,12 @@ async def search(db: DDB, es: DES, data: SSearch):
     """
 
     if not data.query:
-        return {**status_error, "detail": "Пустой запрос"}
+        return ApiResponse.error("Пустой запрос")
 
     try:
         result = await SearchService(db, es).search(data)
         return {**status_ok, "data": result}
 
-    except Exception as ex:
+    except BaseCustomException as ex:
         logger.exception(ex)
-        return status_error
+        return ex.json_response
