@@ -23,7 +23,7 @@
 Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend) + Aiogram (микросервис).
 
 * **Backend:**
-  * Python 3.12, PostgreSQL 17 (AsyncPG, SQLAlchemy 2 ORM), API (async FastAPI, WebSocket, AIOHTTP), S3 MiniO (AIOBoto3), RabbitMQ (FastStream), Redis (FastApi-Cache2).
+  * Python 3.12, PostgreSQL 17 (AsyncPG, SQLAlchemy 2 ORM), API (async FastAPI, WebSocket, AIOHTTP), S3 MiniO (AIOBoto3), RabbitMQ (FastStream), Redis (FastApi-Cache2), Elasticsearch.
 * **Frontend:**
   * Vue.js 3.5, Vite, Vuetify, Axios, Pinia, Vue Router.
 * **Microservice (бот уведомлений):**
