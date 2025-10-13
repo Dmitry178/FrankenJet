@@ -8,44 +8,44 @@ from app.dependencies.auth import get_auth_editor_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
 from app.schemas.aircraft import SAircraftFilters, SAircraft
-from app.schemas.api import SuccessResponse
+from app.schemas.api import SuccessResponse, ApiResponse
 from app.services.aircraft import AircraftServices
 from app.types import status_ok
 
 aircraft_router = APIRouter(prefix="/aircraft", tags=["Aircraft"])
 
 
-@aircraft_router.get("/types", summary="Список типов воздушных судов")
-async def get_aircraft_types():
+@aircraft_router.get("/types", summary="Список типов воздушных судов", response_model=ApiResponse)
+async def get_aircraft_types() -> ApiResponse:
     """
     Получение списка типов воздушных судов
     """
 
     # try/except не нужно, данные берутся из enum
     data = await AircraftServices().get_aircraft_types()
-    return SuccessResponse(data=data)
+    return ApiResponse.success(data)
 
 
 @aircraft_router.get("/engines", summary="Список типов двигателей воздушных судов")
-async def get_engine_types():
+async def get_engine_types() -> ApiResponse:
     """
     Получение списка типов двигателей воздушных судов
     """
 
     # try/except не нужно, данные берутся из enum
     data = await AircraftServices().get_engine_types()
-    return SuccessResponse(data=data)
+    return ApiResponse.success(data)
 
 
 @aircraft_router.get("/statuses", summary="Список статусов воздушных судов")
-async def get_aircraft_statuses():
+async def get_aircraft_statuses() -> ApiResponse:
     """
     Получение списка статусов воздушных судов
     """
 
     # try/except не нужно, данные берутся из enum
     data = await AircraftServices().get_aircraft_statuses()
-    return SuccessResponse(data=data)
+    return ApiResponse.success(data)
 
 
 @aircraft_router.get("/{aircraft_id}", summary="Карточка воздушного судна")
