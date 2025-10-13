@@ -102,7 +102,7 @@ class OAuth2Services:
                     ssl=(settings.APP_MODE != AppMode.local)
                 )
             except Exception as ex:
-                logger.error(f"Ошибка при запросе к Google OAuth2")
+                logger.error("Ошибка при запросе к Google OAuth2")
                 logger.exception(ex)
                 raise OAuth2ErrorEx from ex
 
