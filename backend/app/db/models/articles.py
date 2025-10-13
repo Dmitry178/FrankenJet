@@ -58,6 +58,7 @@ class Articles(Base, TimestampMixin):
     tags: Mapped[List["Tags"]] = relationship(
         secondary="articles.articles_tags_at",
         back_populates="articles",
+        overlaps="tags_association",
     )
 
 
@@ -75,6 +76,7 @@ class Tags(Base):
     articles: Mapped[List["Articles"]] = relationship(
         secondary="articles.articles_tags_at",
         back_populates="tags",
+        overlaps="articles_association",
         viewonly=True,
     )
 
