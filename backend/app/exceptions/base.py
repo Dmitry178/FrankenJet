@@ -16,7 +16,7 @@ class BaseCustomException(Exception):
     def json_response(self):
         return JSONResponse(
             status_code=self.status_code,
-            content=ErrorResponse(detail=self.detail)
+            content=ErrorResponse(detail=self.detail).model_dump()
         )
 
     @property
