@@ -20,7 +20,6 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 @auth_router.post(
     "/login",
     summary="Аутентификация по email и паролю",
-    status_code=status.HTTP_201_CREATED,
 )
 async def user_login(db: DDB, data: SLoginUser = Body(openapi_examples=login_example)):
     """
