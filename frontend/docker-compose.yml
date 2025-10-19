@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        API_BASE_URL: ${API_BASE_URL}
+        S3_BASE_URL: ${S3_BASE_URL}
     image: fj-frontend:latest
     container_name: fj-frontend
     hostname: fj-frontend
