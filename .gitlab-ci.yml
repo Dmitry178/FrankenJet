@@ -6,25 +6,28 @@ deploy_backend_job:
   stage: deploy_backend
   tags:
     - deploy
-  only:
-    - backend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "deploy"
+      changes:
+        - backend/**/*
   variables:
     IMAGE: fj-backend
   script:
     - cp ${ENV_BACKEND} backend.env
-    - docker compose -f docker-compose-p.yml up -d --build --scale frontend=0
+    - docker compose -f docker-compose.back.yml up -d --build --scale frontend=0
   after_script:
     - rm -f ./backend.env
-
 
 deploy_frontend_job:
   stage: deploy_frontend
   tags:
     - deploy
-  only:
-    - frontend
+  rules:
+    - if: $CI_COMMIT_BRANCH == "deploy"
+      changes:
+        - frontend/**/*
   script:
     - cp ${ENV_FRONTEND} frontend.env
-    - docker compose -f ./frontend/docker-compose-p.yml up -d --build --scale backend=0
+    - docker compose -f ./frontend/docker-compose.front.yml up -d --build --scale backend=0
   after_script:
     - rm -f ./frontend.env
