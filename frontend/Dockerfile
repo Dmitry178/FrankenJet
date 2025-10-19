@@ -9,7 +9,7 @@ ENV VITE_S3_BASE_URL=$S3_BASE_URL
 
 COPY package*.json ./
 RUN npm install
-COPY ./public /app/public
+# COPY ./public /app/public
 COPY ./src /app/src
 COPY ./vite.config.js /app/vite.config.js
 COPY ./index.html /app/index.html
