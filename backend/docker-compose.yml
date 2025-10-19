@@ -6,6 +6,8 @@ services:
     image: fj-backend:latest
     container_name: fj-backend
     hostname: fj-backend
+    environment:
+      - APP_MODE=production
     env_file:
       - backend.env
     ports:
