@@ -55,7 +55,14 @@ async def lifespan(fastapi_app: FastAPI):  # noqa
     message = f"App stopped at: {datetime.now()} [{settings.BUILD}]"
     logger.info(message)
 
-app = FastAPI(title=settings.APP_NAME, lifespan=lifespan)
+
+app_params = (
+    {"docs_url": None, "redoc_url": None, "openapi_url": None}
+    if settings.APP_MODE == AppMode.production
+    else {}
+)
+
+app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, **app_params)
 
 
 # Установка CORS
