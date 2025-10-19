@@ -11,14 +11,14 @@ deploy_backend_job:
       changes:
         - backend/**/*
         - .gitlab-ci.yml
-        - docker-compose.back.yml
   variables:
-    IMAGE: fj-backend
+    ENV_FILE: backend.env
+    YML_FILE: ./backend/docker-compose.yml
   script:
-    - cp ${ENV_BACKEND} backend.env
-    - docker compose -f docker-compose.back.yml up -d --build
+    - cp ${ENV_BACKEND} ${ENV_FILE}
+    - docker compose -f ${YML_FILE} up -d --build
   after_script:
-    - rm -f ./backend.env
+    - rm -f ./${ENV_FILE}
 
 deploy_frontend_job:
   stage: deploy_frontend
@@ -29,9 +29,11 @@ deploy_frontend_job:
       changes:
         - frontend/**/*
         - .gitlab-ci.yml
-        - docker-compose.front.yml
+  variables:
+    ENV_FILE: frontend.env
+    YML_FILE: ./frontend/docker-compose.yml
   script:
-    - cp ${ENV_FRONTEND} frontend.env
-    - docker compose -f ./frontend/docker-compose.front.yml up -d --build
+    - cp ${ENV_FRONTEND} ${ENV_FILE}
+    - docker compose -f ${YML_FILE} up -d --build
   after_script:
-    - rm -f ./frontend.env
+    - rm -f ./${ENV_FILE}
