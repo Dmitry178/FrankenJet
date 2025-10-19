@@ -9,7 +9,7 @@ services:
     env_file:
       - frontend.env
     ports:
-      - "3900:3000"
+      - "3900:80"
     networks:
       - fj_network
     restart: unless-stopped
