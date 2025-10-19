@@ -8,6 +8,8 @@ services:
     hostname: fj-frontend
     env_file:
       - frontend.env
+    ports:
+      - "3900:3000"
     networks:
       - fj_network
     restart: unless-stopped

@@ -8,6 +8,8 @@ services:
     hostname: fj-backend
     env_file:
       - backend.env
+    ports:
+      - "8900:8000"
     networks:
       - fj_network
     restart: unless-stopped
