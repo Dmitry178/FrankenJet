@@ -1,4 +1,4 @@
-FROM python:3.11.11-slim-bookworm
+FROM python:3.12.12-slim-bookworm
 
 ENV TZ="Europe/Moscow"
 
