@@ -122,7 +122,7 @@
 <script>
 import axios from 'axios';
 import { useRoute } from 'vue-router';
-import {onMounted, onUnmounted, ref, computed, nextTick} from 'vue';
+import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import AirplaneSVG from "@/components/AirplaneSVG.vue";
