@@ -10,6 +10,8 @@ deploy_backend_job:
     - if: $CI_COMMIT_BRANCH == "deploy"
       changes:
         - backend/**/*
+        - .gitlab-ci.yml
+        - docker-compose.back.yml
   variables:
     IMAGE: fj-backend
   script:
@@ -26,6 +28,8 @@ deploy_frontend_job:
     - if: $CI_COMMIT_BRANCH == "deploy"
       changes:
         - frontend/**/*
+        - .gitlab-ci.yml
+        - docker-compose.front.yml
   script:
     - cp ${ENV_FRONTEND} frontend.env
     - docker compose -f ./frontend/docker-compose.front.yml up -d --build
