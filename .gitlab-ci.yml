@@ -39,7 +39,7 @@ deploy_all_job:
   tags:
     - deploy
   only:
-    - main
+    - all
   script:
     - cp ${ENV_BACKEND} backend.env
     - cp ${ENV_FRONTEND} frontend.env
