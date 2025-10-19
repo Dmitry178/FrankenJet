@@ -1,0 +1,15 @@
+services:
+  backend:
+    image: fj-backend:latest
+    container_name: fj-backend
+    hostname: fj-backend
+    env_file:
+      - backend.env
+    networks:
+      - fj_network
+    restart: unless-stopped
+
+networks:
+  fj_network:
+    external: true
+    name: frankenjet
