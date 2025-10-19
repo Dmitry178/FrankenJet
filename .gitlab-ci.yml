@@ -14,7 +14,7 @@ deploy_backend_job:
     IMAGE: fj-backend
   script:
     - cp ${ENV_BACKEND} backend.env
-    - docker compose -f docker-compose.back.yml up -d --build --scale frontend=0
+    - docker compose -f docker-compose.back.yml up -d --build
   after_script:
     - rm -f ./backend.env
 
@@ -28,6 +28,6 @@ deploy_frontend_job:
         - frontend/**/*
   script:
     - cp ${ENV_FRONTEND} frontend.env
-    - docker compose -f ./frontend/docker-compose.front.yml up -d --build --scale backend=0
+    - docker compose -f ./frontend/docker-compose.front.yml up -d --build
   after_script:
     - rm -f ./frontend.env
