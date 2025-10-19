@@ -12,7 +12,7 @@ deploy_backend_job:
         - backend/**/*
         - .gitlab-ci.yml
   variables:
-    ENV_FILE: backend.env
+    ENV_FILE: ./backend/backend.env
     YML_FILE: ./backend/docker-compose.yml
   script:
     - cp ${ENV_BACKEND} ${ENV_FILE}
@@ -30,7 +30,7 @@ deploy_frontend_job:
         - frontend/**/*
         - .gitlab-ci.yml
   variables:
-    ENV_FILE: frontend.env
+    ENV_FILE: ./frontend/frontend.env
     YML_FILE: ./frontend/docker-compose.yml
   script:
     - cp ${ENV_FRONTEND} ${ENV_FILE}
