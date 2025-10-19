@@ -1,8 +1,6 @@
 stages:
   - deploy_backend
   - deploy_frontend
-  - deploy_bot
-  - deploy_all
 
 deploy_backend_job:
   stage: deploy_backend
@@ -10,9 +8,14 @@ deploy_backend_job:
     - deploy
   only:
     - backend
+  variables:
+    IMAGE: fj-backend
   script:
     - cp ${ENV_BACKEND} backend.env
-    - docker compose -f docker-compose-ci.yml up -d --build --scale frontend=0 --scale notifications=0
+    - docker compose -f docker-compose-p.yml up -d --build --scale frontend=0
+  after_script:
+    - rm -f ./backend.env
+
 
 deploy_frontend_job:
   stage: deploy_frontend
@@ -22,26 +25,6 @@ deploy_frontend_job:
     - frontend
   script:
     - cp ${ENV_FRONTEND} frontend.env
-    - docker compose -f ./frontend/docker-compose-ci.yml up -d --build --scale backend=0 --scale notifications=0
-
-deploy_bot_job:
-  stage: deploy_bot
-  tags:
-    - deploy
-  only:
-    - bot
-  script:
-    - cp ${ENV_BOT} bot.env
-    - docker compose -f ./notifications/docker-compose-ci.yml up -d --build --scale backend=0 --scale frontend=0
-
-deploy_all_job:
-  stage: deploy_all
-  tags:
-    - deploy
-  only:
-    - all
-  script:
-    - cp ${ENV_BACKEND} backend.env
-    - cp ${ENV_FRONTEND} frontend.env
-    - cp ${ENV_BOT} bot.env
-    - docker compose -f docker-compose-ci.yml up -d --build
+    - docker compose -f ./frontend/docker-compose-p.yml up -d --build --scale backend=0
+  after_script:
+    - rm -f ./frontend.env
