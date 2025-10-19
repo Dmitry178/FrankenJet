@@ -1,5 +1,8 @@
 services:
   frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     image: fj-frontend:latest
     container_name: fj-frontend
     hostname: fj-frontend
