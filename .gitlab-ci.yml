@@ -31,7 +31,7 @@ deploy_frontend_job:
         - frontend/**/*
         - .gitlab-ci.yml
   variables:
-    API_BASE_URL: /ap
+    API_BASE_URL: /api
     ENV_FILE: ./frontend/frontend.env
     YML_FILE: ./frontend/docker-compose.yml
   script:
