@@ -3,8 +3,6 @@ import axios from 'axios';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     accessToken: null,
@@ -70,7 +68,7 @@ export const useAuthStore = defineStore('auth', {
       if (!refreshToken) return false;
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, {
+        const response = await axios.post(`/auth/refresh`, {}, {
           headers: { 'Authorization': `Bearer ${refreshToken}` }
         });
 

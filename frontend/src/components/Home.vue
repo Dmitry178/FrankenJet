@@ -64,9 +64,6 @@ import axios from 'axios';
 import { useRouter } from 'vue-router';
 import AirplaneSVG from "@/components/AirplaneSVG.vue";
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-console.log(API_BASE_URL);
-
 export default {
   components: {
     AirplaneSVG
@@ -111,7 +108,7 @@ export default {
     },
     async fetchHomeData() {
       try {
-        const response = await axios.get(`${API_BASE_URL}/pages/home`);
+        const response = await axios.get(`/pages/home`);
         if (response.data.status === "ok") {
           this.articles = response.data.data.articles;
           this.facts = response.data.data.facts;

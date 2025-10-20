@@ -128,8 +128,6 @@ import DOMPurify from 'dompurify';
 import AirplaneSVG from "@/components/AirplaneSVG.vue";
 import Aircraft from '@/components/Aircraft.vue';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export default {
   components: {
     AirplaneSVG,
@@ -363,7 +361,7 @@ export default {
     onMounted(async () => {
       // загрузка статьи
       try {
-        const response = await axios.get(`${API_BASE_URL}/articles/${slug}`);
+        const response = await axios.get(`/articles/${slug}`);
         if (response.data.status === "ok") {
           article.value = response.data.data;
         } else {

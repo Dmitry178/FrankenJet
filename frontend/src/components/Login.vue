@@ -72,8 +72,6 @@ import { useRouter } from 'vue-router';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export default {
   name: 'Login',
   setup() {
@@ -98,7 +96,7 @@ export default {
       loginErrorMessage.value = '';
 
       try {
-        const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+        const response = await axios.post(`/auth/login`, {
           email: loginEmail.value,
           password: loginPassword.value
         });
@@ -138,11 +136,11 @@ export default {
     };
 
     const loginWithGoogle = () => {
-      window.location.href = `${API_BASE_URL}/oauth/google`;
+      window.location.href = `/oauth/google`;
     };
 
     const loginWithVK = () => {
-      window.location.href = `${API_BASE_URL}/oauth/vk`;
+      window.location.href = `/oauth/vk`;
     };
 
     return {

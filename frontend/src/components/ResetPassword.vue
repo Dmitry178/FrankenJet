@@ -21,8 +21,6 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export default {
   setup() {
     const email = ref('');
@@ -38,7 +36,7 @@ export default {
       errorMessage.value = '';
 
       try {
-        const response = await fetch(`${API_BASE_URL}/auth/reset`, {
+        const response = await fetch(`/auth/reset`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

@@ -135,8 +135,6 @@ import {onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export default {
   name: 'Search',
   setup() {
@@ -204,7 +202,7 @@ export default {
           per_page: 10,
         };
 
-        const response = await axios.post(`${API_BASE_URL}/search`, requestData);
+        const response = await axios.post(`/search`, requestData);
 
         if (response.data.status === 'ok') {
           searchResults.value = response.data.data;

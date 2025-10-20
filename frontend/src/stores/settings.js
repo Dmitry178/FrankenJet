@@ -1,8 +1,6 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
 export const useSettingsStore = defineStore('settings', {
   state: () => ({
     settings: {
@@ -33,7 +31,7 @@ export const useSettingsStore = defineStore('settings', {
       this.loading = false;
       this.error = null;
       try {
-        const response = await axios.get(`${API_BASE_URL}/settings`);
+        const response = await axios.get(`/settings`);
         this.settings = response.data.data;
         this.loading = true;
       } catch (error) {
