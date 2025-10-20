@@ -64,7 +64,6 @@ app_params = (
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, **app_params)
 
-
 # Установка CORS
 if settings.get_cors:
     app.add_middleware(
@@ -76,7 +75,6 @@ if settings.get_cors:
         # expose_headers=[],
         # max_age=600,
     )
-
 
 # Подключение роутеров
 if settings.APP_MODE == AppMode.local:
