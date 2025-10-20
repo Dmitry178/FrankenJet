@@ -25,7 +25,7 @@ class PagesService:
         processed_articles = [
             {
                 **article,
-                "image_url": f"{settings.S3_ENDPOINT_URL}{article['image_url']}" if article["image_url"] else None
+                "image_url": f"{settings.S3_DIRECT_URL}{article['image_url']}" if article["image_url"] else None
             }
             for article in random_articles
         ]

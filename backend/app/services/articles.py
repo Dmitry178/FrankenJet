@@ -36,7 +36,7 @@ class ArticlesServices:
 
         aircraft = SAircraft.model_validate(data.get("Aircraft"), from_attributes=True)
         if aircraft.image_url:
-            aircraft.image_url = f"{settings.S3_ENDPOINT_URL}{aircraft.image_url}"
+            aircraft.image_url = f"{settings.S3_DIRECT_URL}{aircraft.image_url}"
 
         result = {
             "article": data.get("Articles"),

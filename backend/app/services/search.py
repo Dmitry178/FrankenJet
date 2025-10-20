@@ -76,6 +76,6 @@ class SearchService:
         fallback_result = await self.db.articles.search(data)
         for item in fallback_result["results"]:
             if item.get("image_url"):
-                item["image_url"] = settings.S3_ENDPOINT_URL + item["image_url"]
+                item["image_url"] = settings.S3_DIRECT_URL + item["image_url"]
 
         return fallback_result
