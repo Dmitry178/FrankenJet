@@ -83,7 +83,7 @@ blockquote {
   line-height: 1.65;
 }
 
-@media (max-width: 1279px) {
+@media (max-width: 1499px) {
   .v-container,
   .v-app-bar {
     padding-left: 100px !important;
@@ -91,7 +91,15 @@ blockquote {
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1500px) and (max-width: 1799px) {
+  .v-container,
+  .v-app-bar {
+    padding-left: 200px !important;
+    padding-right: 200px !important;
+  }
+}
+
+@media (min-width: 1800px) {
   .v-container,
   .v-app-bar {
     padding-left: 300px !important;
