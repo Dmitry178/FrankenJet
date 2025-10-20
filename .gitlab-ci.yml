@@ -12,6 +12,7 @@ deploy_backend_job:
         - backend/**/*
         - .gitlab-ci.yml
   variables:
+    APP_MODE: production
     ENV_FILE: ./backend/backend.env
     YML_FILE: ./backend/docker-compose.yml
   script:
@@ -30,6 +31,7 @@ deploy_frontend_job:
         - frontend/**/*
         - .gitlab-ci.yml
   variables:
+    API_BASE_URL: /api
     ENV_FILE: ./frontend/frontend.env
     YML_FILE: ./frontend/docker-compose.yml
   script:
