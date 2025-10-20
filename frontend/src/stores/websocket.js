@@ -2,14 +2,17 @@ import { defineStore } from 'pinia';
 import { ref } from 'vue';
 import { useAuthStore } from './auth.js';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const getWsProtocol = () => window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+const WS_BASE_URL = `${getWsProtocol()}//${window.location.host}`;
+// const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
 export const useWebSocketStore = defineStore('websocket', () => {
   const ws = ref(null);
   const isConnected = ref(false);
 
   const getWebSocketUrl = (jti) => {
-    return API_BASE_URL.replace(/^http/, 'ws') + `/ws/${jti}`;
+    // return API_BASE_URL.replace(/^http/, 'ws') + `/ws/${jti}`;
+    return `${WS_BASE_URL}/ws/${jti}`;
   };
 
   const connect = async () => {
