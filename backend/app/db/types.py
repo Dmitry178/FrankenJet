@@ -1,10 +1,9 @@
 import uuid
-from datetime import datetime
 
+from datetime import datetime, date
 from sqlalchemy import MetaData, UUID, text, ForeignKey, Integer, BigInteger, String, Boolean, true, false, literal, \
-    DateTime
+    DateTime, Date
 from sqlalchemy.orm import mapped_column
-
 from typing import Annotated
 
 project_metadata = MetaData()
@@ -29,6 +28,7 @@ bool_true = Annotated[bool, mapped_column(Boolean, default=True, server_default=
 bool_false = Annotated[bool, mapped_column(Boolean, default=False, server_default=false())]
 
 # типы даты/времени
+date_now = Annotated[date, mapped_column(Date, server_default=text("CURRENT_DATE"))]
 datetime_now = Annotated[datetime, mapped_column(DateTime, server_default=text("now()"))]
 
 # UUID аннотированные типы
