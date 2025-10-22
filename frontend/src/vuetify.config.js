@@ -8,7 +8,7 @@ const light = {
     info: '#2196F3',
     success: '#4CAF50',
     warning: '#FB8C00',
-    background: '#F8F5F0',
+    background: '#f5f5f0',
     surface: '#FFFDF5',
     border: '#DBC0AA',
   }
