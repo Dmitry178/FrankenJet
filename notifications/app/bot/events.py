@@ -41,7 +41,7 @@ async def send_response_and_update_message(message: dict, callback_query: Callba
 
     except Exception as ex:
         bot_logger.exception(f"Ошибка отправки сообщения: {ex}")
-        await bot.answer_callback_query(callback_query.id, text=f"Ошибка отправки ответа")
+        await bot.answer_callback_query(callback_query.id, text="Ошибка отправки ответа")
         return
 
     # удаление кнопок после отправки сообщения
@@ -50,7 +50,7 @@ async def send_response_and_update_message(message: dict, callback_query: Callba
         message_id=callback_query.message.message_id,
         reply_markup=None,
     )
-    await bot.answer_callback_query(callback_query.id, text=f"Ответ отправлен")
+    await bot.answer_callback_query(callback_query.id, text="Ответ отправлен")
 
     return None
 
