@@ -45,4 +45,4 @@ exclude = [
     "alembic",
 ]
 line-length = 120
-unfixable = ["E712"]
+lint.unfixable = ["E712"]
