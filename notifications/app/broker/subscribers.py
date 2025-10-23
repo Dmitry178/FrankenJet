@@ -6,8 +6,7 @@ from faststream.rabbit import RabbitBroker
 
 from app.bot import bot
 from app.bot.keyboards import get_admin_auth_keyboard, get_moderation_keyboard
-from app.core.config import RMQ_NOTIFICATIONS_QUEUE, RMQ_ADMIN_AUTH_QUEUE, RMQ_MODERATION_QUEUE, RMQ_BACKEND_QUEUE, \
-    bot_settings
+from app.core.config import RMQ_NOTIFICATIONS_QUEUE, RMQ_ADMIN_AUTH_QUEUE, RMQ_MODERATION_QUEUE, bot_settings
 
 broker = RabbitBroker(
     url=bot_settings.RMQ_CONN,
