@@ -230,12 +230,6 @@ export default {
 
       const parser = new DOMParser();
       const doc = parser.parseFromString(cleanHtml, 'text/html');
-      // const links = doc.querySelectorAll('a');
-
-      // links.forEach(link => {
-      //   link.setAttribute('target', '_blank');
-      //   link.setAttribute('rel', 'noopener noreferrer');
-      // });
 
       // находим заголовки и добавляем им id
       const headings = doc.querySelectorAll('h1, h2, h3, h4');
@@ -342,11 +336,6 @@ export default {
       if (window.scrollY > 300) {
         showScrollTop.value = true;
       }
-
-      // запуск таймера на скрытие кнопки через 3 секунды
-      // scrollTimer.value = setTimeout(() => {
-      //   showScrollTop.value = false;
-      // }, 3000);
     };
 
     // прокрутка страницы на начало
@@ -448,7 +437,7 @@ export default {
 
 .toc-wrapper {
   position: sticky;
-  top: 64px; /* Высота тулбара */
+  top: 64px; /* высота тулбара */
   height: calc(100vh - 64px);
   width: 300px;
   overflow-y: auto;
