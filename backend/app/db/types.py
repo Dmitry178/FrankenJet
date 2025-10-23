@@ -1,12 +1,10 @@
 import uuid
 
 from datetime import datetime, date
-from sqlalchemy import MetaData, UUID, text, ForeignKey, Integer, BigInteger, String, Boolean, true, false, literal, \
+from sqlalchemy import UUID, text, ForeignKey, Integer, BigInteger, String, Boolean, true, false, literal, \
     DateTime, Date
 from sqlalchemy.orm import mapped_column
 from typing import Annotated
-
-project_metadata = MetaData()
 
 # строковые аннотированные типы
 str_16 = Annotated[str, 16]
