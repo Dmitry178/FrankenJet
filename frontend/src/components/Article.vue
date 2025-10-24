@@ -476,9 +476,16 @@ export default {
   padding: 4px 0;
 }
 
+.scroll-top-btn {
+  position: fixed !important;
+  bottom: 23px !important;
+  right: 23px !important;
+  z-index: 9999;
+}
+
 @media (max-width: 768px) {
-  .toc-card {
-    display: none;
+  .toc-wrapper {
+    display: none !important;
   }
 
   .article-image {
@@ -486,12 +493,5 @@ export default {
     margin-top: 1rem !important;
     margin-bottom: 0 !important;
   }
-}
-
-.scroll-top-btn {
-  position: fixed !important;
-  bottom: 23px !important;
-  right: 23px !important;
-  z-index: 9999;
 }
 </style>
