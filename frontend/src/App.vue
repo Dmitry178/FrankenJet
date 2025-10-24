@@ -52,6 +52,7 @@ import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
 import { useRouter, useRoute } from 'vue-router';
 import { useTheme } from 'vuetify';
+import { displayAsciiArt } from '@/plugins/console.js';
 import vuetifyConfig from '@/vuetify.config.js';
 import Login from '@/components/Login.vue';
 import Logout from '@/components/Logout.vue';
@@ -113,6 +114,7 @@ export default {
 
     onMounted(() => {
       settingsStore.loadSettings();
+      displayAsciiArt();
     });
 
     return {
