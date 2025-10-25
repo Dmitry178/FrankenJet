@@ -1,5 +1,5 @@
 from app.db.models import Aircraft, Designers
-from app.db.models.aircraft import Manufacturers, DesignBureaus
+from app.db.models.aircraft import DesignBureaus
 from app.db.repository.base import BaseRepository
 
 
@@ -17,14 +17,6 @@ class DesignersRepository(BaseRepository):
     """
 
     model = Designers
-
-
-class ManufacturersRepository(BaseRepository):
-    """
-    Репозиторий модели производителей
-    """
-
-    model = Manufacturers
 
 
 class DesignBureausRepository(BaseRepository):
