@@ -1,6 +1,6 @@
 from sqlalchemy import select, func, true, case, literal, union_all, cast, String
 
-from app.db.models import Articles, Aircraft, Designers, Manufacturers, DesignBureaus, Facts
+from app.db.models import Articles, Aircraft, Designers, DesignBureaus, Facts
 from app.db.repository.base import BaseRepository
 from app.schemas.search import SSearch
 
@@ -37,7 +37,6 @@ class ArticlesRepository(BaseRepository):
             select(Articles, Aircraft)
             .outerjoin(Aircraft, Articles.id == Aircraft.article_id)
             .outerjoin(Designers, Designers.id == Aircraft.article_id)
-            .outerjoin(Manufacturers, Manufacturers.id == Aircraft.article_id)
             .outerjoin(DesignBureaus, DesignBureaus.id == Aircraft.article_id)
             .filter(Articles.slug == slug)
             .limit(1)
