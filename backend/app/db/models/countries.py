@@ -7,7 +7,7 @@ from app.db import Base
 from app.db.types import str_32, str_128
 
 if TYPE_CHECKING:
-    from app.db.models import Aircraft, DesignBureaus, Designers, Manufacturers
+    from app.db.models import Aircraft, DesignBureaus, Designers
 
 
 class Countries(Base):
@@ -27,4 +27,3 @@ class Countries(Base):
     aircraft: Mapped[List["Aircraft"]] = relationship(back_populates="country")
     design_bureaus: Mapped[List["DesignBureaus"]] = relationship(back_populates="country")
     designers: Mapped[List["Designers"]] = relationship(back_populates="country")
-    manufacturers: Mapped[List["Manufacturers"]] = relationship(back_populates="country")
