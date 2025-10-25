@@ -9,8 +9,8 @@ from typing import List, TYPE_CHECKING
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import uid_pk, str_16, str_24, str_32, str_64, str_128, fk_manufacturer, fk_country, fk_designer, \
-    fk_aircraft, fk_design_bureau, fk_article
+from app.db.types import uid_pk, str_16, str_24, str_32, str_64, str_128, fk_country, fk_designer, fk_design_bureau, \
+    fk_article
 
 if TYPE_CHECKING:
     from app.db.models import Articles, AircraftDesignersAssociation, Countries, Designers
@@ -58,6 +58,25 @@ class AircraftStatus(str, enum.Enum):
     in_operation = "в эксплуатации"
 
 
+class AircraftPurpose(str, enum.Enum):
+    """
+    Назначение воздушного судна
+    """
+
+    civilian = "гражданский"
+    transport = "транспортный"
+    cargo = "грузовой"
+    training = "учебный"
+    medical = "медицинский"
+    research = "исследовательский"
+    military = "военный"
+    special = "специального назначения"
+    fighter = "истребитель"
+    bomber = "бомбардировщик"
+    tanker = "танкер"
+    awacs = "awacs"
+
+
 class Aircraft(Base, TimestampMixin):
     """
     Воздушные суда
@@ -69,7 +88,6 @@ class Aircraft(Base, TimestampMixin):
     id: Mapped[uid_pk]
     article_id: Mapped[fk_article | None]  # id статьи
     country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
-    manufacturer_id: Mapped[fk_manufacturer | None]  # id производителя
 
     name: Mapped[str_32] = mapped_column(unique=True)  # название воздушного судна
     original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
@@ -111,57 +129,6 @@ class Aircraft(Base, TimestampMixin):
         back_populates="aircraft",
         viewonly=True,  # для предотвращения прямого добавления дизайнеров через aircraft.designers
     )
-    manufacturer_association: Mapped[List["AircraftManufacturersAssociation"]] = relationship(
-        back_populates="aircraft"
-    )
-    manufacturers: Mapped[List["Manufacturers"]] = relationship(
-        secondary="articles.aircraft_manufacturers_as",
-        back_populates="aircraft",
-        viewonly=True,
-    )
-
-
-class Manufacturers(Base, TimestampMixin):
-    """
-    Производители воздушных судов
-    """
-
-    __tablename__ = "manufacturers"
-    __table_args__ = {"schema": "articles"}
-
-    id: Mapped[uid_pk]
-    country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
-
-    name: Mapped[str_32] = mapped_column(unique=True)  # название производителя
-    original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
-    description: Mapped[str] = mapped_column(Text)  # описание производителя
-
-    country: Mapped["Countries"] = relationship(back_populates="manufacturers")
-    aircraft_association: Mapped[List["AircraftManufacturersAssociation"]] = relationship(
-        back_populates="manufacturer"
-    )
-    aircraft: Mapped[List["Aircraft"]] = relationship(
-        secondary="articles.aircraft_manufacturers_as",
-        back_populates="manufacturers",
-        viewonly=True,
-    )
-
-
-class AircraftManufacturersAssociation(Base):
-    """
-    Ассоциативная таблица для связи самолетов и производителей
-    """
-
-    __tablename__ = "aircraft_manufacturers_as"
-    __table_args__ = {"schema": "articles"}
-
-    aircraft_id: Mapped[fk_aircraft] = mapped_column(primary_key=True)
-    manufacturer_id: Mapped[fk_manufacturer] = mapped_column(primary_key=True)
-    start_production: Mapped[date | None]  # дата начала производства на данном предприятии
-    end_production: Mapped[date | None]  # дата окончания производства на данном предприятии
-
-    aircraft: Mapped["Aircraft"] = relationship(back_populates="manufacturer_association")
-    manufacturer: Mapped["Manufacturers"] = relationship(back_populates="aircraft_association")
 
 
 class DesignBureaus(Base, TimestampMixin):

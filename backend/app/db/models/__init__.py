@@ -2,10 +2,8 @@
 
 from app.db.models.aircraft import (
     Aircraft,
-    AircraftManufacturersAssociation,
     DesignBureaus,
     DesignersBureausAssociation,
-    Manufacturers,
 )
 from app.db.models.designers import (
     AircraftDesignersAssociation,
@@ -34,7 +32,6 @@ from app.db.models.users import (
 __all__ = [
     "Aircraft",
     "AircraftDesignersAssociation",
-    "AircraftManufacturersAssociation",
     "Articles",
     "ArticlesTagsAssociation",
     "Countries",
@@ -42,7 +39,6 @@ __all__ = [
     "Designers",
     "DesignersBureausAssociation",
     "Facts",
-    "Manufacturers",
     "RefreshTokens",
     "Roles",
     "Tags",
