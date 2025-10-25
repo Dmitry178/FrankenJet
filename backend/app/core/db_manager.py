@@ -1,7 +1,6 @@
 """ Контекстный менеджер базы данных """
 
-from app.db.repository.aircraft import AircraftRepository, DesignersRepository, \
-    ManufacturersRepository, DesignBureausRepository
+from app.db.repository.aircraft import AircraftRepository, DesignersRepository, DesignBureausRepository
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
 from app.db.repository.countries import CountriesRepository
@@ -37,7 +36,6 @@ class DBManager:
             self.aircraft = AircraftRepository(self.session)
             self.design_bureaus = DesignBureausRepository(self.session)
             self.designers = DesignersRepository(self.session)
-            self.manufacturers = ManufacturersRepository(self.session)
 
     class DirectoryDBManager:
         """
