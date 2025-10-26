@@ -5,7 +5,7 @@ from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
 from app.db.repository.countries import CountriesRepository
 from app.db.repository.facts import FactsRepository
-from app.db.repository.roles import RolesRepository
+from app.db.repository.roles import RolesRepository, UserRolesRepository
 from app.db.repository.tags import TagsRepository
 from app.db.repository.users import UsersRepository
 
@@ -24,6 +24,7 @@ class DBManager:
 
             self.refresh_tokens = RefreshTokensRepository(self.session)
             self.roles = RolesRepository(self.session)
+            self.user_roles = UserRolesRepository(self.session)
 
     async def __aenter__(self):
         self.session = self.session_factory()
