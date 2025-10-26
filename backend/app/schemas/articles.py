@@ -14,7 +14,7 @@ class SArticles(BaseModel):
     content: str = Field(..., description="Текст статьи")
     meta_title: str | None = Field(None, max_length=64, description="Мета-информация для SEO (название)")
     meta_description: str | None = Field(None, max_length=128, description="Мета-информация для SEO (описание)")
-    view_count: int = Field(..., ge=0, description="Количество просмотров страницы")
+    view_count: int = Field(0, ge=0, description="Количество просмотров страницы")
     seo_keywords: str | None = Field(None, max_length=128, description="Ключевые слова SEO")
     is_published: bool = Field(False, description="Статья опубликована")
     is_archived: bool = Field(False, description="Статья в архиве")
