@@ -1,4 +1,7 @@
-async def test_api_pages(ac):
+from httpx import AsyncClient
+
+
+async def test_api_pages(ac: AsyncClient):
     """
     Тестирование данных для веб-страниц
     """
