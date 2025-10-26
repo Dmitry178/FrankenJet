@@ -1,0 +1,36 @@
+[run]
+source = src
+omit =
+    app/api/bot.py
+    app/api/bureaus.py
+    app/api/designers.py
+    app/api/manufacturers.py
+    app/api/oauth2.py
+    app/api/websocket.py
+    app/consumers/*
+    app/core/cache_manager.py
+    app/core/es_manager.py
+    app/core/logs.py
+    app/core/rmq_manager.py
+    app/core/s3_manager.py
+    app/core/ws_manager.py
+    app/db/models/design_bureaus.py
+    app/db/models/designers.py
+    app/db/models/manufacturers.py
+    app/db/repository/design_bureaus.py
+    app/db/repository/designers.py
+    app/db/repository/manufacturers.py
+    app/decorators/db_errors.py
+    app/dependencies/api.py
+    app/dependencies/rmq.py
+    app/dependencies/s3.py
+    app/schemas/bureaus.py
+    app/schemas/designers.py
+    app/schemas/jti.py
+    app/schemas/manufacturers.py
+    app/services/bureaus.py
+    app/services/designers.py
+    app/services/manufacturers.py
+    app/services/oauth2.py
+    app/services/websocket.py
+    app/services/utils.py
