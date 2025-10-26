@@ -43,6 +43,28 @@ class UsersServices:
             logger.exception(ex)
             raise UserCreationErrorEx from ex
 
+    async def add_user_roles(self, user_id: int, roles: list) -> bool:
+        """
+        Назначение ролей пользователю
+        """
+
+        if not user_id:
+            return False
+
+        if not roles:
+            return True
+
+        user_roles = [{"user_id": user_id, "role_id": role} for role in roles]
+
+        try:
+            await self.db.auth.user_roles.insert_all(values=user_roles)
+            await self.db.commit()
+            return True
+
+        except (IntegrityError, Exception) as ex:
+            logger.exception(ex)
+            return False
+
     async def get_or_create_user_by_oauth2(self, user_data: SUserCreateOAuth2):
         """
         Создание пользователя (при oauth2-аутентификации), получение id пользователя
