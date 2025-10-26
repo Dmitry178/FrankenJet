@@ -9,6 +9,7 @@ from uuid import UUID
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
+from app.exceptions.api import record_was_not_found_404
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
 from app.schemas.bureaus import SDesignBureaus
@@ -50,7 +51,7 @@ async def add_design_bureau(data: SDesignBureaus, db: DDB):
     """
 
     try:
-        result = BureausServices(db).add_design_bureau(data)
+        result = await BureausServices(db).add_design_bureau(data)
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
@@ -69,8 +70,8 @@ async def edit_design_bureau_put(bureaus_id: UUID, data: SDesignBureaus, db: DDB
     """
 
     try:
-        result = BureausServices(db).edit_design_bureau(bureaus_id, data)
-        return {**status_ok, "data": result}
+        result = await BureausServices(db).edit_design_bureau(bureaus_id, data)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -88,8 +89,8 @@ async def edit_design_bureau_post(bureau_id: UUID, data: SDesignBureaus, db: DDB
     """
 
     try:
-        result = BureausServices(db).edit_design_bureau(bureau_id, data, exclude_unset=True)
-        return {**status_ok, "data": result}
+        result = await BureausServices(db).edit_design_bureau(bureau_id, data, exclude_unset=True)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -107,7 +108,7 @@ async def delete_design_bureau(bureau_id: UUID, db: DDB):
     """
 
     try:
-        row_count = BureausServices(db).delete_design_bureau(bureau_id)
+        row_count = await BureausServices(db).delete_design_bureau(bureau_id)
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:

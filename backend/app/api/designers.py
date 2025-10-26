@@ -9,6 +9,7 @@ from uuid import UUID
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
+from app.exceptions.api import record_was_not_found_404
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
 from app.schemas.countries import SCountriesFilters
@@ -50,7 +51,7 @@ async def add_design_bureau(data: SDesigners, db: DDB):
     """
 
     try:
-        result = DesignersServices(db).add_designer(data)
+        result = await DesignersServices(db).add_designer(data)
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
@@ -69,8 +70,8 @@ async def edit_designer_put(designer_id: UUID, data: SDesigners, db: DDB):
     """
 
     try:
-        result = DesignersServices(db).edit_designer(designer_id, data)
-        return {**status_ok, "data": result}
+        result = await DesignersServices(db).edit_designer(designer_id, data)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -88,8 +89,8 @@ async def edit_designer_post(designer_id: UUID, data: SDesigners, db: DDB):
     """
 
     try:
-        result = DesignersServices(db).edit_designer(designer_id, data, exclude_unset=True)
-        return {**status_ok, "data": result}
+        result = await DesignersServices(db).edit_designer(designer_id, data, exclude_unset=True)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -107,7 +108,7 @@ async def delete_designer(designer_id: UUID, db: DDB):
     """
 
     try:
-        row_count = DesignersServices(db).delete_designer(designer_id)
+        row_count = await DesignersServices(db).delete_designer(designer_id)
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:

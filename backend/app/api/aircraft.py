@@ -6,6 +6,7 @@ from app.core.logs import logger
 from app.db.models.aircraft import EngineTypes, AircraftStatus
 from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
+from app.exceptions.api import record_was_not_found_404
 from app.exceptions.base import BaseCustomException
 from app.schemas.aircraft import SAircraftFilters, SAircraft
 from app.schemas.api import SuccessResponse, ApiResponse
@@ -107,7 +108,7 @@ async def add_aircraft(data: SAircraft, db: DDB):
     """
 
     try:
-        result = AircraftServices(db).add_aircraft(data)
+        result = await AircraftServices(db).add_aircraft(data)
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
@@ -126,8 +127,8 @@ async def edit_aircraft_put(aircraft_id: UUID, data: SAircraft, db: DDB):
     """
 
     try:
-        result = AircraftServices(db).edit_aircraft(aircraft_id, data)
-        return {**status_ok, "data": result}
+        result = await AircraftServices(db).edit_aircraft(aircraft_id, data)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -145,8 +146,8 @@ async def edit_aircraft_post(aircraft_id: UUID, data: SAircraft, db: DDB):
     """
 
     try:
-        result = AircraftServices(db).edit_aircraft(aircraft_id, data, exclude_unset=True)
-        return {**status_ok, "data": result}
+        result = await AircraftServices(db).edit_aircraft(aircraft_id, data, exclude_unset=True)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -164,7 +165,7 @@ async def delete_aircraft(aircraft_id: UUID, db: DDB):
     """
 
     try:
-        row_count = AircraftServices(db).delete_aircraft(aircraft_id)
+        row_count = await AircraftServices(db).delete_aircraft(aircraft_id)
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:

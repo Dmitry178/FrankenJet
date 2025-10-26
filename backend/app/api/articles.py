@@ -6,6 +6,7 @@ from app.core import cache_manager
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
+from app.exceptions.api import record_was_not_found_404
 from app.exceptions.articles import ArticleNotFoundEx
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
@@ -71,7 +72,7 @@ async def add_article(data: SArticles, db: DDB):
     """
 
     try:
-        result = ArticlesServices(db).add_article(data)
+        result = await ArticlesServices(db).add_article(data)
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
@@ -90,8 +91,8 @@ async def edit_article_put(article_id: UUID, data: SArticles, db: DDB):
     """
 
     try:
-        result = ArticlesServices(db).edit_article(article_id, data)
-        return {**status_ok, "data": result}
+        result = await ArticlesServices(db).edit_article(article_id, data)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -109,8 +110,8 @@ async def edit_article_post(article_id: UUID, data: SArticles, db: DDB):
     """
 
     try:
-        result = ArticlesServices(db).edit_article(article_id, data, exclude_unset=True)
-        return {**status_ok, "data": result}
+        result = await ArticlesServices(db).edit_article(article_id, data, exclude_unset=True)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -128,7 +129,7 @@ async def delete_article(article_id: UUID, db: DDB):
     """
 
     try:
-        row_count = ArticlesServices(db).delete_article(article_id)
+        row_count = await ArticlesServices(db).delete_article(article_id)
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:

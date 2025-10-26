@@ -9,6 +9,7 @@ from uuid import UUID
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
+from app.exceptions.api import record_was_not_found_404
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
 from app.schemas.countries import SCountriesFilters
@@ -50,7 +51,7 @@ async def add_manufacturer(data: SManufacturers, db: DDB):
     """
 
     try:
-        result = ManufacturersServices(db).add_manufacturer(data)
+        result = await ManufacturersServices(db).add_manufacturer(data)
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
@@ -69,8 +70,8 @@ async def edit_manufacturer_put(manufacturer_id: UUID, data: SManufacturers, db:
     """
 
     try:
-        result = ManufacturersServices(db).edit_manufacturer(manufacturer_id, data)
-        return {**status_ok, "data": result}
+        result = await ManufacturersServices(db).edit_manufacturer(manufacturer_id, data)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -88,8 +89,8 @@ async def edit_manufacturer_post(manufacturer_id: UUID, data: SManufacturers, db
     """
 
     try:
-        result = ManufacturersServices(db).edit_manufacturer(manufacturer_id, data, exclude_unset=True)
-        return {**status_ok, "data": result}
+        result = await ManufacturersServices(db).edit_manufacturer(manufacturer_id, data, exclude_unset=True)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -107,7 +108,7 @@ async def delete_manufacturer(manufacturer_id: UUID, db: DDB):
     """
 
     try:
-        row_count = ManufacturersServices(db).delete_manufacturer(manufacturer_id)
+        row_count = await ManufacturersServices(db).delete_manufacturer(manufacturer_id)
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:

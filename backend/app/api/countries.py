@@ -4,6 +4,7 @@ from starlette import status
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
+from app.exceptions.api import record_was_not_found_404
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
 from app.schemas.countries import SCountries
@@ -40,7 +41,7 @@ async def add_country(data: SCountries, db: DDB):
     """
 
     try:
-        result = CountriesServices(db).add_country(data)
+        result = await CountriesServices(db).add_country(data)
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
@@ -59,8 +60,8 @@ async def edit_country_put(country_id: str, data: SCountries, db: DDB):
     """
 
     try:
-        result = CountriesServices(db).edit_country(country_id, data)
-        return {**status_ok, "data": result}
+        result = await CountriesServices(db).edit_country(country_id, data)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -78,8 +79,8 @@ async def edit_country_post(country_id: str, data: SCountries, db: DDB):
     """
 
     try:
-        result = CountriesServices(db).edit_country(country_id, data, exclude_unset=True)
-        return {**status_ok, "data": result}
+        result = await CountriesServices(db).edit_country(country_id, data, exclude_unset=True)
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -97,7 +98,7 @@ async def delete_country(country_id: str, db: DDB):
     """
 
     try:
-        row_count = CountriesServices(db).delete_country(country_id)
+        row_count = await CountriesServices(db).delete_country(country_id)
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:
