@@ -1,8 +1,9 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Depends
 from starlette import status
 from starlette.responses import JSONResponse
 
 from app.core.logs import logger
+from app.dependencies.auth import get_auth_admin_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import ApiResponse, ErrorResponse
@@ -11,10 +12,10 @@ from app.services.admin import AdminServices
 admin_router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
-@admin_router.post("/uploads", summary="Загрузка файлов")
+@admin_router.post("/uploads", summary="Загрузка файлов", dependencies=[Depends(get_auth_admin_id)])
 async def uploads(db: DDB, file: UploadFile = File(...)):
     """
-    Загрузка zip-файла и обработка данных
+    Загрузка статей и прочих данных энциклопедии в виде zip-файла
     """
 
     try:
