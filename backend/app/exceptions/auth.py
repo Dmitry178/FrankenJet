@@ -44,3 +44,4 @@ class AuthRoleErrorEx(BaseCustomException):
 
 
 unauthorized_401 = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unauthorized")
+unauthorized_403 = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
