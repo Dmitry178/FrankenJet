@@ -1,6 +1,6 @@
 from sqlalchemy import select, func, true, case, literal, union_all, cast, String
 
-from app.db.models import Articles, Aircraft, Designers, DesignBureaus, Facts
+from app.db.models import Articles, Aircraft, Facts
 from app.db.repository.base import BaseRepository
 from app.schemas.search import SSearch
 
@@ -36,8 +36,6 @@ class ArticlesRepository(BaseRepository):
         query = (
             select(Articles, Aircraft)
             .outerjoin(Aircraft, Articles.id == Aircraft.article_id)
-            .outerjoin(Designers, Designers.id == Aircraft.article_id)
-            .outerjoin(DesignBureaus, DesignBureaus.id == Aircraft.article_id)
             .filter(Articles.slug == slug)
             .limit(1)
         )
@@ -96,8 +94,6 @@ class ArticlesRepository(BaseRepository):
             )
             .where(Facts.fact.ilike(search_term))
         )
-
-        # TODO: добавить остальные сущности
 
         # объединение всех подзапросов
         combined_query = union_all(
