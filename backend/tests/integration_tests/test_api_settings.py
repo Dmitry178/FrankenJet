@@ -1,7 +1,14 @@
+import json
 import os
+import pytest
+
+from httpx import AsyncClient
+from unittest.mock import patch
+
+from app.exceptions.api import settings_error
 
 
-async def test_api_settings(ac):
+async def test_api_settings(ac: AsyncClient):
     """
     Тестирование получения настроек приложения через API
     """
@@ -28,3 +35,18 @@ async def test_api_settings(ac):
         }
     }
     assert response_json == expected_json, "Ошибка ответа в GET /settings"
+
+
+@pytest.mark.asyncio
+async def test_api_settings_service_exception(ac: AsyncClient):
+    """
+    Тестирование случая, когда AppServices.get_settings() выбрасывает исключение
+    """
+
+    expected_content = json.loads(settings_error.body.decode(settings_error.charset))
+
+    with patch("app.services.app.AppServices.get_settings", side_effect=AttributeError("Settings not loaded")):
+        response = await ac.get("/settings")
+        assert response.status_code == 503
+        response_json = response.json()
+        assert response_json == expected_content
