@@ -34,9 +34,12 @@ class ArticlesServices:
         if not data:
             return {}
 
-        aircraft = SAircraft.model_validate(data.get("Aircraft"), from_attributes=True)
-        if aircraft.image_url:
-            aircraft.image_url = f"{settings.S3_DIRECT_URL}{aircraft.image_url}"
+        if data.get("Aircraft"):
+            aircraft = SAircraft.model_validate(data.get("Aircraft"), from_attributes=True)
+            if aircraft.image_url:
+                aircraft.image_url = f"{settings.S3_DIRECT_URL}{aircraft.image_url}"
+        else:
+            aircraft = None
 
         result = {
             "article": data.get("Articles"),
@@ -74,7 +77,7 @@ class ArticlesServices:
         Добавление статьи
         """
 
-        return await self.db.articles.insert_one(data)
+        return await self.db.articles.insert_one(data, commit=True)
 
     @handle_basic_db_errors
     async def edit_article(self, article_id: UUID, data: SArticles, exclude_unset=False):
