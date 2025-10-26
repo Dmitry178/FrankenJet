@@ -1,12 +1,14 @@
 import pytest
 
+from httpx import AsyncClient
+
 from app.schemas.auth import SLoginUser
 
 email = "email@example.com"
 password = "password"
 
 
-async def test_api_create_user(ac):
+async def test_api_create_user(ac: AsyncClient):
     """
     Тестирование регистрации пользователя
     """
@@ -21,7 +23,7 @@ async def test_api_create_user(ac):
         "/auth/register",
         json=data.model_dump()
     )
-    assert response.status_code == 200, "Ошибка статуса первичного создания пользователя"
+    assert response.status_code == 201, "Ошибка статуса первичного создания пользователя"
     assert response.json()["status"] == "ok", "Ошибка операции создания пользователя"
 
     # повторная регистрация пользователя
@@ -33,8 +35,8 @@ async def test_api_create_user(ac):
 
 
 @pytest.mark.parametrize("email_, password_, status_code_, status_", [
-    (f"0{email}", password, 200, "error"),
-    (email, f"0{password}", 200, "error"),
+    (f"0{email}", password, 404, "error"),
+    (email, f"0{password}", 401, "error"),
     (email, password, 200, "ok"),
     (1234, "password", 422, ""),
 ])
