@@ -2,18 +2,17 @@ import enum
 
 from datetime import date
 
-from sqlalchemy import Text, String, Enum
+from sqlalchemy import String, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from typing import List, TYPE_CHECKING
+from typing import TYPE_CHECKING
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import uid_pk, str_16, str_24, str_32, str_64, str_128, fk_country, fk_designer, fk_design_bureau, \
-    fk_article
+from app.db.types import uid_pk, str_16, str_24, str_32, str_64, str_128, fk_country, fk_article
 
 if TYPE_CHECKING:
-    from app.db.models import Articles, AircraftDesignersAssociation, Countries, Designers
+    from app.db.models import Articles, Countries
 
 
 class AircraftTypes(str, enum.Enum):
@@ -121,55 +120,22 @@ class Aircraft(Base, TimestampMixin):
 
     article: Mapped["Articles"] = relationship(back_populates="aircraft")
     country: Mapped["Countries"] = relationship(back_populates="aircraft")
+    '''
+    # раскомментировать при использовании моделей в проекте
     designers_association: Mapped[List["AircraftDesignersAssociation"]] = relationship(
         back_populates="aircraft"
     )
     designers: Mapped[List["Designers"]] = relationship(
-        secondary="articles.aircraft_designers_as",
+        secondary="articles.aircraft_designers_at",
         back_populates="aircraft",
         viewonly=True,  # для предотвращения прямого добавления дизайнеров через aircraft.designers
     )
-
-
-class DesignBureaus(Base, TimestampMixin):
-    """
-    Конструкторское бюро
-    """
-
-    __tablename__ = "design_bureaus"
-    __table_args__ = {"schema": "articles"}
-
-    id: Mapped[uid_pk]
-    country_id: Mapped[fk_country]  # двухбуквенный ISO-код страны
-
-    name: Mapped[str_32] = mapped_column(unique=True)  # название конструкторского бюро
-    original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
-    description: Mapped[str] = mapped_column(Text)  # описание конструкторского бюро
-    # image_url: Mapped[str_128 | None]
-    # location: Mapped[str_128 | None]
-
-    country: Mapped["Countries"] = relationship(back_populates="design_bureaus")
-    designers_association: Mapped[List["DesignersBureausAssociation"]] = relationship(
-        back_populates="design_bureau"
+    manufacturer_association: Mapped[List["AircraftManufacturersAssociation"]] = relationship(
+        back_populates="aircraft"
     )
-    designers: Mapped[List["Designers"]] = relationship(
-        secondary="articles.designers_bureaus_as",
-        back_populates="design_bureaus",
+    manufacturers: Mapped[List["Manufacturers"]] = relationship(
+        secondary="articles.aircraft_manufacturers_at",
+        back_populates="aircraft",
         viewonly=True,
     )
-
-
-class DesignersBureausAssociation(Base):
-    """
-    Ассоциативная таблица для связи конструкторов и конструкторских бюро
-    """
-
-    __tablename__ = "designers_bureaus_as"
-    __table_args__ = {"schema": "articles"}
-
-    designer_id: Mapped[fk_designer] = mapped_column(primary_key=True)
-    design_bureau_id: Mapped[fk_design_bureau] = mapped_column(primary_key=True)
-    role: Mapped[str_64 | None]  # роль конструктора в бюро ("руководитель отдела", ...)
-
-    designer: Mapped["Designers"] = relationship(back_populates="bureau_association")
-    design_bureau: Mapped["DesignBureaus"] = relationship(back_populates="designers_association")
+    '''
