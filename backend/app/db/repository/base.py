@@ -199,7 +199,7 @@ class BaseRepository:
         if commit:
             await self.session.commit()
 
-        return result.scalars().all() if scalars else result.mappings().all()
+        return result.scalars().one_or_none() if scalars else result.mappings().one_or_none()
 
     async def delete(self, commit=False, *filters, **filter_by) -> int:
         """
