@@ -68,15 +68,15 @@ async def init_database(check_test_mode):
 
     async with DBManager(session_factory=async_session_maker_null_pool) as db_:
         await db_.auth.roles.insert_all(values=mock_roles)
-        await db_.aircraft.countries.insert_all(values=mock_countries)
+        await db_.countries.insert_all(values=mock_countries)
         await db_.articles.insert_all(values=mock_articles)
-        await db_.aircraft.aircraft.insert_all(values=mock_aircraft)
+        await db_.aircraft.insert_all(values=mock_aircraft)
         await db_.facts.insert_all(values=mock_facts)
         await db_.commit()
 
 
 @pytest.fixture(scope="session", autouse=True)
-async def register_user(init_database, ac):
+async def register_user(init_database, ac: AsyncClient):
     response = await ac.post(
         "/auth/register",
         json={
@@ -84,4 +84,4 @@ async def register_user(init_database, ac):
             "password": "password",
         }
     )
-    assert response.status_code == 200, "Ошибка создания пользователя"
+    assert response.status_code == 201, "Ошибка создания пользователя"
