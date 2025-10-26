@@ -1,6 +1,6 @@
 """ Контекстный менеджер базы данных """
 
-from app.db.repository.aircraft import AircraftRepository, DesignersRepository, DesignBureausRepository
+from app.db.repository.aircraft import AircraftRepository
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
 from app.db.repository.countries import CountriesRepository
@@ -25,39 +25,22 @@ class DBManager:
             self.refresh_tokens = RefreshTokensRepository(self.session)
             self.roles = RolesRepository(self.session)
 
-    class AircraftDBManager:
-        """
-        Менеджер БД воздушных судов
-        """
-
-        def __init__(self, session):
-            self.session = session
-
-            self.aircraft = AircraftRepository(self.session)
-            self.design_bureaus = DesignBureausRepository(self.session)
-            self.designers = DesignersRepository(self.session)
-
-    class DirectoryDBManager:
-        """
-        Менеджер БД справочников
-        """
-
-        def __init__(self, session):
-            self.session = session
-
-            self.countries = CountriesRepository(self.session)
-            self.tags = TagsRepository(self.session)
-
     async def __aenter__(self):
         self.session = self.session_factory()
 
-        self.aircraft = self.AircraftDBManager(self.session)
         self.auth = self.AuthDBManager(self.session)
 
+        self.aircraft = AircraftRepository(self.session)
         self.articles = ArticlesRepository(self.session)
-        self.directory = self.DirectoryDBManager(self.session)
+        self.countries = CountriesRepository(self.session)
         self.facts = FactsRepository(self.session)
+        self.tags = TagsRepository(self.session)
         self.users = UsersRepository(self.session)
+
+        # раскомментировать при использовании данных моделей
+        # self.design_bureaus = DesignBureausRepository(self.session)
+        # self.designers = DesignersRepository(self.session)
+        # self.manufacturers = ManufacturersRepository(self.session)
 
         return self
 
