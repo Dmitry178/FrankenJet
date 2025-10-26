@@ -21,10 +21,12 @@ class ArticleCategories(str, enum.Enum):
     """
 
     aircraft = "aircraft"
-    designer = "designer"
-    manufacturer = "manufacturer"
-    design_bureau = "design_bureau"
     facts = "facts"
+
+    # раскомментировать при использовании этих категорий в проекте
+    # design_bureau = "design_bureau"
+    # designer = "designer"
+    # manufacturer = "manufacturer"
 
 
 class Articles(Base, TimestampMixin):
@@ -54,11 +56,15 @@ class Articles(Base, TimestampMixin):
 
     aircraft: Mapped["Aircraft"] = relationship(back_populates="article")
 
-    tags_association: Mapped[List["ArticlesTagsAssociation"]] = relationship(back_populates="articles")
+    tags_association: Mapped[List["ArticlesTagsAssociation"]] = relationship(
+        back_populates="article",
+        cascade="all, delete-orphan",
+    )
     tags: Mapped[List["Tags"]] = relationship(
         secondary="articles.articles_tags_at",
         back_populates="articles",
         overlaps="tags_association",
+        viewonly=True,
     )
 
 
@@ -72,7 +78,10 @@ class Tags(Base):
 
     tag_id: Mapped[str_32] = mapped_column(primary_key=True)
 
-    articles_association: Mapped[List["ArticlesTagsAssociation"]] = relationship(back_populates="tags")
+    articles_association: Mapped[List["ArticlesTagsAssociation"]] = relationship(
+        back_populates="tag",
+        cascade="all, delete-orphan",
+    )
     articles: Mapped[List["Articles"]] = relationship(
         secondary="articles.articles_tags_at",
         back_populates="tags",
@@ -83,7 +92,7 @@ class Tags(Base):
 
 class ArticlesTagsAssociation(Base):
     """
-    Ассоциативная таблица для связи самолётов и конструкторов
+    Ассоциативная таблица для связи статей и тегов
     """
 
     __tablename__ = "articles_tags_at"
@@ -92,5 +101,5 @@ class ArticlesTagsAssociation(Base):
     article_id: Mapped[fk_article] = mapped_column(primary_key=True)
     tag_id: Mapped[fk_tag] = mapped_column(primary_key=True)
 
-    articles: Mapped["Articles"] = relationship(back_populates="tags_association")
-    tags: Mapped["Tags"] = relationship(back_populates="articles_association")
+    article: Mapped["Articles"] = relationship(back_populates="tags_association")
+    tag: Mapped["Tags"] = relationship(back_populates="articles_association", overlaps="articles")
