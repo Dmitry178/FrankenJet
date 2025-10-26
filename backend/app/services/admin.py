@@ -34,8 +34,8 @@ class AdminServices:
         # mapping моделей
         models = {
             "Articles": self.db.articles,
-            "Aircraft": self.db.aircraft.aircraft,
-            "Tags": self.db.directory.tags,
+            "Aircraft": self.db.aircraft,
+            "Tags": self.db.tags,
         }
 
         with TemporaryDirectory() as tmp_dir:
