@@ -54,9 +54,12 @@ fk_role = Annotated[str, mapped_column(String(16), ForeignKey("users.roles.role"
 fk_aircraft = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.aircraft.id"))]
 fk_article = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.articles.id"))]
 fk_country = Annotated[str, mapped_column(String(2), ForeignKey("articles.countries.id"))]
-fk_design_bureau = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.design_bureaus.id"))]
-fk_designer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.designers.id"))]
 fk_tag = Annotated[str, mapped_column(String(32), ForeignKey("articles.tags.tag_id"))]
+
+# раскомментировать при использовании этих моделей в проекте
+# fk_design_bureau = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.design_bureaus.id"))]
+# fk_designer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.designers.id"))]
+# fk_manufacturer = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.manufacturers.id"))]
 
 # карта аннотированных типов
 annotation_map = {
@@ -86,6 +89,10 @@ annotation_map = {
     fk_aircraft: UUID(as_uuid=True),
     fk_article: UUID(as_uuid=True),
     fk_country: UUID(as_uuid=True),
-    fk_designer: UUID(as_uuid=True),
     fk_tag: String(32),
+
+    # раскомментировать при использовании этих моделей в проекте
+    # fk_design_bureau: UUID(as_uuid=True),
+    # fk_designer: UUID(as_uuid=True),
+    # fk_manufacturer: UUID(as_uuid=True),
 }
