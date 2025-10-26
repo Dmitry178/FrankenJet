@@ -8,6 +8,11 @@ from app.types import status_error
 
 forbidden_403 = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
+record_was_not_found_404 = JSONResponse(
+    status_code=status.HTTP_404_NOT_FOUND,
+    content={**status_error, "detail": "Запись не найдена"}
+)
+
 http_error_500 = JSONResponse(
     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
     content={**status_error, "detail": "Ошибка сервиса"}
