@@ -1,3 +1,7 @@
+"""
+Сервисный слой конструкторов. В данной итерации проекта не используются.
+"""
+
 from uuid import UUID
 
 from app.core.db_manager import DBManager
@@ -20,7 +24,7 @@ class DesignersServices:
         """
 
         filter_by = filters.model_dump(exclude_none=True) if filters else {}
-        return await self.db.aircraft.designers.select_all(filter_by)
+        return await self.db.designers.select_all(filter_by)
 
     @handle_basic_db_errors
     async def add_designer(self, data: SDesigners):
@@ -28,7 +32,7 @@ class DesignersServices:
         Добавление карточки конструктора
         """
 
-        return await self.db.aircraft.designers.insert_one(data)
+        return await self.db.designers.insert_one(data)
 
     @handle_basic_db_errors
     async def edit_designer(self, designer_id: UUID, data: SDesigners, exclude_unset=False):
@@ -36,7 +40,7 @@ class DesignersServices:
         Редактирование карточки конструктора
         """
 
-        return await self.db.aircraft.designers.update(
+        return await self.db.designers.update(
             data,
             id=designer_id,
             exclude_unset=exclude_unset,
@@ -49,4 +53,4 @@ class DesignersServices:
         Удаление карточки конструктора
         """
 
-        return await self.db.aircraft.designers.delete(id=designer_id)
+        return await self.db.designers.delete(id=designer_id)

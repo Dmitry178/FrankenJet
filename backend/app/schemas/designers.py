@@ -1,5 +1,8 @@
-from datetime import date
+"""
+Схема приведена для примера, в текущей итерации проекта не используется.
+"""
 
+from datetime import date
 from pydantic import BaseModel, Field
 
 
