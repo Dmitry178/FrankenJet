@@ -7,7 +7,7 @@ from app.db import Base
 from app.db.types import str_32, str_128
 
 if TYPE_CHECKING:
-    from app.db.models import Aircraft, DesignBureaus, Designers
+    from app.db.models import Aircraft
 
 
 class Countries(Base):
@@ -25,5 +25,8 @@ class Countries(Base):
     flag_image_url: Mapped[str_128 | None]  # URL изображения флага страны
 
     aircraft: Mapped[List["Aircraft"]] = relationship(back_populates="country")
-    design_bureaus: Mapped[List["DesignBureaus"]] = relationship(back_populates="country")
-    designers: Mapped[List["Designers"]] = relationship(back_populates="country")
+
+    # раскомментировать при использовании моделей в проекте
+    # design_bureaus: Mapped[List["DesignBureaus"]] = relationship(back_populates="country")
+    # designers: Mapped[List["Designers"]] = relationship(back_populates="country")
+    # manufacturers: Mapped[List["Manufacturers"]] = relationship(back_populates="country")
