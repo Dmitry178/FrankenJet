@@ -1,9 +1,13 @@
+"""
+Эндпоинты для работы с данными конструкторов. В данной итерации проекта не используются.
+"""
+
 from fastapi import APIRouter, Query, Depends
 from starlette import status
 from uuid import UUID
 
 from app.core.logs import logger
-from app.dependencies.auth import get_auth_editor_id
+from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
@@ -95,7 +99,7 @@ async def edit_designer_post(designer_id: UUID, data: SDesigners, db: DDB):
 @designers_router.delete(
     "/designers/{designer_id}",
     summary="Удаление конструктора",
-    dependencies=[Depends(get_auth_editor_id)],
+    dependencies=[Depends(get_auth_admin_id)],
 )
 async def delete_designer(designer_id: UUID, db: DDB):
     """

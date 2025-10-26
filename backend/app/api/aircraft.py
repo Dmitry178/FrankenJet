@@ -4,7 +4,7 @@ from uuid import UUID
 
 from app.core.logs import logger
 from app.db.models.aircraft import EngineTypes, AircraftStatus
-from app.dependencies.auth import get_auth_editor_id
+from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
 from app.schemas.aircraft import SAircraftFilters, SAircraft
@@ -156,7 +156,7 @@ async def edit_aircraft_post(aircraft_id: UUID, data: SAircraft, db: DDB):
 @aircraft_router.delete(
     "/{aircraft_id}",
     summary="Удаление воздушного судна",
-    dependencies=[Depends(get_auth_editor_id)],
+    dependencies=[Depends(get_auth_admin_id)],
 )
 async def delete_aircraft(aircraft_id: UUID, db: DDB):
     """

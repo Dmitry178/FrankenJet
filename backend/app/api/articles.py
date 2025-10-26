@@ -4,7 +4,7 @@ from uuid import UUID
 
 from app.core import cache_manager
 from app.core.logs import logger
-from app.dependencies.auth import get_auth_editor_id
+from app.dependencies.auth import get_auth_editor_id, get_auth_admin_id
 from app.dependencies.db import DDB
 from app.exceptions.articles import ArticleNotFoundEx
 from app.exceptions.base import BaseCustomException
@@ -120,7 +120,7 @@ async def edit_article_post(article_id: UUID, data: SArticles, db: DDB):
 @articles_router.delete(
     "/{article_id}",
     summary="Удаление статьи",
-    dependencies=[Depends(get_auth_editor_id)],
+    dependencies=[Depends(get_auth_admin_id)],
 )
 async def delete_article(article_id: UUID, db: DDB):
     """
