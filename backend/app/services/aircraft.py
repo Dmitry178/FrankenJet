@@ -46,7 +46,7 @@ class AircraftServices:
         Получение карточки воздушного судна
         """
 
-        return await self.db.aircraft.aircraft.select_one_or_none(id=aircraft_id)
+        return await self.db.aircraft.select_one_or_none(id=aircraft_id)
 
     @handle_basic_db_errors
     async def get_aircraft_list(
@@ -64,14 +64,14 @@ class AircraftServices:
         filter_by_conditions = filters.model_dump(exclude_none=True) if filters else {}
 
         if page is None or per_page is None:
-            return await self.db.aircraft.aircraft.select_all(
+            return await self.db.aircraft.select_all(
                 *filter_conditions, **filter_by_conditions
             )
 
         offset = (page-1) * per_page
         limit = per_page
 
-        return await self.db.aircraft.aircraft.select_all_paginated(
+        return await self.db.aircraft.select_all_paginated(
             offset, limit, *filter_conditions, **filter_by_conditions
         )
 
@@ -81,7 +81,7 @@ class AircraftServices:
         Добавление карточки воздушного судна
         """
 
-        return await self.db.aircraft.aircraft.insert_one(data)
+        return await self.db.aircraft.insert_one(data)
 
     @handle_basic_db_errors
     async def edit_aircraft(self, aircraft_id: UUID, data: SAircraft, exclude_unset=False):
@@ -89,7 +89,7 @@ class AircraftServices:
         Редактирование карточки воздушного судна
         """
 
-        result = await self.db.aircraft.aircraft.update(
+        result = await self.db.aircraft.update(
             data,
             id=aircraft_id,
             exclude_unset=exclude_unset,
@@ -109,4 +109,4 @@ class AircraftServices:
         Удаление карточки воздушного судна
         """
 
-        return await self.db.aircraft.aircraft.delete(id=aircraft_id)
+        return await self.db.aircraft.delete(id=aircraft_id)

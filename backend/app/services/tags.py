@@ -19,7 +19,7 @@ class TagsServices:
         """
 
         # сбор данных
-        countries = [country["name"] for country in await self.db.directory.countries.select_all()]
+        countries = [country["name"] for country in await self.db.countries.select_all()]
         article_categories = [ArticleCategories(item).value for item in ArticleCategories]
         aircraft_types = [AircraftTypes(item).value for item in AircraftTypes]
         engine_types = [EngineTypes(item).value for item in EngineTypes]
@@ -29,14 +29,14 @@ class TagsServices:
         tags = countries + article_categories + aircraft_types + engine_types + aircraft_status
 
         # текущие теги в базе
-        current_tags = [tag["tag_id"].lower() for tag in await self.db.directory.tags.select_all()]
+        current_tags = [tag["tag_id"].lower() for tag in await self.db.tags.select_all()]
 
         # фильтрация тегов
         tags_to_add = [tag for tag in tags if tag.lower() not in current_tags]
 
         # формирование списка тегов и добавление в базу
         tags_to_add = [{"tag_id": tag} for tag in tags_to_add]
-        await self.db.directory.tags.insert_all(values=tags_to_add, commit=True)
+        await self.db.tags.insert_all(values=tags_to_add, commit=True)
 
         return None
 
@@ -46,7 +46,7 @@ class TagsServices:
         Получение списка тегов
         """
 
-        tags = await self.db.directory.tags.select_all()
+        tags = await self.db.tags.select_all()
         return [tag["tag_id"] for tag in tags]
 
     @handle_basic_db_errors
@@ -55,7 +55,7 @@ class TagsServices:
         Добавление тега
         """
 
-        return await self.db.directory.tags.insert_one(STags(tag_id=tag))
+        return await self.db.tags.insert_one(STags(tag_id=tag))
 
     @handle_basic_db_errors
     async def edit_tag(self, old_value: str, new_value: str):
@@ -63,7 +63,7 @@ class TagsServices:
         Редактирование тега
         """
 
-        return await self.db.directory.tags.update_tag(old_value, new_value)
+        return await self.db.tags.update_tag(old_value, new_value)
 
     @handle_basic_db_errors
     async def delete_tag(self, tag: str):
@@ -71,4 +71,4 @@ class TagsServices:
         Удаление тега
         """
 
-        return await self.db.directory.tags.delete(tag_id=tag)
+        return await self.db.tags.delete(tag_id=tag)
