@@ -1,5 +1,4 @@
-from app.db.models import Aircraft, Designers
-from app.db.models.aircraft import DesignBureaus
+from app.db.models import Aircraft
 from app.db.repository.base import BaseRepository
 
 
@@ -9,19 +8,3 @@ class AircraftRepository(BaseRepository):
     """
 
     model = Aircraft
-
-
-class DesignersRepository(BaseRepository):
-    """
-    Репозиторий модели конструкторов
-    """
-
-    model = Designers
-
-
-class DesignBureausRepository(BaseRepository):
-    """
-    Репозиторий модели конструкторских бюро
-    """
-
-    model = DesignBureaus
