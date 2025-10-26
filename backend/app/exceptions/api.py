@@ -19,6 +19,6 @@ rabbitmq_not_available = JSONResponse(
 )
 
 settings_error = JSONResponse(
-    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
     content={**status_error, "detail": "Ошибка получения настроек приложения"}
 )
