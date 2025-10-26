@@ -24,7 +24,7 @@ async def test_api_create_user(ac: AsyncClient):
         json=data.model_dump()
     )
     assert response.status_code == 201, "Ошибка статуса первичного создания пользователя"
-    assert response.json()["status"] == "ok", "Ошибка операции создания пользователя"
+    assert response.json().get("status") == "ok", "Ошибка операции создания пользователя"
 
     # повторная регистрация пользователя
     response = await ac.post(
@@ -40,7 +40,7 @@ async def test_api_create_user(ac: AsyncClient):
     (email, password, 200, "ok"),
     (1234, "password", 422, ""),
 ])
-async def test_api_login_user(ac, email_: str, password_: str, status_code_: str, status_: str):
+async def test_api_login_user(ac: AsyncClient, email_: str, password_: str, status_code_: str, status_: str):
     """
     Тестирование аутентификации пользователя
     """
@@ -54,20 +54,21 @@ async def test_api_login_user(ac, email_: str, password_: str, status_code_: str
     if response.status_code != 200:
         return
 
-    assert response.json()["status"] == status_
+    assert response.json().get("status") == status_
     if response.json()["status"] != "ok":
         return
 
     # получение токена пользователя
-    access_token = response.json()["data"]["tokens"]["access_token"]
+    access_token = response.json().get("data", {}).get("tokens", {}).get("access_token", "")
+    assert access_token, "Токен отсутствует"
     ac.headers.update({"Authorization": f"Bearer {access_token}"})
 
     # проверка аутентификации
     response = await ac.get("/auth/info")
     assert response.status_code == 200
     response_json = response.json()
-    assert response_json["status"] == "ok"
+    assert response_json.get("status", "") == "ok"
     assert response_json.get("data")
     assert response_json["data"].get("user")
     assert response_json["data"].get("roles") == []
-    assert response_json["data"]["user"].get("email") == email_
+    assert response_json["data"].get("user", {}).get("email") == email_
