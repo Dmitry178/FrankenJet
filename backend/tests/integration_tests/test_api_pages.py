@@ -10,7 +10,7 @@ async def test_api_pages(ac: AsyncClient):
     assert response.status_code == 200
 
     response_json = response.json()
-    assert response_json["status"] == "ok", "Ошибка получения данных страницы home"
+    assert response_json.get("status") == "ok", "Ошибка получения данных страницы home"
 
     # проверка данных пользователя
     assert response_json.get("data"), "Ответ не содержит данных"
