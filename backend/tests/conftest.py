@@ -8,6 +8,8 @@ from app.core.db_manager import DBManager
 from app.db import async_session_maker_null_pool, engine_null_pool, Base
 from app.db.models import Articles, Aircraft
 from app.dependencies.db import get_db
+from app.schemas.auth import SLoginUser
+from app.services.users import UsersServices
 from main import app
 from scripts.init_data import DataUtils
 
@@ -77,11 +79,82 @@ async def init_database(check_test_mode):
 
 @pytest.fixture(scope="session", autouse=True)
 async def register_user(init_database, ac: AsyncClient):
+    """
+    Фикстура для создания пользователей с разными ролями
+    """
+
+    users = [
+        {"email": "user@example.com", "password": "password", "roles": []},
+        {"email": "moderator@example.com", "password": "password", "roles": ["moderator"]},
+        {"email": "editor@example.com", "password": "password", "roles": ["editor"]},
+        {"email": "admin@example.com", "password": "password", "roles": ["admin"]},
+    ]
+
+    # добавление пользователей
+    async with DBManager(session_factory=async_session_maker_null_pool) as db_:
+        for user in users:
+            user_data = SLoginUser(email=user["email"], password=user["password"])
+            user_id = await UsersServices(db_).create_user_by_email(user_data)
+            assert user_id is not None, f"Ошибка создания пользователя {user['email']}"
+            result = await UsersServices(db_).add_user_roles(user_id, user["roles"])
+            assert result, f"Ошибка добавления ролей пользователю {user['email']}"
+
+
+@pytest.fixture(scope="session")
+async def moderator_user_token(ac: AsyncClient):
+    """
+    Возвращает JWT-токен для пользователя с ролью "moderator"
+    """
+
     response = await ac.post(
-        "/auth/register",
-        json={
-            "email": "test@example.com",
-            "password": "password",
-        }
+        "/auth/login",
+        json={"email": "moderator@example.com", "password": "password"}
     )
-    assert response.status_code == 201, "Ошибка создания пользователя"
+
+    assert response.status_code == 200, f'Ошибка логина пользователя "moderator@example.com"'
+
+    # получение токена пользователя
+    access_token = response.json().get("data", {}).get("tokens", {}).get("access_token", "")
+    assert access_token, "Токен отсутствует"
+
+    return access_token
+
+
+@pytest.fixture(scope="session")
+async def editor_user_token(ac: AsyncClient):
+    """
+    Возвращает JWT-токен для пользователя с ролью "editor"
+    """
+
+    response = await ac.post(
+        "/auth/login",
+        json={"email": "editor@example.com", "password": "password"}
+    )
+
+    assert response.status_code == 200, f'Ошибка логина пользователя "editor@example.com"'
+
+    # получение токена пользователя
+    access_token = response.json().get("data", {}).get("tokens", {}).get("access_token", "")
+    assert access_token, "Токен отсутствует"
+
+    return access_token
+
+
+@pytest.fixture(scope="session")
+async def admin_user_token(ac: AsyncClient):
+    """
+    Возвращает JWT-токен для пользователя с ролью "admin"
+    """
+
+    response = await ac.post(
+        "/auth/login",
+        json={"email": "admin@example.com", "password": "password"}
+    )
+
+    assert response.status_code == 200, f'Ошибка логина пользователя "admin@example.com"'
+
+    # получение токена пользователя
+    access_token = response.json().get("data", {}).get("tokens", {}).get("access_token", "")
+    assert access_token, "Токен отсутствует"
+
+    return access_token
