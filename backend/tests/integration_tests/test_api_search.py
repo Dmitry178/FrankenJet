@@ -1,12 +1,19 @@
 import json
 
+from httpx import AsyncClient
 
-async def test_api_search(ac):
+
+async def test_api_search(ac: AsyncClient):
     """
     Тестирование поиска
     """
 
-    response = await ac.get("/search?q=flyer")
+    response = await ac.post(
+        url="/search",
+        json={
+            "query": "flyer",
+        }
+    )
     assert response.status_code == 200, "Ошибка в GET /search"
 
     response_json = response.json()
