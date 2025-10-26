@@ -5,7 +5,7 @@ from typing import Annotated
 
 from app.config.app import JWT_TYPE_ACCESS
 from app.core.logs import logger
-from app.exceptions.auth import TokenTypeErrorEx, AuthRoleErrorEx, unauthorized_401
+from app.exceptions.auth import TokenTypeErrorEx, AuthRoleErrorEx, unauthorized_401, unauthorized_403
 from app.schemas.auth import SAuthUserInfo
 from app.services.security import SecurityService
 
@@ -136,7 +136,7 @@ async def get_auth_admin_id(
         return user_id
 
     except AuthRoleErrorEx:
-        raise unauthorized_401
+        raise unauthorized_403
 
     except (ValueError, Exception) as ex:
         logger.exception(ex)
@@ -158,7 +158,7 @@ async def get_auth_editor_id(
         return user_id
 
     except AuthRoleErrorEx:
-        raise unauthorized_401
+        raise unauthorized_403
 
     except (ValueError, Exception) as ex:
         logger.exception(ex)
@@ -180,7 +180,7 @@ async def get_auth_moderator_id(
         return user_id
 
     except AuthRoleErrorEx:
-        raise unauthorized_401
+        raise unauthorized_403
 
     except (ValueError, Exception) as ex:
         logger.exception(ex)
