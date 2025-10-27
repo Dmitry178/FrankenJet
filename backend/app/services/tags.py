@@ -55,7 +55,7 @@ class TagsServices:
         Добавление тега
         """
 
-        return await self.db.tags.insert_one(STags(tag_id=tag))
+        return await self.db.tags.insert_one(STags(tag_id=tag), commit=True)
 
     @handle_basic_db_errors
     async def edit_tag(self, old_value: str, new_value: str):
@@ -71,4 +71,4 @@ class TagsServices:
         Удаление тега
         """
 
-        return await self.db.tags.delete(tag_id=tag)
+        return await self.db.tags.delete(tag_id=tag, commit=True)
