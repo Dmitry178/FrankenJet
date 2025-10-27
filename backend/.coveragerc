@@ -1,5 +1,5 @@
 [run]
-source = src
+source = app
 omit =
     # модули, для проверки работы которых необходим Telegram Bot
     app/api/bot.py
