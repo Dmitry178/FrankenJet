@@ -4,11 +4,12 @@ from starlette import status
 from app.core.logs import logger
 from app.dependencies.auth import get_auth_admin_id, get_auth_editor_id
 from app.dependencies.db import DDB
+from app.exceptions.api import record_was_not_found_404
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
 from app.schemas.tags import STagsPut
 from app.services.tags import TagsServices
-from app.types import status_ok, status_error
+from app.types import status_ok
 
 tags_router = APIRouter(prefix="/tags", tags=["Tags"])
 
@@ -83,7 +84,7 @@ async def edit_tag(db: DDB, data: STagsPut):
 
     try:
         result = await TagsServices(db).edit_tag(data.old_value, data.new_value)
-        return {**status_ok, "data": result} if result else {**status_error, "detail": "Тег не найден"}
+        return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
         logger.exception(ex)
