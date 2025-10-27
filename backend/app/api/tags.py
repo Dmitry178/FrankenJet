@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Body
 from starlette import status
 
 from app.core.logs import logger
@@ -6,8 +6,9 @@ from app.dependencies.auth import get_auth_admin_id, get_auth_editor_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
 from app.schemas.api import SuccessResponse
+from app.schemas.tags import STagsPut
 from app.services.tags import TagsServices
-from app.types import status_ok
+from app.types import status_ok, status_error
 
 tags_router = APIRouter(prefix="/tags", tags=["Tags"])
 
@@ -53,13 +54,16 @@ async def get_tags(db: DDB):
     dependencies=[Depends(get_auth_editor_id)],
     status_code=status.HTTP_201_CREATED,
 )
-async def add_tag(tag: str, db: DDB):
+async def add_tag(
+        db: DDB,
+        tag: str = Body(..., embed=True, max_length=32),
+):
     """
     Добавление тега
     """
 
     try:
-        result = TagsServices(db).add_tag(tag)
+        result = await TagsServices(db).add_tag(tag)
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
@@ -72,14 +76,14 @@ async def add_tag(tag: str, db: DDB):
     summary="Изменение тега",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def edit_tag(old_value: str, new_value: str, db: DDB):
+async def edit_tag(db: DDB, data: STagsPut):
     """
     Редактирование тега (put)
     """
 
     try:
-        result = TagsServices(db).edit_tag(old_value, new_value)
-        return {**status_ok, "data": result}
+        result = await TagsServices(db).edit_tag(data.old_value, data.new_value)
+        return {**status_ok, "data": result} if result else {**status_error, "detail": "Тег не найден"}
 
     except BaseCustomException as ex:
         logger.exception(ex)
@@ -97,7 +101,7 @@ async def delete_tag(tag: str, db: DDB):
     """
 
     try:
-        row_count = TagsServices(db).delete_tag(tag)
+        row_count = await TagsServices(db).delete_tag(tag)
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:
