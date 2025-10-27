@@ -34,7 +34,7 @@ async def test_api_settings(ac: AsyncClient):
             }
         }
     }
-    assert response_json == expected_json, "Ошибка ответа в GET /settings"
+    assert response_json == expected_json, "Ошибка ожидаемого ответа в GET /settings"
 
 
 @pytest.mark.asyncio
