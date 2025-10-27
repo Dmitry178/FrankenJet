@@ -1,13 +1,20 @@
 from fastapi.params import Example
 
 login_example = {
-    "example": Example(
+    "user": Example(
         summary="Default login",
         value={
             "email": "user@example.com",
             "password": "password",
         }
-    )
+    ),
+    "admin": Example(
+        summary="Admin",
+        value={
+            "email": "admin",
+            "password": "password",
+        }
+    ),
 }
 
 notification_example = {
