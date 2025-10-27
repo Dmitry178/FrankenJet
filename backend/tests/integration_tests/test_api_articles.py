@@ -5,6 +5,7 @@ from uuid import UUID, uuid4
 
 from app.exceptions.articles import ArticleNotFoundEx
 from app.exceptions.base import BaseCustomException
+from app.types import status_ok
 
 
 async def test_api_articles_list(ac: AsyncClient):
@@ -21,13 +22,21 @@ async def test_api_articles_list(ac: AsyncClient):
     assert "data" in response_json, "Ответ не содержит данных"
     assert response_json.get("data")
 
-    # проверка списка статей с фильтром
+    # проверка списка статей с фильтрами
     response = await ac.get("/articles/list?filters=string")
     assert response.status_code == 200
     response_json = response.json()
     data = response_json.get("data")
     assert isinstance(data, list)
     assert len(data) == 0
+
+    # проверка списка статей с пагинацией за пределами списка
+    response = await ac.get("/articles/list?page=100&page_size=20")
+    assert response.status_code == 200
+    response_json = response.json()
+    data = response_json.get("data")
+    assert isinstance(data, list)
+    assert data == []
 
     # проверка списка статей с неправильным фильтром
     response = await ac.get("/articles/list?page=-1&page_size=10000000")
@@ -188,6 +197,7 @@ async def test_api_articles(ac: AsyncClient, admin_user_token):
     wrong_article_data = {"some_key": "some_value"}
 
     ac.headers.update({"Authorization": f"Bearer {admin_user_token}"})
+
     response = await ac.get("/articles/wrong-slug")
     assert response.status_code == 404
 
@@ -213,6 +223,52 @@ async def test_api_articles(ac: AsyncClient, admin_user_token):
     assert result.get("data", {}).get("rows", None) == 0
 
 
+async def test_api_articles_list_success_try_block(ac: AsyncClient):
+    """
+    Тестирование успешного сценария API получения списка статей (покрытие ветки try)
+    """
+
+    with patch(
+            "app.services.articles.ArticlesServices.get_articles_list", new_callable=AsyncMock
+    ) as mock_get_articles_list:
+        expected_data = []
+        mock_get_articles_list.return_value = expected_data
+
+        response = await ac.get("/articles/list?filter=1234")
+
+        assert response.status_code == 200
+        response_json = response.json()
+        assert response_json == {**status_ok, "data": expected_data}
+
+        mock_get_articles_list.assert_called_once_with(1, 20, None)
+
+    with patch("app.services.articles.ArticlesServices.get_article", new_callable=AsyncMock) as mock_get_articles:
+        expected_data = None
+        mock_get_articles.return_value = expected_data
+
+        slug = "wright-flyer"
+        response = await ac.get(f"/articles/{slug}")
+
+        assert response.status_code == 404
+        response_json = response.json()
+        assert response_json == {"status": "error", "detail": "Статья не найдена"}
+
+        mock_get_articles.assert_called_once_with("wright-flyer")
+
+    with patch("app.services.articles.ArticlesServices.get_article", new_callable=AsyncMock) as mock_get_articles:
+        expected_data = {"key": "value"}
+        mock_get_articles.return_value = expected_data
+
+        slug = "wright-flyer"
+        response = await ac.get(f"/articles/{slug}")
+
+        assert response.status_code == 200
+        response_json = response.json()
+        assert response_json == {**status_ok, "data": expected_data}
+
+        mock_get_articles.assert_called_once_with("wright-flyer")
+
+
 async def test_api_articles_db_error(ac: AsyncClient, admin_user_token):
     """
     Тестирование обработки ошибок БД
@@ -231,44 +287,46 @@ async def test_api_articles_db_error(ac: AsyncClient, admin_user_token):
 
     ac.headers.update({"Authorization": f"Bearer {admin_user_token}"})
 
-    with patch("app.services.articles.ArticlesServices.get_article", new_callable=AsyncMock) as mock_get_list:
-        mock_get_list.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
+    with patch("app.services.articles.ArticlesServices.get_article", new_callable=AsyncMock) as mock_get_article:
+        mock_get_article.side_effect = BaseCustomException(
+            detail=expected_detail, status_code=expected_status_code
+        )
+
         response = await ac.get("/articles/wright-flyer")
         assert response.status_code == expected_status_code
         result = response.json()
         assert result.get("status") == "error"
         assert expected_detail in result.get("detail", "")
 
-        mock_get_list.side_effect = ArticleNotFoundEx()
+        mock_get_article.side_effect = ArticleNotFoundEx()
         response = await ac.get("/articles/wright-flyer")
         assert response.status_code == 404
         result = response.json()
         assert result.get("status") == "error"
 
-    with patch("app.services.articles.ArticlesServices.get_articles_list", new_callable=AsyncMock) as mock_get_list:
-        expected_detail = "Bad Request"
-        expected_status_code = 400
-        mock_get_list.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
+    with patch(
+            "app.services.articles.ArticlesServices.get_articles_list", new_callable=AsyncMock
+    ) as mock_get_articles_list:
+        mock_get_articles_list.side_effect = BaseCustomException(
+            detail=expected_detail, status_code=expected_status_code
+        )
+
         response = await ac.get("/articles/list?page=1&page_size=20")
         assert response.status_code == expected_status_code
         result = response.json()
         assert result.get("status") == "error"
         assert expected_detail in result.get("detail", "")
 
-    with patch("app.services.articles.ArticlesServices.add_article", new_callable=AsyncMock) as mock_get_list:
-        expected_detail = "Bad Request"
-        expected_status_code = 400
-        mock_get_list.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
+    with patch("app.services.articles.ArticlesServices.add_article", new_callable=AsyncMock) as mock_add_article:
+        mock_add_article.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
         response = await ac.post("/articles", json=data)
         assert response.status_code == expected_status_code
         result = response.json()
         assert result.get("status") == "error"
         assert expected_detail in result.get("detail", "")
 
-    with patch("app.services.articles.ArticlesServices.edit_article", new_callable=AsyncMock) as mock_get_list:
-        expected_detail = "Bad Request"
-        expected_status_code = 400
-        mock_get_list.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
+    with patch("app.services.articles.ArticlesServices.edit_article", new_callable=AsyncMock) as mock_edit_article:
+        mock_edit_article.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
 
         response = await ac.put(f"/articles/{article_id}", json=data)
         assert response.status_code == expected_status_code
@@ -282,10 +340,8 @@ async def test_api_articles_db_error(ac: AsyncClient, admin_user_token):
         assert result.get("status") == "error"
         assert expected_detail in result.get("detail", "")
 
-    with patch("app.services.articles.ArticlesServices.delete_article", new_callable=AsyncMock) as mock_get_list:
-        expected_detail = "Bad Request"
-        expected_status_code = 400
-        mock_get_list.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
+    with patch("app.services.articles.ArticlesServices.delete_article", new_callable=AsyncMock) as mock_delete_article:
+        mock_delete_article.side_effect = BaseCustomException(detail=expected_detail, status_code=expected_status_code)
 
         response = await ac.delete(f"/articles/{article_id}")
         assert response.status_code == expected_status_code
