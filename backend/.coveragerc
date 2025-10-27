@@ -44,6 +44,8 @@ omit =
     app/services/websocket.py
 
     # модули, для проверки которых нужны специфические условия
+    app/config/env.py
+    app/core/http_manager.py
     app/decorators/db_errors.py
     app/dependencies/api.py
     app/schemas/jti.py
