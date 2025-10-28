@@ -27,7 +27,7 @@ async def create_tags(db: DDB):
 
     try:
         await TagsServices(db).auto_create()
-        return SuccessResponse()
+        return {**status_ok}
 
     except BaseCustomException as ex:
         logger.exception(ex)
