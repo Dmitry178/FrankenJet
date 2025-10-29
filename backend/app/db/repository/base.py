@@ -1,26 +1,49 @@
 from pydantic import BaseModel
-from sqlalchemy import select, insert, exists, delete, func, over, update
+from sqlalchemy import select, insert, exists, delete, func, update
 from typing import Type, List, Dict
 
 from app.db import Base
 
 
 class BaseRepository:
-
     model: Type[Base] | None = None
 
     def __init__(self, session):
         self.session = session
+
+    async def count(self, *filters, **filter_by) -> int:
+        """
+        Подсчёт количества строк в запросе
+        """
+
+        query = (
+            select(func.count())
+            .select_from(self.model)
+            .filter(*filters)
+            .filter_by(**filter_by)
+        )
+
+        return (await self.session.execute(query)).scalar()
 
     async def is_exists(self, *filters, **filter_by) -> bool:
         """
         Проверка на существование записи
         """
 
+        '''
+        # вариант только с where и *filters:
         query = select(
             exists().select_from(self.model)
             .where(*filters)
-            .filter_by(**filter_by)
+        )
+        '''
+
+        query = select(
+            exists(
+                select(self.model)
+                .where(*filters)
+                .filter_by(**filter_by)
+            )
         )
 
         return (await self.session.execute(query)).scalar()
@@ -91,11 +114,19 @@ class BaseRepository:
         Получение данных из базы по фильтру с пагинацией и подсчетом общего количества строк
         """
 
-        query = (
-            select(*self.model.__table__.columns, func.count(over()).label("total_count"))  # noqa
+        # подзапрос с фильтрацией и row_number()
+        subquery = (
+            select(
+                self.model,
+                func.count().over().label("total_count")  # оконная функция: count() по всем строкам результата
+            )
             .filter(*filters)
             .filter_by(**filter_by)
+            .subquery()
         )
+
+        # основной запрос к подзапросу с offset и limit
+        query = select(subquery)
 
         if offset:
             query = query.offset(offset)
@@ -106,15 +137,16 @@ class BaseRepository:
         result = await self.session.execute(query)
         rows = result.mappings().all()
 
-        # подсчёт количества строк (всего)
+        # извлечение данных и total_count
+        data = []
+        total_count = 0
         if rows:
-            total_count = rows[0]['total_count']
-        else:
-            total_count = 0
-
-        data = [dict(row) for row in rows]
-        for row in data:
-            del row['total_count']
+            # total_count будет одинаковым для всех строк, так как это оконная функция по всем строкам
+            total_count = rows[0]["total_count"]
+            data = [dict(row) for row in rows]
+            # удаляем "total_count" из каждой строки
+            for row in data:
+                del row["total_count"]
 
         return data, total_count
 
@@ -165,7 +197,7 @@ class BaseRepository:
         """
 
         if not values and not data:
-            return
+            return None
 
         stmt = insert(self.model).values(values) if values else insert(**data.model_dump())
         await self.session.execute(stmt)
