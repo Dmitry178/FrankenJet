@@ -47,8 +47,12 @@ class RMQManager:
 
             except (AMQPConnectionError, ChannelClosed, AMQPError) as ex:
                 if attempt == self.max_retries - 1:
-                    logger.error(f"Не удалось опубликовать сообщение после {self.max_retries} попыток")
-                    raise RuntimeError(f"Ошибка публикации сообщения после {self.max_retries} попыток")
+                    logger.critical(
+                        f"Не удалось опубликовать сообщение в очередь {queue} после {self.max_retries} попыток"
+                    )
+                    raise RuntimeError(
+                        f"Ошибка публикации сообщения в очередь {queue} после {self.max_retries} попыток"
+                    )
 
                 logger.warning(f"Ошибка публикации (попытка {attempt + 1}): {ex}")
 
@@ -58,10 +62,13 @@ class RMQManager:
                 # повторное подключение
                 try:
                     await self.broker.stop()
-                except Exception:  # noqa
-                    pass
+                except Exception as ex:
+                    logger.error(ex)
 
-                await self.broker.connect()
+                try:
+                    await self.broker.connect()
+                except Exception as ex:
+                    logger.error(ex)
 
     def subscriber(self, queue: str):
         """
