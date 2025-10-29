@@ -15,6 +15,7 @@ omit =
     app/dependencies/s3.py
 
     # модули, которые приведены для примера и не используются в проекте
+    app/api/admin.py
     app/api/bureaus.py
     app/api/designers.py
     app/api/manufacturers.py
@@ -50,3 +51,4 @@ omit =
     app/dependencies/api.py
     app/schemas/jti.py
     app/services/utils.py
+    app/services/admin.py
