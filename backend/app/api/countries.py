@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path, Body
 from starlette import status
 
 from app.core.logs import logger
@@ -11,10 +11,10 @@ from app.schemas.countries import SCountries
 from app.services.countries import CountriesServices
 from app.types import status_ok
 
-countries_router = APIRouter(prefix="/aircraft", tags=["Aircraft"])
+countries_router = APIRouter(prefix="/countries", tags=["Countries"])
 
 
-@countries_router.get("/countries", summary="Список стран")
+@countries_router.get("", summary="Список стран")
 async def get_countries(db: DDB):
     """
     Получение списка стран
@@ -25,17 +25,17 @@ async def get_countries(db: DDB):
         return {**status_ok, "data": data}
 
     except BaseCustomException as ex:
-        logger.exception(ex)
+        logger.error(ex)
         return ex.json_response
 
 
 @countries_router.post(
-    "/countries",
+    "",
     summary="Добавление страны",
     dependencies=[Depends(get_auth_editor_id)],
     status_code=status.HTTP_201_CREATED,
 )
-async def add_country(data: SCountries, db: DDB):
+async def add_country(db: DDB, data: SCountries = Body(...)):
     """
     Создание карточки страны
     """
@@ -45,16 +45,20 @@ async def add_country(data: SCountries, db: DDB):
         return {**status_ok, "data": result}
 
     except BaseCustomException as ex:
-        logger.exception(ex)
+        logger.error(ex)
         return ex.json_response
 
 
 @countries_router.put(
-    "/countries/{country_id}",
+    "/{country_id}",
     summary="Изменение страны",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def edit_country_put(country_id: str, data: SCountries, db: DDB):
+async def edit_country_put(
+        db: DDB,
+        country_id: str = Path(...),
+        data: SCountries = Body(...)
+):
     """
     Редактирование карточки страны (put)
     """
@@ -64,16 +68,20 @@ async def edit_country_put(country_id: str, data: SCountries, db: DDB):
         return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
-        logger.exception(ex)
+        logger.error(ex)
         return ex.json_response
 
 
 @countries_router.patch(
-    "/countries/{country_id}",
+    "/{country_id}",
     summary="Изменение страны",
     dependencies=[Depends(get_auth_editor_id)],
 )
-async def edit_country_post(country_id: str, data: SCountries, db: DDB):
+async def edit_country_post(
+        db: DDB,
+        country_id: str = Path(...),
+        data: SCountries = Body(...)
+):
     """
     Редактирование карточки страны (patch)
     """
@@ -83,16 +91,16 @@ async def edit_country_post(country_id: str, data: SCountries, db: DDB):
         return {**status_ok, "data": result} if result else record_was_not_found_404
 
     except BaseCustomException as ex:
-        logger.exception(ex)
+        logger.error(ex)
         return ex.json_response
 
 
 @countries_router.delete(
-    "/countries/{country_id}",
+    "/{country_id}",
     summary="Удаление страны",
     dependencies=[Depends(get_auth_admin_id)],  # удалять страны может только админ
 )
-async def delete_country(country_id: str, db: DDB):
+async def delete_country(db: DDB, country_id: str = Path(...)):
     """
     Удаление карточки страны
     """
@@ -102,5 +110,5 @@ async def delete_country(country_id: str, db: DDB):
         return SuccessResponse(data={"rows": row_count})
 
     except BaseCustomException as ex:
-        logger.exception(ex)
+        logger.error(ex)
         return ex.json_response
