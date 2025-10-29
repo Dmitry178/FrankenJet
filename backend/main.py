@@ -1,6 +1,5 @@
 import asyncio
 import signal
-import sys
 import uvicorn
 
 from contextlib import asynccontextmanager
@@ -15,6 +14,7 @@ from app.config.env import settings, AppMode
 from app.consumers.startup import run_consumers
 from app.core import rmq_manager, cache_manager, es_manager
 from app.core.logs import logger
+from app.core.shutdown import shutdown_event
 
 
 @asynccontextmanager
@@ -84,8 +84,12 @@ app.include_router(router)
 
 
 def signal_handler():
-    logger.info("Shutting down...")
-    sys.exit(0)
+    """
+    Обработчик сигналов, установка события завершения
+    """
+
+    logger.info("Signal received")
+    shutdown_event.set()
 
 
 async def run_api():
@@ -93,9 +97,23 @@ async def run_api():
     Запуск API
     """
 
+    # создание конфигурации uvicorn
     config = uvicorn.Config("main:app", host="0.0.0.0", port=8000, reload=True)
     server = uvicorn.Server(config)
-    await server.serve()
+
+    # запуск сервера в фоновой задаче
+    server_task = asyncio.create_task(server.serve())
+
+    try:
+        await shutdown_event.wait()
+
+    finally:
+        server.should_exit = True  # команда остановки
+        try:
+            # ожидание завершения задачи сервера
+            await server_task
+        except asyncio.CancelledError:
+            logger.info("Shutting down...")
 
 
 async def main():
