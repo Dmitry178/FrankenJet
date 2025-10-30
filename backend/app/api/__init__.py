@@ -8,12 +8,17 @@ from app.api.auth import auth_router
 from app.api.bot import bot_router
 from app.api.countries import countries_router
 from app.api.facts import facts_router
+from app.api.local import index_local_router
 from app.api.oauth2 import oauth_router
 from app.api.pages import pages_router
 from app.api.search import search_router
 from app.api.tags import tags_router
+from app.config.env import AppMode, settings
 
 router = APIRouter()
+
+if settings.APP_MODE == AppMode.local:
+    router.include_router(index_local_router)
 
 router.include_router(app_router)
 router.include_router(admin_router)
