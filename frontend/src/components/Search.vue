@@ -134,6 +134,7 @@
 import {onMounted, ref, watch} from 'vue';
 import {useRoute, useRouter} from 'vue-router';
 import axios from 'axios';
+import DOMPurify from "dompurify";
 
 export default {
   name: 'Search',
@@ -242,9 +243,10 @@ export default {
     };
 
     onMounted(() => {
-      const query = route.query.q;
-      if (query) {
-        searchQuery.value = query;
+      const queryFromUrl = route.query.q;
+      if (queryFromUrl) {
+        // санитизация строки запроса перед присвоением
+        searchQuery.value = DOMPurify.sanitize(queryFromUrl);
       }
       // устанавливаем currentPage из URL, если он есть, иначе 1
       currentPage.value = parseInt(route.query.page) || 1;
