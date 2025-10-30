@@ -8,6 +8,11 @@ from app.types import status_error
 
 forbidden_403 = HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Forbidden")
 
+csrf_token_error = JSONResponse(
+    status_code=status.HTTP_412_PRECONDITION_FAILED,
+    content={**status_error, "detail": "CSRF token missing or incorrect"}
+)
+
 record_was_not_found_404 = JSONResponse(
     status_code=status.HTTP_404_NOT_FOUND,
     content={**status_error, "detail": "Запись не найдена"}
