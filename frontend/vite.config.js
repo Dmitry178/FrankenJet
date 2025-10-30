@@ -25,4 +25,10 @@ export default defineConfig({
   build: {
     transpileDependencies: ['vuetify'],
   },
+  server: {
+    host: true,
+    allowedHosts: [
+      'dev.lan',
+    ],
+  },
 })
