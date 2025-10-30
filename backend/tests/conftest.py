@@ -111,7 +111,7 @@ async def moderator_user_token(ac: AsyncClient):
         json={"email": "moderator@example.com", "password": "password"}
     )
 
-    assert response.status_code == 200, f'Ошибка логина пользователя "moderator@example.com"'
+    assert response.status_code == 200, 'Ошибка логина пользователя "moderator@example.com"'
 
     # получение токена пользователя
     access_token = response.json().get("data", {}).get("tokens", {}).get("access_token", "")
@@ -131,7 +131,7 @@ async def editor_user_token(ac: AsyncClient):
         json={"email": "editor@example.com", "password": "password"}
     )
 
-    assert response.status_code == 200, f'Ошибка логина пользователя "editor@example.com"'
+    assert response.status_code == 200, 'Ошибка логина пользователя "editor@example.com"'
 
     # получение токена пользователя
     access_token = response.json().get("data", {}).get("tokens", {}).get("access_token", "")
@@ -151,7 +151,7 @@ async def admin_user_token(ac: AsyncClient):
         json={"email": "admin@example.com", "password": "password"}
     )
 
-    assert response.status_code == 200, f'Ошибка логина пользователя "admin@example.com"'
+    assert response.status_code == 200, 'Ошибка логина пользователя "admin@example.com"'
 
     # получение токена пользователя
     access_token = response.json().get("data", {}).get("tokens", {}).get("access_token", "")
