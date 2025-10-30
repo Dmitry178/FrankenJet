@@ -73,6 +73,16 @@ class Settings(BaseSettings):
     OAUTH2_VK_CLIENT_ID: str | None = None
     OAUTH2_VK_CLIENT_SECRET: str | None = None
 
+    # эта настройка исключает проверку CSRF-токена для Swagger UI и ReDoc в production,
+    # для локальной разработки всегда отключено, по умолчанию отключено
+    SWAGGER_CSRF_EXCLUDE_IN_PROD: bool = False
+
+    # доступен ли Swagger UI и ReDoc в production, по умолчанию отключено
+    SWAGGER_AVAILABLE_IN_PROD: bool = False
+
+    # префикс для Swagger UI, ReDoc и OpenAPI для production, если разрешено
+    SWAGGER_PROD_PREFIX: str = ""
+
     @property
     def db_url(self):
         return f"postgresql+asyncpg://{self.DB_CONN}"
