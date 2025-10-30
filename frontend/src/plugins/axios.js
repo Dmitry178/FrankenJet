@@ -3,6 +3,12 @@ import { useAuthStore } from '@/stores/auth';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
+function getCookie(name) {
+  let value = "; " + document.cookie;
+  let parts = value.split("; " + name + "=");
+  if (parts.length === 2) return parts.pop().split(";").shift();
+}
+
 export function setupAxios() {
   axios.defaults.baseURL = API_BASE_URL;
 
@@ -11,9 +17,17 @@ export function setupAxios() {
   // Request interceptor
   axios.interceptors.request.use(
     (config) => {
+      // добавление заголовка Authorization, если есть токен авторизации
       if (authStore.accessToken) {
         config.headers.Authorization = `Bearer ${authStore.accessToken}`;
       }
+
+      // извлечение CSRF-токена из cookie и добавление его в заголовки
+      const csrfToken = getCookie('csrf-token');
+      if (csrfToken && ['POST', 'PUT', 'PATCH', 'DELETE'].includes(config.method?.toUpperCase())) {
+        config.headers['X-CSRF-Token'] = csrfToken;
+      }
+
       return config;
     },
     (error) => Promise.reject(error)
@@ -23,6 +37,7 @@ export function setupAxios() {
   axios.interceptors.response.use(
     (response) => response,
     async (error) => {
+      // обработка ошибки 401 (аутентификация, обновление токена)
       if (error.response?.status === 401) {
         const originalRequest = error.config;
 
@@ -38,6 +53,12 @@ export function setupAxios() {
           }
         }
       }
+
+      // обработка ошибки 412 (CSRF)
+      if (error.response?.status === 412) {
+
+      }
+
       return Promise.reject(error);
     }
   );
