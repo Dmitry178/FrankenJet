@@ -1,20 +1,21 @@
 import asyncio
+import secrets
 import signal
 import uvicorn
 
 from contextlib import asynccontextmanager
 from datetime import datetime
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api import router
-from app.api.local import index_local_router
 from app.config.env import settings, AppMode
 from app.consumers.startup import run_consumers
 from app.core import rmq_manager, cache_manager, es_manager
 from app.core.logs import logger
 from app.core.shutdown import shutdown_event
+from app.exceptions.api import csrf_token_error
 
 
 @asynccontextmanager
@@ -56,15 +57,23 @@ async def lifespan(fastapi_app: FastAPI):  # noqa
     logger.info(message)
 
 
+if settings.APP_MODE == AppMode.production and settings.SWAGGER_AVAILABLE_IN_PROD:
+    prefix = settings.SWAGGER_PROD_PREFIX if settings.SWAGGER_PROD_PREFIX else ""
+    app_params = {"docs_url": f"/{prefix}docs", "redoc_url": f"/{prefix}redoc", "openapi_url": f"/{prefix}openapi"}
+elif settings.APP_MODE == AppMode.production:
+    app_params = {"docs_url": None, "redoc_url": None, "openapi_url": None}
+else:
+    app_params = {}
+
 app_params = (
     {"docs_url": None, "redoc_url": None, "openapi_url": None}
-    if settings.APP_MODE == AppMode.production
+    if settings.APP_MODE == AppMode.production and not settings.SWAGGER_AVAILABLE_IN_PROD
     else {}
 )
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, **app_params)
 
-# Установка CORS
+# установка CORS
 if settings.get_cors:
     app.add_middleware(
         CORSMiddleware,  # noqa
@@ -76,10 +85,41 @@ if settings.get_cors:
         # max_age=600,
     )
 
-# Подключение роутеров
-if settings.APP_MODE == AppMode.local:
-    app.include_router(index_local_router)
 
+@app.middleware("http")
+async def csrf_protect_middleware(request: Request, call_next):
+    """
+    Проверка CSRF-токена в production
+    """
+
+    if settings.APP_MODE != AppMode.production:
+        return await call_next(request)
+
+    # исключение эндпоинтов Swagger UI и ReDoc из CSRF-проверки (если задано в настройках)
+    if settings.SWAGGER_CSRF_EXCLUDE_IN_PROD and request.url.path.startswith(("/docs", "/redoc")):
+        return await call_next(request)
+
+    if request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+        # извлечение токена из заголовка
+        csrf_token_header = request.headers.get("X-CSRF-Token")
+        # извлечение токена из куки
+        csrf_token_cookie = request.cookies.get("csrf-token")
+
+        if not csrf_token_header or not csrf_token_cookie or csrf_token_header != csrf_token_cookie:
+            return csrf_token_error
+
+    response = await call_next(request)
+
+    # установка куки с CSRF-токеном
+    if "csrf-token" not in request.cookies:
+        token = secrets.token_urlsafe(32)
+        # httponly=False для доступа frontend к cookie с токеном
+        response.set_cookie("csrf-token", token, httponly=False, samesite="lax")
+
+    return response
+
+
+# подключение роутеров
 app.include_router(router)
 
 
