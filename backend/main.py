@@ -58,18 +58,12 @@ async def lifespan(fastapi_app: FastAPI):  # noqa
 
 
 if settings.APP_MODE == AppMode.production and settings.SWAGGER_AVAILABLE_IN_PROD:
-    prefix = settings.SWAGGER_PROD_PREFIX if settings.SWAGGER_PROD_PREFIX else ""
+    prefix = settings.SWAGGER_URL_PREFIX if settings.SWAGGER_URL_PREFIX else ""
     app_params = {"docs_url": f"/{prefix}docs", "redoc_url": f"/{prefix}redoc", "openapi_url": f"/{prefix}openapi"}
 elif settings.APP_MODE == AppMode.production:
     app_params = {"docs_url": None, "redoc_url": None, "openapi_url": None}
 else:
     app_params = {}
-
-app_params = (
-    {"docs_url": None, "redoc_url": None, "openapi_url": None}
-    if settings.APP_MODE == AppMode.production and not settings.SWAGGER_AVAILABLE_IN_PROD
-    else {}
-)
 
 app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, **app_params)
 
