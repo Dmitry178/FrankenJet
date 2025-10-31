@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery
 
 from app.bot import bot, dp
 from app.broker.subscribers import broker
-from app.core.config import bot_settings, RMQ_BACKEND_QUEUE
+from app.core.config import bot_settings, RMQ_FJ_INPUT_QUEUE
 from app.core.logs import bot_logger
 
 
@@ -15,7 +15,7 @@ async def start_bot() -> None:
     Сообщение администраторам о запуске бота
     """
 
-    text = f"<b>{bot_settings.APP_NAME}</b>. Бот запущен [{bot_settings.BUILD}]"
+    text = f"<b>{bot_settings.APP_NAME}</b>. Бот запущен"
     await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=text)
     return None
 
@@ -25,7 +25,7 @@ async def stop_bot() -> None:
     Сообщение администраторам об остановке бота
     """
 
-    text = f"<b>{bot_settings.APP_NAME}</b>. Бот остановлен [{bot_settings.BUILD}]"
+    text = f"<b>{bot_settings.APP_NAME}</b>. Бот остановлен"
     await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=text)
     return None
 
@@ -36,7 +36,7 @@ async def send_response_and_update_message(message: dict, callback_query: Callba
     """
 
     try:
-        await broker.publish(json.dumps(message), queue=RMQ_BACKEND_QUEUE)
+        await broker.publish(json.dumps(message), queue=RMQ_FJ_INPUT_QUEUE)
         bot_logger.info("Решение по модерации отправлено в RabbitMQ")
 
     except Exception as ex:
@@ -51,7 +51,6 @@ async def send_response_and_update_message(message: dict, callback_query: Callba
         reply_markup=None,
     )
     await bot.answer_callback_query(callback_query.id, text="Ответ отправлен")
-
     return None
 
 
@@ -67,7 +66,7 @@ async def handle_callback(callback_query: CallbackQuery):
         result = parts[2]
         message = {
             "type": "admin_auth_response",
-            "id": user_id,
+            "id": user_id,  # jti, user_id
             "result": result
         }
         await send_response_and_update_message(message, callback_query)
