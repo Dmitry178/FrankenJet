@@ -8,6 +8,8 @@ import asyncio
 import asyncpg
 import sys
 
+sys.path.append("/code")
+
 from environs import Env
 from urllib.parse import urlparse
 
