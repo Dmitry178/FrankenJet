@@ -1,12 +1,13 @@
 [run]
 source = app
 omit =
-    # модули, для проверки работы которых необходим Telegram Bot
+    # модули, для проверки работы которых необходим RabbitMQ и Telegram Bot
     app/api/bot.py
+    app/consumers/*
     app/core/logs.py
+    app/services/bot.py
 
     # модули, для проверки которых необходимо разворачивать сторонние сервисы: Elasticsearch, RabbitMQ, Redis, S3
-    app/consumers/*
     app/core/cache_manager.py
     app/core/es_manager.py
     app/core/rmq_manager.py
