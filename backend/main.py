@@ -14,8 +14,10 @@ from app.config.env import settings, AppMode
 from app.consumers.startup import run_consumers
 from app.core import rmq_manager, cache_manager, es_manager
 from app.core.logs import logger
+from app.core.logs_handlers import add_logging_handler
 from app.core.shutdown import shutdown_event
 from app.exceptions.api import csrf_token_error
+from app.services.bot import bot_services
 
 
 @asynccontextmanager
@@ -27,6 +29,8 @@ async def lifespan(fastapi_app: FastAPI):  # noqa
     if rmq_manager.url:
         await rmq_manager.start()
         logger.info("RabbitMQ connected")
+        bot_services.rmq = rmq_manager
+        await add_logging_handler(logger, bot_services)
 
     if cache_manager.url:
         await cache_manager.start()
