@@ -38,26 +38,28 @@ async def lifespan(fastapi_app: FastAPI):  # noqa
 
     if es_manager.url:
         await es_manager.start()
-        logger.info("ElasticSearch connected")
+        logger.info("Elasticsearch connected")
 
-    message = f"App started at: {datetime.now()} [{settings.BUILD}]"
+    message = f"App started at: {datetime.now()}"
     logger.info(message)
+    await bot_services.send_info("Сервис запущен 🟢")
 
     yield
 
     if es_manager.url:
         await es_manager.stop()
-        logger.info("ElasticSearch stopped")
+        logger.info("Elasticsearch stopped")
 
     if cache_manager.url:
         await cache_manager.close()
         logger.info("Redis disconnected")
 
     if rmq_manager.url:
+        await bot_services.send_info("Сервис остановлен 🔴")
         await rmq_manager.close()
         logger.info("RabbitMQ disconnected")
 
-    message = f"App stopped at: {datetime.now()} [{settings.BUILD}]"
+    message = f"App stopped at: {datetime.now()}"
     logger.info(message)
 
 
