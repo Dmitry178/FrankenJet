@@ -1,21 +1,20 @@
 """ Роутер для отправки сообщений в бот уведомлений (только для админа) """
 
-import json
-
 from fastapi import Body, Depends, APIRouter
 from starlette import status
 
 from app.api.openapi_examples import notification_example, moderation_example
-from app.config.app import RMQ_NOTIFICATIONS_QUEUE, RMQ_ADMIN_AUTH_QUEUE, RMQ_MODERATION_QUEUE
 from app.core import RMQManager
 from app.core.logs import logger
 from app.dependencies.api import get_client_info
 from app.dependencies.auth import get_auth_user_info, get_auth_admin_id
 from app.dependencies.rmq import get_rmq
 from app.exceptions.api import http_error_500, rabbitmq_not_available
-from app.schemas.api import SClientInfo, SuccessResponse
+from app.schemas.api import SClientInfo
 from app.schemas.auth import SAuthUserInfo
 from app.schemas.bot import SBotNotification, SBotAuthNotification, SBotModeration
+from app.services.bot import BotServices, MsgTypes
+from app.types import status_ok
 
 bot_router = APIRouter(prefix="/bot", tags=["Notification Bot"])
 
@@ -38,15 +37,11 @@ async def send_notification(
         return rabbitmq_not_available
 
     try:
-        await rmq.publish(
-            data.notification,
-            queue=RMQ_NOTIFICATIONS_QUEUE,
-        )
-
-        return SuccessResponse()
+        await BotServices(rmq).send_message(MsgTypes.notification, data.notification)
+        return status_ok
 
     except Exception as ex:
-        logger.exception(ex)
+        logger.error(ex)
         return http_error_500
 
 
@@ -74,16 +69,11 @@ async def send_auth_notification(
             user_name=user_info.name,
             email=user_info.email,
             roles=user_info.roles,
-            client_ip=client_info.client_ip,
+            client_ip=client_info.ip,
             user_agent=client_info.user_agent,
         )
-
-        await rmq.broker.publish(
-            json.dumps(data.model_dump(by_alias=True)),
-            queue=RMQ_ADMIN_AUTH_QUEUE,
-        )
-
-        return SuccessResponse()
+        await BotServices(rmq).send_message(MsgTypes.auth_notification, data.model_dump(by_alias=True))
+        return status_ok
 
     except Exception as ex:
         logger.exception(ex)
@@ -108,17 +98,12 @@ async def send_comment_to_moderation(
         return rabbitmq_not_available
 
     try:
-        json_data = {
+        data = {
             "id": data.id,
             "comment": data.comment,
         }
-
-        await rmq.broker.publish(
-            json.dumps(json_data),
-            queue=RMQ_MODERATION_QUEUE,
-        )
-
-        return SuccessResponse()
+        await BotServices(rmq).send_message(MsgTypes.moderation, data)
+        return status_ok
 
     except Exception as ex:
         logger.exception(ex)
