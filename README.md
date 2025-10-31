@@ -39,7 +39,7 @@ Fullstack: FastAPI (backend) + Vue.js 3.5 (frontend) + Aiogram (микросер
 
 ### Архитектура проекта
 
-![](fja.png)
+![](/img/fja.png)
 
 ---
 
