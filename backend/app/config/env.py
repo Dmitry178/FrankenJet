@@ -80,8 +80,8 @@ class Settings(BaseSettings):
     # доступен ли Swagger UI и ReDoc в production, по умолчанию отключено
     SWAGGER_AVAILABLE_IN_PROD: bool = False
 
-    # префикс для Swagger UI, ReDoc и OpenAPI для production, если разрешено
-    SWAGGER_PROD_PREFIX: str = ""
+    # префикс для Swagger UI, ReDoc и OpenAPI
+    SWAGGER_URL_PREFIX: str = ""
 
     @property
     def db_url(self):
@@ -100,7 +100,7 @@ class Settings(BaseSettings):
             raise ValueError("Invalid application mode")
         return self
 
-    model_config = SettingsConfigDict(env_file=".env", extra='ignore')
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
 
 settings = Settings()
