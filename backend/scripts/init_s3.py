@@ -3,6 +3,9 @@
 """
 
 import asyncio
+import sys
+
+sys.path.append("/code")
 
 from environs import Env
 
@@ -25,13 +28,17 @@ class S3Creator:
         Создание бакетов
         """
 
-        buckets_list = await self.s3manager.list_buckets()
-        buckets_to_create = [BUCKET_IMAGES]
+        try:
+            buckets_list = await self.s3manager.list_buckets()
+            buckets_to_create = [BUCKET_IMAGES]
 
-        for bucket in buckets_to_create:
-            if bucket not in buckets_list:
-                await self.s3manager.create_bucket(bucket, public=True)
-                logger.info(f"Бакет {bucket} создан")
+            for bucket in buckets_to_create:
+                if bucket not in buckets_list:
+                    await self.s3manager.create_bucket(bucket, public=True)
+                    logger.info(f"Бакет {bucket} создан")
+
+        except Exception as ex:
+            logger.error(f"Ошибка инициализации S3: {ex}")
 
 
 async def main() -> None:
