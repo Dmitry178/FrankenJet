@@ -16,6 +16,9 @@ class AppMode(str, Enum):
     test = "test"
     production = "production"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 def parse_cors(v: Any) -> list[str] | str:
     """

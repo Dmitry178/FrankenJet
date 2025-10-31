@@ -32,6 +32,9 @@ class AircraftTypes(str, enum.Enum):
     balloon = "воздушный шар"
     uav = "беспилотник"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class EngineTypes(str, enum.Enum):
     """
@@ -46,6 +49,9 @@ class EngineTypes(str, enum.Enum):
     rocket = "ракетный"
     electric = "электрический"
 
+    def __str__(self) -> str:
+        return self.value
+
 
 class AircraftStatus(str, enum.Enum):
     """
@@ -55,6 +61,9 @@ class AircraftStatus(str, enum.Enum):
     in_production = "в производстве"
     discontinued = "снят с производства"
     in_operation = "в эксплуатации"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class AircraftPurpose(str, enum.Enum):
@@ -74,6 +83,9 @@ class AircraftPurpose(str, enum.Enum):
     bomber = "бомбардировщик"
     tanker = "танкер"
     awacs = "awacs"
+
+    def __str__(self) -> str:
+        return self.value
 
 
 class Aircraft(Base, TimestampMixin):
