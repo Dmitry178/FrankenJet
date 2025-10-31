@@ -2,56 +2,111 @@
 
 import json
 
+from dataclasses import dataclass
 from faststream.rabbit import RabbitBroker
 
 from app.bot import bot
 from app.bot.keyboards import get_admin_auth_keyboard, get_moderation_keyboard
-from app.core.config import RMQ_NOTIFICATIONS_QUEUE, RMQ_ADMIN_AUTH_QUEUE, RMQ_MODERATION_QUEUE, bot_settings
+from app.bot.utils import prepare_expandable
+from app.core.config import bot_settings, RMQ_FJ_OUTPUT_QUEUE
+from app.core.logs import bot_logger
 
 broker = RabbitBroker(
     url=bot_settings.RMQ_CONN,
 )
 
 
-@broker.subscriber(RMQ_NOTIFICATIONS_QUEUE)
-async def handle_notifications(data: str):
+@dataclass
+class MsgTypes:
     """
-    Отправка сообщений в бот
-    """
-
-    await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=data)
-
-
-@broker.subscriber(RMQ_ADMIN_AUTH_QUEUE)
-async def handle_admin_auth(data: str):
-    """
-    Сообщение об аутентификации администратора
+    Типы сообщений на отправку в бот
     """
 
-    auth_info = json.loads(data)
-    message_text = (
-        f"❗️<b>Произведён вход в приложение</b>\n"
-        f"<b>Пользователь:</b> {auth_info.get('email')} (id: {auth_info.get('user-id')})\n"
-        f"<b>IP:</b> {auth_info['client-ip']}\n"
-        f"<b>User Agent:</b> {auth_info['user-agent']}"
-    )
-
-    keyboard = get_admin_auth_keyboard(auth_info.get("user-id"))
-    await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text, reply_markup=keyboard)
+    log = "log"
+    info = "info"
+    notification = "notification"
+    auth_notification = "auth_notification"
+    moderation = "moderation"
 
 
-@broker.subscriber(RMQ_MODERATION_QUEUE)
-async def handle_moderation_request(data: str):
+@broker.subscriber(RMQ_FJ_OUTPUT_QUEUE)
+async def handle_fj_output_queue(data: str):
     """
-    Сообщение для модерации комментариев
+    Получение и обработка сообщения от FrankenJet
     """
 
-    moderation_data = json.loads(data)
-    message_text = (
-        f"<b>Модерация комментария:</b>\n"
-        f"<b>Текст:</b>\n{moderation_data.get('comment')}"
-    )
-    # TODO: сделать expandable-сообщение
+    try:
+        json_data = json.loads(data)
+        msg_type = json_data.get("type")
+        msg_data = json_data.get("data")
 
-    keyboard = get_moderation_keyboard(moderation_data.get("id"))
-    await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text, reply_markup=keyboard)
+        if not msg_data:
+            raise ValueError
+
+        match msg_type:
+
+            case MsgTypes.log:
+                message_text = (
+                    f'⚠️ <b>Log Level:</b> {msg_data.get("level")}\n'
+                    f'📝 <b>Message:</b> {msg_data.get("message")}\n'
+                    f'📦 <b>Module:</b> {msg_data.get("module")}\n'
+                    f'🔧 <b>Function:</b> {msg_data.get("funcName")}\n'
+                    f'📄 <b>File:</b> {msg_data.get("module")}.py (line {msg_data.get("lineno")})\n'
+                    f'🕒 <b>Time:</b> {msg_data.get("asctime")}\n'
+                )
+
+                if msg_data.get("exc_text"):
+                    message_text += f'\n❌ <b>Exception:</b>\n<code>{msg_data.get("exc_text")}</code>\n'
+
+                if msg_data.get("stack_info"):
+                    message_text += f'\n🔍 <b>Stack Info:</b>\n<code>{msg_data.get("stack_info")}</code>\n'
+
+                await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text)
+
+                if msg_data.get("traceback"):
+                    expandable_traceback = prepare_expandable(None, msg_data.get("traceback"))
+                    await bot.send_message(
+                        chat_id=bot_settings.TELEGRAM_ADMIN_ID,
+                        text=expandable_traceback,
+                        parse_mode="MarkdownV2"
+                    )
+
+            case MsgTypes.info:
+                # отправка технического уведомления в бот
+                message_text = f'<b>{msg_data.get("caption")}:</b> {msg_data.get("message")}'
+                await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text)
+
+            case MsgTypes.notification:
+                # отправка уведомления в бот
+                await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=msg_data)
+
+            case MsgTypes.auth_notification:
+                # сообщение об аутентификации администратора
+                message_text = (
+                    "❗️<b>Произведён вход в приложение</b>\n"
+                    f'<b>Пользователь:</b> {msg_data.get("email")} (id: {msg_data.get("user-id")})\n'
+                    f'<b>IP:</b> {msg_data["client-ip"]}\n'
+                    f'<b>User Agent:</b> {msg_data["user-agent"]}'
+                )
+
+                keyboard = get_admin_auth_keyboard(msg_data.get("user-id"))
+                await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text, reply_markup=keyboard)
+
+            case MsgTypes.moderation:
+                # модерация комментария
+                expandable_comment = prepare_expandable("Модерация комментария", msg_data.get("comment"))
+                keyboard = get_moderation_keyboard(msg_data.get("id"))
+                await bot.send_message(
+                    chat_id=bot_settings.TELEGRAM_ADMIN_ID,
+                    text=expandable_comment,
+                    reply_markup=keyboard,
+                    parse_mode="MarkdownV2"
+                )
+
+            case _:
+                bot_logger.error(f'Ошибка типа сообщения "{msg_type}"')
+
+    except (Exception, ValueError) as ex:
+        message = "Ошибка обработки сообщения из RabbitMQ"
+        bot_logger.exception(f"{message}: {ex}")
+        await bot.send_message(f"⚠️ {message}")
