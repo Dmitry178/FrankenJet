@@ -33,6 +33,9 @@ class BotServices:
         Отправка подготовленного сообщения в RabbitMQ
         """
 
+        if not self.rmq:
+            return
+
         data = {
             "type": msg_type,
             "data": msg_data,
@@ -54,6 +57,9 @@ class BotServices:
         Отправка логов в бот уведомлений
         """
 
+        if not self.rmq:
+            return
+
         await self.send_message(MsgTypes.log, log_entry.model_dump())
         return None
 
@@ -61,6 +67,9 @@ class BotServices:
         """
         Отправка технического сообщения в бот уведомлений
         """
+
+        if not self.rmq:
+            return
 
         data = {
             "caption": f"{settings.APP_NAME} ({settings.APP_MODE})",
