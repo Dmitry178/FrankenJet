@@ -90,6 +90,18 @@ export default {
       theme.change(savedTheme);
       currentThemeIndex.value = themeNames.indexOf(savedTheme);
     }
+    else {
+      // тема не установлена в localStorage, проверяем, что системная тема - dark
+      if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        const matchedThemeName = themeNames.find(name => name.toLowerCase().includes('dark'));
+        const matchedIndex = themeNames.indexOf(matchedThemeName);
+        if (matchedIndex !== -1) {
+          localStorage.setItem('selectedTheme', matchedThemeName);
+          currentThemeIndex.value = matchedIndex;
+          theme.change(savedTheme);
+        }
+      }
+    }
 
     const themeIcon = computed(() => {
       // индекс следующей темы
@@ -105,6 +117,7 @@ export default {
       }
     });
 
+    // переключение на следующую тему
     const toggleTheme = () => {
       currentThemeIndex.value = (currentThemeIndex.value + 1) % themeNames.length;
       const nextTheme = themeNames[currentThemeIndex.value];
