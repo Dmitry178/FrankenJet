@@ -15,7 +15,7 @@ async def id_handler(message: types.Message):
     """
 
     user_id = message.from_user.id
-    msg = f"Ваш ID: *{user_id}*"
+    msg = f"Ваш ID: <b>{user_id}</b>"
 
     try:
         await message.answer(msg)
