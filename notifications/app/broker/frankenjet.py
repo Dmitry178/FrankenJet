@@ -53,7 +53,13 @@ async def proceed_messages_from_frankenjet(message: str) -> None:
                 if msg_data.get("stack_info"):
                     message_text += f'\n🔍 <b>Stack Info:</b>\n<code>{msg_data.get("stack_info")}</code>\n'
 
-                await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text)
+                disable_notification = msg_data.get("level") in {"DEBUG", "INFO", "WARNING"}
+
+                await bot.send_message(
+                    chat_id=bot_settings.TELEGRAM_ADMIN_ID,
+                    text=message_text,
+                    disable_notification=disable_notification
+                )
 
                 if msg_data.get("traceback"):
                     expandable_traceback = prepare_expandable(None, msg_data.get("traceback"))
@@ -66,7 +72,11 @@ async def proceed_messages_from_frankenjet(message: str) -> None:
             case MsgTypes.info:
                 # отправка технического уведомления в бот
                 message_text = f'<b>{msg_data.get("caption")}:</b> {msg_data.get("message")}'
-                await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=message_text)
+                await bot.send_message(
+                    chat_id=bot_settings.TELEGRAM_ADMIN_ID,
+                    text=message_text,
+                    disable_notification=True
+                )
 
             case MsgTypes.notification:
                 # отправка уведомления в бот
@@ -102,4 +112,3 @@ async def proceed_messages_from_frankenjet(message: str) -> None:
         message = "Ошибка обработки сообщения из RabbitMQ"
         bot_logger.exception(f"{message}: {ex}")
         await bot.send_message(f"⚠️ {message}")
-
