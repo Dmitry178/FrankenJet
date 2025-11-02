@@ -103,4 +103,4 @@ class AdminServices:
                     result = [{target_field: line} for line in text_data]
 
                 # загрузка данных в БД
-                model.insert_all(result, commit=True)
+                model.insert_all(values=result, commit=True)
