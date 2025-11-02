@@ -33,18 +33,26 @@ index_settings = {
                         "москва, мос, мск",
                         "екатеринбург, екат, ебург, ёбург, екб, свердловск"
                     ]
+                },
+                "russian_stemmer": {
+                    "type": "stemmer",
+                    "language": "russian"
+                },
+                "english_stemmer": {
+                    "type": "stemmer",
+                    "language": "english"
                 }
             },
             "analyzer": {
-                "my_synonym_analyzer": {
+                "custom_synonym_analyzer": {
                     "type": "custom",
                     "tokenizer": "standard",
                     "filter": [
                         "icu_normalizer",
                         "lowercase",
                         "city_synonyms",
-                        "russian_morphology",
-                        "english_morphology",
+                        "russian_stemmer",
+                        "english_stemmer",
                         "snowball"
                     ]
                 }
@@ -53,8 +61,8 @@ index_settings = {
     },
     "mappings": {
         "properties": {
-            "title": {"type": "text", "analyzer": "my_synonym_analyzer"},
-            "content": {"type": "text", "analyzer": "my_synonym_analyzer"},
+            "title": {"type": "text", "analyzer": "custom_synonym_analyzer"},
+            "content": {"type": "text", "analyzer": "custom_synonym_analyzer"},
             "tags": {"type": "keyword"},
             "entities": {"type": "keyword"}
         }
@@ -69,6 +77,9 @@ class InitData:
         """
         Нормализация данных перед отправкой в elasticsearch на индексацию
         """
+
+        if not text:
+            return ""
 
         normalized = text.lower().replace("ё", "е")
 
@@ -113,8 +124,11 @@ class InitData:
                 ]
 
             if normalize:
+                # нормализация заголовка и тегов
                 title = self.normalize_text(title)
-                tags = [self.normalize_text(tag) for tag in tags]  # нормализация тегов
+                tags = [self.normalize_text(tag) for tag in tags if tag]
+            else:
+                tags = [tag for tag in tags if tag]  # исключение None из тегов
 
             idx = re.sub(r'^_|(\.[^.]*)$', '', item["filename"])
 
@@ -180,7 +194,6 @@ async def read_json(file: str) -> list:
 
 
 async def main() -> None:
-
     env = Env()
     env.read_env()
 
