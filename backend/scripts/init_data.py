@@ -6,6 +6,7 @@
 
 import asyncio
 import json
+import logging
 import os
 import sys
 
@@ -28,11 +29,12 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 from app.config.app import BUCKET_IMAGES
-from app.core.logs import logger
+from app.core.db_manager import DBManager
 from app.core.s3_manager import S3Manager
-from app.db import Base
+from app.db import Base, async_session_maker
 from app.db.models import *
 from app.services.security import SecurityService
+from app.services.tags import TagsServices
 
 T = TypeVar("T", bound=Base)
 
@@ -288,7 +290,7 @@ async def main() -> None:
 
     async def assemble_json(path: str, is_article=False, has_image=False, s3manager=None) -> list[dict]:
         """
-        Сборка json из файлов
+        Сборка json из файлов для добавления в БД
         """
 
         directory = Path(f"{os.getcwd()}/{path}")
@@ -353,7 +355,7 @@ async def main() -> None:
 
     db_conn = env.str("DB_CONN")
     if not db_conn:
-        logger.error("Строка подключения отсутствует")
+        logger.error("Ошибка, строка подключения к базе данных отсутствует")
         sys.exit(1)
 
     # логин/пароль админа по умолчанию
@@ -387,34 +389,52 @@ async def main() -> None:
             logger.info("Миграции" if db_handler.run_migrations else "Создание таблиц")
             await db_handler.create_tables()
 
-        logger.info("Заполнение базы первичными данными")
-
-        logger.info("Добавление ролей пользователей")
-        data = await read_json("/scripts/data/roles.json")
-        await db_handler.add_data(Roles, data)
-
         logger.info("Добавление пользователей")
         await db_handler.insert_users(users)
 
+    async with DBManager(session_factory=async_session_maker) as db:
+
+        logger.info("Добавление ролей пользователей")
+        roles_data = await read_json("/scripts/data/roles.json")
+        roles_data_model = DataUtils().convert_data_types(Roles, roles_data)
+        await db.auth.roles.insert_all_conflict(values=roles_data_model)
+
         logger.info("Добавление стран")
-        data = await read_json("/scripts/data/countries.json")
-        await db_handler.add_data(Countries, data)
+        countries_data = await read_json("/scripts/data/countries.json")
+        countries_data_model = DataUtils().convert_data_types(Countries, countries_data)
+        await db.countries.insert_all_conflict(values=countries_data_model)
 
         logger.info("Добавление фактов")
         facts = await read_text("/scripts/data/facts.txt")
-        data = [{"fact": fact} for fact in facts]
-        await db_handler.add_data(Facts, data)
+        facts_data = [{"fact": fact} for fact in facts]
+        facts_data_model = DataUtils().convert_data_types(Facts, facts_data)
+        await db.facts.insert_all_conflict(values=facts_data_model)
+
+        logger.info("Добавление списка тегов")
+        await TagsServices(db).auto_create()
 
         logger.info("Добавление статей")
-        data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
-        await db_handler.add_data(Articles, data)
+        articles_data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
+        articles_data_model = DataUtils().convert_data_types(Articles, articles_data)
+        await db.articles.insert_all_conflict(values=articles_data_model)
 
         logger.info("Добавление карточек воздушных судов")
-        data = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
-        await db_handler.add_data(Aircraft, data)
+        aircraft_data = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
+        aircraft_data_model = DataUtils().convert_data_types(Aircraft, aircraft_data)
+        await db.aircraft.insert_all_conflict(values=aircraft_data_model)
+
+        # TODO: сделать добавление тегов к статьям
 
     logger.info("Добавление данных завершено")
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+
+logger = logging.getLogger()
 
 if __name__ == "__main__":
     asyncio.run(main())
