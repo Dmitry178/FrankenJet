@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from sqlalchemy import select, insert, exists, delete, func, update
+from sqlalchemy import select, exists, delete, func, update
+from sqlalchemy.dialects.postgresql import insert
 from typing import Type, List, Dict
 
 from app.db import Base
@@ -207,13 +208,42 @@ class BaseRepository:
 
         return None
 
+    async def insert_all_conflict(
+            self,
+            data: BaseModel | None = None,
+            values: List[Dict] | None = None,
+            on_conflict_do_nothing=True,
+            commit=False
+    ) -> None:
+        """
+        Добавление массива данных
+        """
+
+        if not values and not data:
+            return None
+
+        stmt = insert(self.model).values(values) if values else insert(self.model).values(**data.model_dump())
+
+        if on_conflict_do_nothing:
+            stmt = stmt.on_conflict_do_nothing()
+        else:
+            stmt = stmt.on_conflict_do_update()
+
+        await self.session.execute(stmt)
+
+        if commit:
+            await self.session.commit()
+
+        return None
+
     async def update(
             self,
             data: BaseModel | None = None,
             exclude_unset: bool = False,
             scalars=False,
             commit=False,
-            *filters, **filter_by
+            *filters,
+            **filter_by
     ):
         """
         Обновление данных
