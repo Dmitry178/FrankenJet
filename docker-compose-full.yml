@@ -23,19 +23,18 @@ services:
     hostname: elasticsearch
     environment:
       - discovery.type=single-node
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
       - xpack.security.enabled=false
     ports:
       - "9200:9200"
       - "9300:9300"
     volumes:
-      - es:/usr/share/elasticsearch/data
+      - ./volumes/es:/data
     restart: unless-stopped
     networks:
       - network
 
   kibana:
-    image: docker.elastic.co/kibana/kibana:9.2.0
+    image: kibana:9.2.0
     container_name: fj-kibana
     hostname: kibana
     ports:
