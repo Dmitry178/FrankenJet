@@ -3,6 +3,7 @@
 """
 
 import asyncio
+import logging
 import sys
 
 sys.path.append("/code")
@@ -10,7 +11,6 @@ sys.path.append("/code")
 from environs import Env
 
 from app.config.app import BUCKET_IMAGES
-from app.core.logs import logger
 from app.core.s3_manager import S3Manager
 
 
@@ -69,6 +69,14 @@ async def main() -> None:
     logger.info("Инициализация S3 завершена")
     return None
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+
+logger = logging.getLogger()
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -6,14 +6,13 @@
 
 import asyncio
 import asyncpg
+import logging
 import sys
 
 sys.path.append("/code")
 
 from environs import Env
 from urllib.parse import urlparse
-
-from app.core.logs import logger
 
 
 class DatabaseCreator:
@@ -88,6 +87,14 @@ async def main() -> None:
     logger.info("Инициализация базы данных завершена")
     return None
 
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    handlers=[logging.StreamHandler(sys.stdout)],
+)
+
+logger = logging.getLogger()
 
 if __name__ == "__main__":
     asyncio.run(main())
