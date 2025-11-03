@@ -9,18 +9,20 @@ import os
 import re
 import sys
 
-from app.core import ESManager
-
 sys.path.append("/code")
 
 from environs import Env
 from pathlib import Path
 
+from app.core import ESManager
 from app.db.models import Countries, Articles, Aircraft
 from scripts.init_data import DataUtils
 
 # путь к статьям
 BASE_ARTICLES_PATH = "./scripts/articles"
+
+# название индекса
+ARTICLES_INDEX = "articles"
 
 index_settings = {
     "settings": {
@@ -64,7 +66,7 @@ index_settings = {
             "title": {"type": "text", "analyzer": "custom_synonym_analyzer"},
             "content": {"type": "text", "analyzer": "custom_synonym_analyzer"},
             "tags": {"type": "keyword"},
-            "entities": {"type": "keyword"}
+            "image_url": {"type": "keyword"},
         }
     }
 }
@@ -91,7 +93,35 @@ class InitData:
 
         return normalized
 
-    async def gen_es_data(self, articles_data: list, aircraft_data: list, countries_data: list, normalize=True) -> list:
+    @staticmethod
+    def clean_text(text: str) -> str:
+        """
+        Удаление основных MarkDown-символов
+        """
+
+        if not text:
+            return ""
+
+        # удаление символов "#" в начале строки
+        cleaned = re.sub(r"^\s*#+\s*", "", text, flags=re.MULTILINE)
+
+        cleaned = re.sub(r"\*\*(.*?)\*\*", r"\1", cleaned)  # **текст** → текст
+        cleaned = re.sub(r"\*(.*?)\*", r"\1", cleaned)  # *текст* → текст
+        cleaned = re.sub(r"__(.*?)__", r"\1", cleaned)  # __текст__ → текст
+        cleaned = re.sub(r"_(.*?)_", r"\1", cleaned)  # _текст_ → текст
+
+        # замена множественных пробелов на один и удаление пробелов в начале и конце строки
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+
+        return cleaned
+
+    async def gen_es_data(
+            self,
+            articles_data: list,
+            aircraft_data: list,
+            countries_data: list,
+            normalize=False
+    ) -> list:
         """
         Подготовка данных к индексации elasticsearch
         """
@@ -104,11 +134,13 @@ class InitData:
 
         for item in articles_data:
             article_id = item["id"]
-            content = self.normalize_text(item["content"]) if normalize else item["content"]
+            content = self.normalize_text(item["content"]) if normalize else self.clean_text(item["content"])
+            slug = item["slug"]
 
             if not aircraft_data:
                 title = item["title"]
                 tags = [item["article_category"]]
+                image_url = None
             else:
                 aircraft_item = aircraft[article_id]
                 title = aircraft_item["name"]
@@ -122,25 +154,26 @@ class InitData:
                     aircraft_item["engine_type"],
                     aircraft_item["status"],
                 ]
+                image = str(aircraft_item["image_url"]).lstrip('_').replace("_", "-")
+                image_url = f"/images/aircraft/{image}"
 
             if normalize:
-                # нормализация заголовка и тегов
-                title = self.normalize_text(title)
+                # нормализация тегов
                 tags = [self.normalize_text(tag) for tag in tags if tag]
             else:
-                tags = [tag for tag in tags if tag]  # исключение None из тегов
-
-            idx = re.sub(r'^_|(\.[^.]*)$', '', item["filename"])
+                # исключение None из тегов
+                tags = [tag for tag in tags if tag]
 
             # сборка итогового документа
             doc = {
-                "_index": idx,
                 "_id": str(article_id),
                 "_source": {
+                    "category": ARTICLES_INDEX,
                     "title": title,
                     "content": content,
+                    "slug": slug,
                     "tags": tags,
-                    # "entities"
+                    "image_url": image_url,
                 }
             }
             es_docs.append(doc)
@@ -193,16 +226,24 @@ async def read_json(file: str) -> list:
         return json.load(f)
 
 
-async def main() -> None:
-    env = Env()
-    env.read_env()
+async def index_articles(es_manager: ESManager):
+    """
+    Индексация статей
+    """
 
-    es_url = env.str("ELASTICSEARCH_URL")
-    if not es_url:
-        logger.warning("Строка подключения к Elasticsearch отсутствует")
-        sys.exit(0)
+    index_name = ARTICLES_INDEX
 
-    es_manager = ESManager(url=es_url)
+    # проверка существования индекса перед индексацией документа
+    try:
+        index_exists = await es_manager.es.indices.exists(index=index_name)
+        if not index_exists:
+            # создание индекса с настройками
+            await es_manager.es.indices.create(index=index_name, body=index_settings)
+            logger.info(f'Индекс "{index_name}" создан')
+
+    except Exception as ex:
+        logger.error(f"Ошибка при проверке/создании индекса {index_name}: {ex}")
+        return
 
     # чтение и подготовка списка стран
     countries_data = await read_json("/scripts/data/countries.json")
@@ -219,33 +260,11 @@ async def main() -> None:
     # подготовка статей к индексации
     es_doc = await InitData().gen_es_data(articles_data_model, aircraft_data_model, countries_data_model)
 
-    # индексация статей
-    await es_manager.start()
-
     try:
-        # Проход по каждому документу из подготовленного списка
+        # проход по каждому документу из подготовленного списка
         for doc in es_doc:
-            index_name = doc["_index"]
             doc_id = doc["_id"]
             source_data = doc["_source"]
-
-            # проверка существования индекса перед индексацией документа
-            try:
-                index_exists = await es_manager.es.indices.exists(index=index_name)
-
-            except Exception as ex:
-                logger.error(f"Ошибка при проверке существования индекса {index_name}: {ex}")
-                continue
-
-            if not index_exists:
-                try:
-                    # создание индекса с настройками
-                    await es_manager.es.indices.create(index=index_name, body=index_settings)
-                    logger.info(f'Индекс "{index_name}" создан')
-
-                except Exception as ex:
-                    logger.error(f"Ошибка при создании индекса {index_name}: {ex}")
-                    continue
 
             # индексация документа через ESManager
             success = await es_manager.index_document(index=index_name, doc_id=doc_id, document=source_data)
@@ -254,6 +273,28 @@ async def main() -> None:
                 logger.info(f'Документ ID {doc_id} успешно проиндексирован в индекс "{index_name}"')
             else:
                 logger.info(f'Ошибка индексации документа ID {doc_id} в индекс "{index_name}"')
+
+    except Exception as ex:
+        logger.exception(f"Ошибка индексации статей: {ex}")
+
+
+async def main() -> None:
+    env = Env()
+    env.read_env()
+
+    es_url = env.str("ELASTICSEARCH_URL")
+    if not es_url:
+        logger.warning("Строка подключения к Elasticsearch отсутствует")
+        sys.exit(0)
+
+    es_manager = ESManager(url=es_url)
+    try:
+        await es_manager.start()
+        await index_articles(es_manager)
+        # TODO: добавить индексацию фактов об авиации
+
+    except Exception as ex:
+        logger.exception(ex)
 
     finally:
         await es_manager.close()
