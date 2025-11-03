@@ -11,7 +11,7 @@ rmq_manager = RMQManager(url=settings.RMQ_CONN)
 cache_manager = CacheManager(url=settings.REDIS_URL)
 
 # инициализация Elasticsearch
-es_manager = ESManager(url=settings.ELASTIC_URL)
+es_manager = ESManager(url=settings.ELASTIC_URL, password=settings.ELASTIC_PASSWORD)
 
 # инициализация AIOHTTP менеджер сессий
 http_manager = HTTPManager()
