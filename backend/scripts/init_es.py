@@ -1,5 +1,5 @@
 """
-Индексирование статей в ElasticSearch
+Индексирование статей в Elasticsearch
 """
 
 import asyncio
