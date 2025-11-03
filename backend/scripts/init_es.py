@@ -282,7 +282,7 @@ async def main() -> None:
     env = Env()
     env.read_env()
 
-    es_url = env.str("ELASTICSEARCH_URL")
+    es_url = env.str("ELASTIC_URL")
     if not es_url:
         logger.warning("Строка подключения к Elasticsearch отсутствует")
         sys.exit(0)
