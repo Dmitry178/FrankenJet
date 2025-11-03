@@ -23,7 +23,7 @@ services:
     hostname: elasticsearch
     environment:
       - discovery.type=single-node
-      - xpack.security.enabled=false
+      - ELASTIC_PASSWORD=password
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - "9200:9200"
@@ -35,14 +35,15 @@ services:
       - network
 
   kibana:
-    image: kibana:9.2.0
+    image: kibana:8.19.2
     container_name: fj-kibana
     hostname: kibana
     ports:
       - "5601:5601"
     environment:
       - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - xpack.security.enabled=false
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=password
     depends_on:
       - elasticsearch
     restart: unless-stopped
