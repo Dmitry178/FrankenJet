@@ -389,11 +389,28 @@ async def main() -> None:
             logger.info("Миграции" if db_handler.run_migrations else "Создание таблиц")
             await db_handler.create_tables()
 
+        logger.info("Добавление ролей пользователей")
+        data = await read_json("/scripts/data/roles.json")
+        await db_handler.add_data(Roles, data)
+
         logger.info("Добавление пользователей")
         await db_handler.insert_users(users)
 
+        logger.info("Добавление стран")
+        data = await read_json("/scripts/data/countries.json")
+        await db_handler.add_data(Countries, data)
+
+        logger.info("Добавление статей")
+        data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
+        await db_handler.add_data(Articles, data)
+
+        logger.info("Добавление карточек воздушных судов")
+        data = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
+        await db_handler.add_data(Aircraft, data)
+
     async with DBManager(session_factory=async_session_maker) as db:
 
+        '''
         logger.info("Добавление ролей пользователей")
         roles_data = await read_json("/scripts/data/roles.json")
         roles_data_model = DataUtils().convert_data_types(Roles, roles_data)
@@ -403,6 +420,7 @@ async def main() -> None:
         countries_data = await read_json("/scripts/data/countries.json")
         countries_data_model = DataUtils().convert_data_types(Countries, countries_data)
         await db.countries.insert_all_conflict(values=countries_data_model)
+        '''
 
         logger.info("Добавление фактов")
         facts = await read_text("/scripts/data/facts.txt")
@@ -413,6 +431,7 @@ async def main() -> None:
         logger.info("Добавление списка тегов")
         await TagsServices(db).auto_create()
 
+        '''
         logger.info("Добавление статей")
         articles_data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
         articles_data_model = DataUtils().convert_data_types(Articles, articles_data)
@@ -422,6 +441,7 @@ async def main() -> None:
         aircraft_data = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
         aircraft_data_model = DataUtils().convert_data_types(Aircraft, aircraft_data)
         await db.aircraft.insert_all_conflict(values=aircraft_data_model)
+        '''
 
         # TODO: сделать добавление тегов к статьям
 
