@@ -1,3 +1,5 @@
+# ВНИМАНИЕ! Перед входом в приложение, дождитесь обработки данных скриптами инициализации
+
 services:
   postgres:
     image: postgres:17.5
@@ -69,7 +71,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_PORT:-3000}:80"
+      - "${FRONTEND_PORT:-3100}:80"
     restart: unless-stopped
     networks:
       - network
