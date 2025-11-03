@@ -9,7 +9,7 @@
 ![](/images/home.png)
 *Главная страница*
 
-![](/images/search.png)
+![](/images/elasticsearch.png)
 *Страница поиска*
 
 ![](/images/article.png)
