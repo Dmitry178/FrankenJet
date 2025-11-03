@@ -53,6 +53,7 @@ class Settings(BaseSettings):
     REDIS_URL: str | None = None  # строка подключения к Redis
     ELASTIC_URL: str | None = None  # строка подключения к Elasticsearch
     ELASTIC_PASSWORD: str | None = None  # пароль к Elasticsearch
+    ELASTIC_SSL: bool | None = None  # используется ли SSL для Elasticsearch
 
     # подключение к S3
     S3_ACCESS_KEY_ID: str | None = None
