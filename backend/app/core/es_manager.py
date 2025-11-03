@@ -6,15 +6,23 @@ from typing import Dict, Any
 from elasticsearch import AsyncElasticsearch
 from elasticsearch.exceptions import ConnectionError, NotFoundError, AuthenticationException
 
-from app.config.env import settings
+from app.config.env import settings, AppMode
 from app.core.logs import logger
 
 
 class ESManager:
 
-    def __init__(self, url: str | None = None, max_retries: int = 3):
+    def __init__(
+            self,
+            url: str | None = None,
+            password: str | None = None,
+            max_retries: int = 3,
+            use_ssl: bool = None
+    ):
         self.url = url
+        self.password = password
         self.max_retries = max_retries
+        self.use_ssl = use_ssl if use_ssl is not None else (settings.APP_MODE == AppMode.production)
         self.es: AsyncElasticsearch | None = None
 
     async def start(self):
@@ -26,21 +34,20 @@ class ESManager:
             return
 
         try:
-            # is_production = settings.APP_MODE == AppMode.production
-            # self.es = AsyncElasticsearch(
-            #     [url],
-            #     verify_certs=is_production,
-            #     ssl_show_warn=is_production
-            # )
 
             headers = {
                 "Content-Type": "application/vnd.elasticsearch+json; compatible-with=8",
                 "Accept": "application/vnd.elasticsearch+json; compatible-with=8"
             }
+
+            basic_auth = ("elastic", self.password) if self.password else None
+
             self.es = AsyncElasticsearch(
                 [self.url],
                 headers=headers,
-                basic_auth=("elastic", settings.ELASTIC_PASSWORD),
+                basic_auth=basic_auth,
+                verify_certs=self.use_ssl,
+                ssl_show_warn=self.use_ssl
             )
 
             await self.es.ping()  # проверка доступности ES
