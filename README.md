@@ -260,7 +260,7 @@ docker-compose -f docker-compose-bot.yml down
 | Frontend      | 9999       | —                 | admin   | password | [http://localhost:9999](http://localhost:9999)               |
 | Backend       | 8100       | —                 | admin   | password | [http://localhost:8100/docs](http://localhost:9999/api/docs) |
 | Bot           | —          | —                 | —       | —        | —                                                            |
-| Elasticsearch | 9200, 9300 | —                 | —       | —        | —                                                            |
+| Elasticsearch | 9200, 9300 | —                 | —       | password | —                                                            |
 
 ---
 
@@ -277,11 +277,12 @@ docker-compose -f docker-compose-bot.yml down
 - RabbitMQ.
 - Redis.
 - MinIO (или совместимое хранилище).
+- Elasticsearch с установленным плагином analysis-icu.
 
 ### Настройка GitLab Runner
 
-1. Убедитесь, что у вас есть GitLab Runner с тегом `deploy`.
-2. Если у вас нет подходящего раннера, [настройте его](https://docs.gitlab.com/runner/install/) и добавьте тег `deploy`.
+1. Убедитесь, что у вас есть GitLab Runner с тегом `frankenjet`.
+2. Если у вас нет подходящего раннера, [настройте его](https://docs.gitlab.com/runner/install/) и добавьте тег `frankenjet`.
 
 ### Настройка переменных окружения
 
@@ -304,14 +305,6 @@ docker-compose -f docker-compose-bot.yml down
 - **Flags:** `Expand variable reference`
 - **Key:** `ENV_FRONTEND`
 - **Value:** содержимое файла `example.env` из проекта фронтенда с вашими значениями
-
-#### ENV_BOT
-
-- **Type:** `File`
-- **Visibility:** `Visible`
-- **Flags:** `Expand variable reference`
-- **Key:** `ENV_BOT`
-- **Value:** содержимое файла `example.env` из проекта бота с вашими значениями
 
 ### Запуск деплоя
 
