@@ -47,7 +47,7 @@ async def lifespan(fastapi_app: FastAPI):  # noqa
     yield
 
     if es_manager.url:
-        await es_manager.stop()
+        await es_manager.close()
         logger.info("Elasticsearch stopped")
 
     if cache_manager.url:
