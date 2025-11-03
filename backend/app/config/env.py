@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     RMQ_CONN: str | None = None  # строка подключения к RabbitMQ
     REDIS_URL: str | None = None  # строка подключения к Redis
     ELASTICSEARCH_URL: str | None = None  # строка подключения к ElasticSearch
+    ELASTICSEARCH_PASSWORD: str | None = None  # пароль к ElasticSearch
 
     # подключение к S3
     S3_ACCESS_KEY_ID: str | None = None
