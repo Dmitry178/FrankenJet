@@ -40,7 +40,7 @@ class ESManager:
             self.es = AsyncElasticsearch(
                 [self.url],
                 headers=headers,
-                basic_auth=("elastic", settings.ELASTICSEARCH_PASSWORD),
+                basic_auth=("elastic", settings.ELASTIC_PASSWORD),
             )
 
             await self.es.ping()  # проверка доступности ES

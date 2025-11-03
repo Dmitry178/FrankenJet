@@ -51,8 +51,8 @@ class Settings(BaseSettings):
     DB_CONN: str  # строка соединения с базой
     RMQ_CONN: str | None = None  # строка подключения к RabbitMQ
     REDIS_URL: str | None = None  # строка подключения к Redis
-    ELASTICSEARCH_URL: str | None = None  # строка подключения к ElasticSearch
-    ELASTICSEARCH_PASSWORD: str | None = None  # пароль к ElasticSearch
+    ELASTIC_URL: str | None = None  # строка подключения к Elasticsearch
+    ELASTIC_PASSWORD: str | None = None  # пароль к Elasticsearch
 
     # подключение к S3
     S3_ACCESS_KEY_ID: str | None = None
