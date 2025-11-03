@@ -24,7 +24,7 @@ services:
     environment:
       - discovery.type=single-node
       - ELASTIC_PASSWORD="${ELASTIC_PASSWORD:-password}"
-      - ES_JAVA_OPTS="-Xms512m -Xmx512m"
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
     ports:
       - "${ES_API_PORT:-9210}:9200"
       - "${ES_TRANSPORT_PORT:-9310}:9300"
