@@ -67,17 +67,16 @@
             <!-- Статьи -->
             <v-card
               v-if="item.category !== 'facts'"
-              :to="`/articles/${item.slug}`"
               class="search-result-card"
-              hover
+              @click="() => router.push(`/articles/${item.slug}`)"
             >
               <v-row no-gutters>
                 <v-col cols="3" md="2">
                   <v-img
                     :src="item.image_url"
                     height="120"
-                    cover
                     class="ma-4 grayscale-image"
+                    cover
                   >
                     <template #placeholder>
                       <div class="d-flex align-center justify-center fill-height">
@@ -91,7 +90,7 @@
                     {{ item.title }}
                   </v-card-title>
                   <v-card-text class="pa-2">
-                    {{ item.summary }}
+                    <div v-html="item.summary"></div>
                   </v-card-text>
                 </v-col>
               </v-row>
@@ -105,7 +104,7 @@
             >
               <v-card-text class="pt-2 pb-2 pl-1 pr-1">
                 <v-icon color="info" class="mr-2">mdi-lightbulb-on-outline</v-icon>
-                {{ item.summary }}
+                <div v-html="item.summary"></div>
               </v-card-text>
             </v-card>
           </v-col>
@@ -131,13 +130,14 @@
 </template>
 
 <script>
-import {onMounted, ref, watch} from 'vue';
-import {useRoute, useRouter} from 'vue-router';
+import { onMounted, ref, watch } from 'vue';
+import { createRouter as router, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import DOMPurify from "dompurify";
 
 export default {
   name: 'Search',
+  methods: { router },
   setup() {
     const route = useRoute();
     const router = useRouter();
@@ -266,6 +266,7 @@ export default {
     );
 
     return {
+      router,
       searchQuery,
       searchResults,
       loading,
@@ -312,6 +313,13 @@ export default {
 .search-result-card,
 .search-result-card-fact {
   margin-bottom: 16px;
+}
+
+:deep(em) {
+  background-color: rgb(var(--v-theme-warning)) !important;
+  padding: 2px 4px !important;
+  border-radius: 3px !important;
+  font-style: normal !important;
 }
 
 @media (max-width: 768px) {
