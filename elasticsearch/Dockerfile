@@ -1,4 +1,4 @@
-FROM elasticsearch:9.2.0
+FROM elasticsearch:8.19.2
 
 RUN elasticsearch-plugin install --batch analysis-icu
 
