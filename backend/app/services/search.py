@@ -61,11 +61,10 @@ class SearchService:
             if result:
                 hits = result.get("hits", {}).get("hits", [])
                 total = result.get("hits", {}).get("total", {}).get("value", 0)
+                results = []
+                categories_set = set()
 
                 if hits:
-                    results = []
-                    categories_set = set()
-
                     for hit in hits:
                         src = hit["_source"]
                         category = src.get("category")
@@ -114,18 +113,18 @@ class SearchService:
 
                         results.append(item)
 
-                    all_categories = list(categories_set)
-                    total_categories = len(all_categories)
+                all_categories = list(categories_set)
+                total_categories = len(all_categories)
 
-                    return {
-                        "results": results,
-                        "metadata": {
-                            "total_count": total,
-                            "total_pages": (total + data.per_page - 1) // data.per_page,
-                            "total_categories": total_categories,
-                        },
-                        "categories": all_categories,
-                    }
+                return {
+                    "results": results,
+                    "metadata": {
+                        "total_count": total,
+                        "total_pages": (total + data.per_page - 1) // data.per_page,
+                        "total_categories": total_categories,
+                    },
+                    "categories": all_categories,
+                }
 
         # если Elasticsearch не настроен, либо выдал ошибку, то запускаем простой поиск по базе
         fallback_result = await self.db.articles.search(data)
