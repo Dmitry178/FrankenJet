@@ -4,9 +4,9 @@ services:
     container_name: fj-postgres
     hostname: postgres
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-fj_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-fj_pass}
-      POSTGRES_DB: ${POSTGRES_DB:-fj}
+      POSTGRES_USER: "${POSTGRES_USER:-fj_user}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-fj_pass}"
+      POSTGRES_DB: "${POSTGRES_DB:-fj}"
       TZ: Europe/Moscow
     ports:
       - "${POSTGRES_PORT:-5436}:5432"
@@ -23,11 +23,11 @@ services:
     hostname: elasticsearch
     environment:
       - discovery.type=single-node
-      - ELASTIC_PASSWORD=password
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - ELASTIC_PASSWORD="${ELASTIC_PASSWORD:-password}"
+      - ES_JAVA_OPTS="-Xms512m -Xmx512m"
     ports:
-      - "9200:9200"
-      - "9300:9300"
+      - "${ES_API_PORT:-9210}:9200"
+      - "${ES_TRANSPORT_PORT:-9310}:9300"
     volumes:
       - ./volumes/es:/data
     restart: unless-stopped
@@ -41,9 +41,9 @@ services:
     ports:
       - "5601:5601"
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
-      - ELASTICSEARCH_USERNAME=elastic
-      - ELASTICSEARCH_PASSWORD=password
+      - ELASTICSEARCH_HOSTS="${ELASTIC_URL:-http://elasticsearch:9200}"
+      - ELASTICSEARCH_USERNAME="${ELASTIC_USER:-elastic}"
+      - ELASTICSEARCH_PASSWORD="${ELASTIC_PASSWORD:-password}"
     depends_on:
       - elasticsearch
     restart: unless-stopped
@@ -56,8 +56,8 @@ services:
     hostname: minio
     command: server /data --console-address ":9001"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-password}
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-admin}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-password}"
     volumes:
       - ./volumes/s3:/data
     ports:
@@ -75,8 +75,8 @@ services:
       - "${RABBITMQ_PORT:-5676}:5672"  # AMQP
       - "${RABBITMQ_MANAGEMENT_PORT:-15676}:15672"  # Web UI
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_ADMIN_USER:-admin}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_ADMIN_PASSWORD:-password}
+      RABBITMQ_DEFAULT_USER: "${RABBITMQ_ADMIN_USER:-admin}"
+      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_ADMIN_PASSWORD:-password}"
       TZ: Europe/Moscow
     volumes:
       - ./volumes/rabbitmq:/var/lib/rabbitmq
@@ -89,7 +89,7 @@ services:
     hostname: redis
     command: redis-server --requirepass ${REDIS_PASSWORD:-password}
     environment:
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-password}
+      - REDIS_PASSWORD="${REDIS_PASSWORD:-password}"
     ports:
       - "6380:6379"
     volumes:
@@ -107,7 +107,7 @@ services:
       - postgres
       - rabbitmq
     environment:
-      RMQ_CONN: ${RMQ_CONN:-amqp://admin:password@rabbitmq:5672}
+      RMQ_CONN: "${RMQ_CONN:-amqp://admin:password@rabbitmq:5672}"
     env_file:
       - ./notifications/bot.env
     restart: unless-stopped
@@ -125,22 +125,21 @@ services:
       - rabbitmq
       - minio
       - elasticsearch
-      - kibana
     ports:
       - "${BACKEND_PORT:-8100}:8000"
     environment:
       APP_MODE: local
-      DB_CONN: ${DB_CONN:-fj_user:fj_pass@postgres:5432/fj}
-      RMQ_CONN: ${RMQ_CONN:-amqp://admin:password@rabbitmq:5672}
-      CORS: ${CORS:-http://localhost:9999}
-      ALLOW_AUTHENTICATION: ${ALLOW_AUTHENTICATION:-true}
-      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION:-true}
-      ADMIN_USER: ${ADMIN_USER:-admin}
-      ADMIN_PASS: ${ADMIN_PASS:-password}
-      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-admin}
-      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-password}
-      S3_ENDPOINT_URL: ${S3_ENDPOINT_URL:-http://minio:9000}
-      ELASTICSEARCH_URL: ${ELASTICSEARCH_URL:-http://elasticsearch:9200}
+      DB_CONN: "${DB_CONN:-fj_user:fj_pass@postgres:5432/fj}"
+      RMQ_CONN: "${RMQ_CONN:-amqp://admin:password@rabbitmq:5672}"
+      CORS: "${CORS:-http://localhost:9999}"
+      ALLOW_AUTHENTICATION: "${ALLOW_AUTHENTICATION:-true}"
+      ALLOW_REGISTRATION: "${ALLOW_REGISTRATION:-true}"
+      ADMIN_USER: "${ADMIN_USER:-admin}"
+      ADMIN_PASS: "${ADMIN_PASS:-password}"
+      S3_ACCESS_KEY_ID: "${S3_ACCESS_KEY_ID:-admin}"
+      S3_SECRET_ACCESS_KEY: "${S3_SECRET_ACCESS_KEY:-password}"
+      S3_ENDPOINT_URL: "${S3_ENDPOINT_URL:-http://minio:9000}"
+      ELASTICSEARCH_URL: "${ELASTICSEARCH_URL:-http://elasticsearch:9200}"
     restart: unless-stopped
     networks:
       - network
