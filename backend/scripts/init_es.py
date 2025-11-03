@@ -287,7 +287,10 @@ async def main() -> None:
         logger.warning("Строка подключения к Elasticsearch отсутствует")
         sys.exit(0)
 
-    es_manager = ESManager(url=es_url)
+    es_password = env.str("ELASTIC_PASSWORD")
+
+    es_manager = ESManager(url=es_url, password=es_password, use_ssl=False)
+
     try:
         await es_manager.start()
         await index_articles(es_manager)
