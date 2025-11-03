@@ -5,7 +5,7 @@ stages:
 deploy_backend_job:
   stage: deploy_backend
   tags:
-    - deploy
+    - frankenjet
   rules:
     - if: $CI_COMMIT_BRANCH == "deploy"
       changes:
