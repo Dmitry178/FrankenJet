@@ -4,8 +4,9 @@ from contextlib import asynccontextmanager
 from typing import Dict, Any
 
 from elasticsearch import AsyncElasticsearch
-from elasticsearch.exceptions import ConnectionError, NotFoundError
+from elasticsearch.exceptions import ConnectionError, NotFoundError, AuthenticationException
 
+from app.config.env import settings
 from app.core.logs import logger
 
 
@@ -14,26 +15,56 @@ class ESManager:
     def __init__(self, url: str | None = None, max_retries: int = 3):
         self.url = url
         self.max_retries = max_retries
-        self.es: AsyncElasticsearch | None = AsyncElasticsearch([url]) if url else None
+        self.es: AsyncElasticsearch | None = None
 
     async def start(self):
         """
         Запуск менеджера
         """
 
-        if self.url:
-            try:
-                # проверка, доступен ли ES
-                await self.es.ping()
-                logger.info("Elasticsearch подключен")
+        if not self.url:
+            return
 
-            except Exception as e:
-                logger.error(f"Elasticsearch недоступен: {e}")
-                self.es = None  # отключаем, если недоступен
+        try:
+            # is_production = settings.APP_MODE == AppMode.production
+            # self.es = AsyncElasticsearch(
+            #     [url],
+            #     verify_certs=is_production,
+            #     ssl_show_warn=is_production
+            # )
+
+            headers = {
+                "Content-Type": "application/vnd.elasticsearch+json; compatible-with=8",
+                "Accept": "application/vnd.elasticsearch+json; compatible-with=8"
+            }
+            self.es = AsyncElasticsearch(
+                [self.url],
+                headers=headers,
+                basic_auth=("elastic", settings.ELASTICSEARCH_PASSWORD),
+            )
+
+            await self.es.ping()  # проверка доступности ES
+
+        except (ConnectionError, AuthenticationException) as ex:
+            logger.error(f"Ошибка подключения к Elasticsearch: {ex}")
+            self.es = None
+
+        except Exception as ex:
+            logger.exception(f"Elasticsearch недоступен: {ex}")
+            self.es = None
 
     async def close(self):
-        if self.es:
+        if not self.es:
+            return
+
+        try:
             await self.es.close()
+
+        except Exception as ex:
+            logger.exception(f"Ошибка закрытия Elasticsearch: {ex}")
+
+        finally:
+            self.es = None
 
     @asynccontextmanager
     async def context(self):
@@ -43,7 +74,7 @@ class ESManager:
         finally:
             await self.close()
 
-    async def search(self, query: Dict[str, Any], index="articles") -> Dict[str, Any] | None:
+    async def search(self, query: Dict[str, Any], index: str | list = "articles") -> Dict[str, Any] | None:
         """
         Индексированный поиск
         """
@@ -53,8 +84,7 @@ class ESManager:
 
         for attempt in range(self.max_retries):
             try:
-                result = await self.es.search(index=index, body=query)
-                return result
+                return await self.es.search(index=index, body=query)
 
             except ConnectionError:
                 if attempt == self.max_retries - 1:
@@ -63,8 +93,8 @@ class ESManager:
                 logger.warning(f"Ошибка подключения к ES (попытка {attempt + 1})")
                 await asyncio.sleep(1 * (attempt + 1))
 
-            except Exception as e:
-                logger.error(f"Ошибка при поиске в ES: {e}")
+            except Exception as ex:
+                logger.error(f"Ошибка при поиске в ES: {ex}")
                 return None
 
     async def index_document(self, index: str, doc_id: str, document: Dict[str, Any]) -> bool:
@@ -87,8 +117,8 @@ class ESManager:
                 logger.warning(f"Ошибка подключения к ES при индексации (попытка {attempt + 1})")
                 await asyncio.sleep(1 * (attempt + 1))
 
-            except Exception as e:
-                logger.error(f"Ошибка при индексации в ES: {e}")
+            except Exception as ex:
+                logger.error(f"Ошибка при индексации в ES: {ex}")
                 return False
 
     async def delete_document(self, index: str, doc_id: str) -> bool:
@@ -115,6 +145,21 @@ class ESManager:
                 logger.warning(f"Ошибка подключения к ES при удалении (попытка {attempt + 1})")
                 await asyncio.sleep(1 * (attempt + 1))
 
-            except Exception as e:
-                logger.error(f"Ошибка при удалении из ES: {e}")
+            except Exception as ex:
+                logger.error(f"Ошибка при удалении из ES: {ex}")
                 return False
+
+    async def health_check(self) -> bool:
+        """
+        Проверка подключения Elasticsearch
+        """
+
+        if not self.es:
+            return False
+
+        try:
+            return await self.es.ping()
+
+        except Exception as ex:
+            logger.exception(f"Ошибка проверки Elasticsearch: {ex}")
+            return False
