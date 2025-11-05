@@ -23,6 +23,8 @@
                 v-if="article.image_url"
                 :src="article.image_url"
                 class="grayscale-image"
+                aspect-ratio=16/9
+                max-height="200"
                 cover
               />
               <v-img
@@ -128,6 +130,9 @@ export default {
 
 <style scoped>
 .article-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   cursor: pointer;
   transition: transform 0.2s;
 }
@@ -139,4 +144,16 @@ export default {
 .grayscale-image {
   filter: grayscale(100%);
 }
+/*
+.v-col {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.v-row {
+  align-items: stretch !important;
+  height: 100%;
+}
+*/
 </style>
