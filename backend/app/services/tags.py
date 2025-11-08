@@ -72,3 +72,12 @@ class TagsServices:
         """
 
         return await self.db.tags.delete(tag_id=tag, commit=True)
+
+    @handle_basic_db_errors
+    async def count_tags(self):
+        """
+        Подсчёт количества тегов в статьях
+        """
+
+        result = await self.db.tags.count_tags()
+        return [dict(row) for row in result]
