@@ -5,6 +5,7 @@
   "name": "Ил-2",
   "original_name": "Ил-2",
   "aircraft_type": "самолёт",
+  "aircraft_purpose": "военный",
   "image_url": "il_2_1939.jpg",
   "image_description": "",
   "image_license": "Общественное достояние",

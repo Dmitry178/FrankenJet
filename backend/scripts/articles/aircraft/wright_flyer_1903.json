@@ -5,6 +5,7 @@
   "name": "Самолёт братьев Райт",
   "original_name": "Wright Flyer",
   "aircraft_type": "самолёт",
+  "aircraft_purpose": "исторический",
   "image_url": "wright_flyer_1903.jpg",
   "image_description": "",
   "image_license": "Общественное достояние",

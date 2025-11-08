@@ -5,6 +5,7 @@
   "name": "Граф Цеппелин",
   "original_name": "Graf Zeppelin",
   "aircraft_type": "дирижабль",
+  "aircraft_purpose": "гражданский",
   "image_url": "graf_zeppelin_1928.jpg",
   "image_description": "",
   "image_license": "Общественное достояние",
