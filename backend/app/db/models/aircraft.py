@@ -71,6 +71,8 @@ class AircraftPurpose(str, enum.Enum):
     Назначение воздушного судна
     """
 
+    historical = "исторический"
+    experimental = "экспериментальный"
     civilian = "гражданский"
     transport = "транспортный"
     cargo = "грузовой"
@@ -103,6 +105,7 @@ class Aircraft(Base, TimestampMixin):
     name: Mapped[str_32] = mapped_column(unique=True)  # название воздушного судна
     original_name: Mapped[str_32 | None] = mapped_column(unique=True)  # название на оригинальном языке
     aircraft_type: Mapped[str_16 | None] = mapped_column(Enum(AircraftTypes, native_enum=False, length=16))  # тип ВС
+    aircraft_purpose: Mapped[str_24 | None] = mapped_column(Enum(AircraftPurpose, native_enum=False, length=24))
     image_url: Mapped[str_128 | None]  # основное изображение воздушного судна
     image_description: Mapped[str_128 | None]  # описание изображения воздушного судна
     image_license: Mapped[str_32 | None]  # лицензия изображения
