@@ -6,13 +6,14 @@ from app.core.logs import logger
 from app.dependencies.auth import get_auth_admin_id
 from app.dependencies.db import DDB
 from app.exceptions.base import BaseCustomException
-from app.schemas.api import ApiResponse, ErrorResponse
+from app.schemas.api import ErrorResponse
 from app.services.admin import AdminServices
+from app.types import status_ok
 
 admin_router = APIRouter(prefix="/admin", tags=["Admin"])
 
 
-@admin_router.post("/uploads", summary="Загрузка файлов", dependencies=[Depends(get_auth_admin_id)])
+@admin_router.post("/uploads", summary="Загрузка статей (zip)", dependencies=[Depends(get_auth_admin_id)])
 async def uploads(db: DDB, file: UploadFile = File(...)):
     """
     Загрузка статей и прочих данных энциклопедии в виде zip-файла
@@ -23,7 +24,7 @@ async def uploads(db: DDB, file: UploadFile = File(...)):
             raise ValueError("Файл должен быть в формате ZIP")
 
         await AdminServices(db).upload_file(file)
-        return ApiResponse.success()
+        return status_ok
 
     except ValueError as ex:
         return JSONResponse(
