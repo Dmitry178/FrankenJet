@@ -144,16 +144,5 @@ export default {
 .grayscale-image {
   filter: grayscale(100%);
 }
-/*
-.v-col {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
 
-.v-row {
-  align-items: stretch !important;
-  height: 100%;
-}
-*/
 </style>
