@@ -28,6 +28,14 @@
 
       <v-spacer></v-spacer>
 
+      <v-btn
+        :to="{ name: 'Articles' }"
+        variant="text"
+        class="mr-2 hidden-sm-and-down"
+      >
+        Статьи
+      </v-btn>
+
       <v-btn icon @click="toggleTheme" class="mr-2">
         <v-icon>{{ themeIcon }}</v-icon>
       </v-btn>
