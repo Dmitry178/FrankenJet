@@ -9,7 +9,8 @@ from typing import TYPE_CHECKING, List
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import uid_pk, int_0, str_32, str_64, str_256, str_512, str_1024, bool_false, fk_article, fk_tag
+from app.db.types import uid_pk, int_0, str_32, str_64, str_256, str_512, str_1024, bool_false, fk_article, fk_tag, \
+    fk_tag_category
 
 if TYPE_CHECKING:
     from app.db.models import Aircraft
@@ -68,6 +69,20 @@ class Articles(Base, TimestampMixin):
     )
 
 
+class TagsCategories(Base):
+    """
+    Категории тегов
+    """
+
+    __tablename__ = "tags_categories"
+    __table_args__ = {"schema": "articles"}
+
+    category_id: Mapped[str_32] = mapped_column(primary_key=True)
+    title: Mapped[str_32] = mapped_column(unique=True)
+
+    tags: Mapped[List["Tags"]] = relationship(back_populates="tag_category")
+
+
 class Tags(Base):
     """
     Модель тегов к статьям
@@ -77,6 +92,9 @@ class Tags(Base):
     __table_args__ = {"schema": "articles"}
 
     tag_id: Mapped[str_32] = mapped_column(primary_key=True)
+    tag_category_id: Mapped[fk_tag_category]
+
+    tag_category: Mapped["TagsCategories"] = relationship(back_populates="tags")
 
     articles_association: Mapped[List["ArticlesTagsAssociation"]] = relationship(
         back_populates="tag",
