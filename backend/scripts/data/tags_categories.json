@@ -1,8 +1,8 @@
 [
-  {"category_id": "country", "title": "Страны"},
-  {"category_id": "article_categories", "title": "Категории статей"},
-  {"category_id": "aircraft_type", "title": "Типы воздушных судов"},
-  {"category_id": "engine_type", "title": "Типы двигателей"},
-  {"category_id": "aircraft_status", "title": "Статус воздушного судна"},
-  {"category_id": "aircraft_purpose", "title": "Назначение воздушного судна"}
+  {"category_id": "country", "title": "Страны", "sort_order": 1},
+  {"category_id": "article_categories", "title": "Категории статей", "sort_order": 2},
+  {"category_id": "aircraft_type", "title": "Типы воздушных судов", "sort_order": 3},
+  {"category_id": "engine_type", "title": "Типы двигателей", "sort_order": 4},
+  {"category_id": "aircraft_status", "title": "Статус воздушного судна", "sort_order": 5},
+  {"category_id": "aircraft_purpose", "title": "Назначение воздушного судна", "sort_order": 6}
 ]
