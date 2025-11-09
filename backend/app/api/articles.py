@@ -21,16 +21,16 @@ articles_router = APIRouter(prefix="/articles", tags=["Articles"])
 @cache_manager.cached(ttl=1800)
 async def get_article_list(
         db: DDB,
-        filters: str | None = Query(None, description="Фильтр"),
+        tags: str | None = Query(None, description="Список тегов через запятую"),
         page: int = Query(1, ge=1, description="Номер страницы"),
         page_size: int = Query(20, ge=1, le=100, description="Количество элементов на странице"),
 ):
     """
-    Получение списка статей с фильтром
+    Получение списка статей по списку тегов
     """
 
     try:
-        data = await ArticlesServices(db).get_articles_list(page, page_size, filters)
+        data = await ArticlesServices(db).get_articles_list_tags(tags, page, page_size)
         return {**status_ok, "data": data}
 
     except BaseCustomException as ex:
