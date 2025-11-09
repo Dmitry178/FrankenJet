@@ -20,7 +20,7 @@ from environs import Env
 from pathlib import Path
 from pydantic import BaseModel
 
-from sqlalchemy import DDL, select, inspect
+from sqlalchemy import DDL, select, inspect, text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
@@ -34,7 +34,6 @@ from app.core.s3_manager import S3Manager
 from app.db import Base, async_session_maker
 from app.db.models import *
 from app.services.security import SecurityService
-from app.services.tags import TagsServices
 
 T = TypeVar("T", bound=Base)
 
@@ -263,7 +262,7 @@ class DataCreator:
 
         return None
 
-    async def add_data(self, model: Type[T], data: list[dict]) -> None:
+    async def add_data(self, model: Type[T], data: list[dict], index_elements=None) -> None:
         """
         Добавление данных в таблицу
         """
@@ -274,7 +273,22 @@ class DataCreator:
         # замена дат в строковом представлении на datetime.data
         data = DataUtils().convert_data_types(model, data)
 
-        stmt = insert(model).values(data).on_conflict_do_nothing()
+        if index_elements:
+            if isinstance(index_elements, str):
+                index_elements = [index_elements]
+
+            set_ = {}
+            for column_name, column in model.__table__.columns.items():
+                if column_name not in index_elements:
+                    set_[column_name] = text(f"EXCLUDED.{column_name}")
+
+            stmt = insert(model).values(data).on_conflict_do_update(
+                index_elements=index_elements,
+                set_=set_
+            )
+        else:
+            stmt = insert(model).values(data).on_conflict_do_nothing()
+
         await self.session.execute(stmt)
         await self.session.commit()
 
@@ -288,7 +302,7 @@ async def main() -> None:
     Запуск скриптов инициализации данных
     """
 
-    async def assemble_json(path: str, is_article=False, has_image=False, s3manager=None) -> list[dict]:
+    async def assemble_json(path: str, is_article=False, has_image=False, s3manager=None) -> (list[dict], dict):
         """
         Сборка json из файлов для добавления в БД
         """
@@ -298,7 +312,10 @@ async def main() -> None:
         # чтение списка файлов с расширением json
         files = [file.name for file in directory.glob("*.json")]
 
-        result = []
+        result_data = []
+        result_tags = []
+        tags_list = ["country", "aircraft_type", "aircraft_purpose", "engine_type", "status"]
+
         for file_name in files:
             file_path = directory / file_name
 
@@ -327,9 +344,18 @@ async def main() -> None:
                     else:
                         json_data["image_url"] = None  # ошибка загрузки изображения в S3
 
-                result.append(json_data)
+                # обработка тегов
+                if json_data.get("article_id") and json_data.get("country"):
+                    for key in tags_list:
+                        if json_data.get(key):
+                            result_tags.append(
+                                {"article_id": json_data.get("article_id"), "tag_id": json_data.get(key)}
+                            )
+                    json_data.pop("country")
 
-        return result
+                result_data.append(json_data)
+
+        return result_data, result_tags
 
     async def read_json(file: str) -> list:
         """
@@ -390,23 +416,32 @@ async def main() -> None:
             await db_handler.create_tables()
 
         logger.info("Добавление ролей пользователей")
-        data = await read_json("/scripts/data/roles.json")
+        data = await read_json("./scripts/data/roles.json")
         await db_handler.add_data(Roles, data)
 
         logger.info("Добавление пользователей")
         await db_handler.insert_users(users)
 
         logger.info("Добавление стран")
-        data = await read_json("/scripts/data/countries.json")
+        data = await read_json("./scripts/data/countries.json")
         await db_handler.add_data(Countries, data)
 
+        logger.info("Добавление категорий тегов")
+        data = await read_json("./scripts/data/tags_categories.json")
+        await db_handler.add_data(TagsCategories, data)
+
+        logger.info("Добавление тегов")
+        data = await read_json("./scripts/data/tags.json")
+        await db_handler.add_data(Tags, data)
+
         logger.info("Добавление статей")
-        data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
+        data, _ = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
         await db_handler.add_data(Articles, data)
 
         logger.info("Добавление карточек воздушных судов")
-        data = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
+        data, tags = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
         await db_handler.add_data(Aircraft, data)
+        await db_handler.add_data(ArticlesTagsAssociation, tags)
 
     async with DBManager(session_factory=async_session_maker) as db:
 
@@ -428,10 +463,10 @@ async def main() -> None:
         facts_data_model = DataUtils().convert_data_types(Facts, facts_data)
         await db.facts.insert_all_conflict(values=facts_data_model)
 
+        '''
         logger.info("Добавление списка тегов")
         await TagsServices(db).auto_create()
 
-        '''
         logger.info("Добавление статей")
         articles_data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
         articles_data_model = DataUtils().convert_data_types(Articles, articles_data)
