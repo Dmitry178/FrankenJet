@@ -131,6 +131,12 @@ export default {
     const currentPage = ref(1);
     const totalPages = ref(1);
 
+    // константы для ключей localStorage
+    const STORAGE_KEYS = {
+      SELECTED_TAGS: 'articles_selected_tags',
+      CURRENT_PAGE: 'articles_current_page'
+    };
+
     // функция для получения полного URL изображения
     const getImageUrl = (imagePath) => {
       const baseUrl = settingsStore.settings.urls?.images || '';
@@ -159,6 +165,56 @@ export default {
       }
 
       return forms[2];
+    };
+
+    // сохранение тегов в localStorage
+    const saveSelectedTagsToStorage = () => {
+      try {
+        localStorage.setItem(STORAGE_KEYS.SELECTED_TAGS, JSON.stringify(selectedTags.value));
+      } catch (e) {
+        console.warn('Ошибка сохранения выбранных тегов в localStorage:', e);
+      }
+    };
+
+    // восстановление тегов из localStorage
+    const loadSelectedTagsFromStorage = () => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.SELECTED_TAGS);
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          if (Array.isArray(parsed)) {
+            selectedTags.value = parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Ошибка загрузки выбранных тегов из localStorage:', e);
+        selectedTags.value = [];
+      }
+    };
+
+    // сохранение номера страницы в localStorage
+    const saveCurrentPageToStorage = () => {
+      try {
+        localStorage.setItem(STORAGE_KEYS.CURRENT_PAGE, currentPage.value.toString());
+      } catch (e) {
+        console.warn('Ошибка сохранения номера текущей страницы в localStorage:', e);
+      }
+    };
+
+    // восстановление номера страницы из localStorage
+    const loadCurrentPageFromStorage = () => {
+      try {
+        const stored = localStorage.getItem(STORAGE_KEYS.CURRENT_PAGE);
+        if (stored) {
+          const parsed = parseInt(stored, 10);
+          if (!isNaN(parsed) && parsed > 0) {
+            currentPage.value = parsed;
+          }
+        }
+      } catch (e) {
+        console.warn('Ошибка чтение номера текущей страницы из localStorage:', e);
+        currentPage.value = 1;
+      }
     };
 
     const fetchTags = async () => {
@@ -209,6 +265,9 @@ export default {
       }
       currentPage.value = 1; // сброс на первую страницу при изменении тегов
 
+      saveSelectedTagsToStorage();
+      saveCurrentPageToStorage();
+
       // сохраняем текущую позицию прокрутки
       const scrollPosition = window.scrollY;
 
@@ -226,8 +285,16 @@ export default {
       await fetchArticles();
     };
 
-    onMounted(() => {
-      fetchTags();
+    onMounted(async () => {
+      // загрузка тегов
+      await fetchTags();
+      // восстановление состояния из localStorage
+      loadSelectedTagsFromStorage();
+      loadCurrentPageFromStorage();
+      // загрузка статей
+      if (selectedTags.value.length > 0) {
+        await fetchArticles();
+      }
     });
 
     return {
