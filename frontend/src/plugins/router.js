@@ -5,6 +5,7 @@ import Login from '../components/Login.vue';
 import AuthGoogle from '../components/LoginGoogle.vue';
 import Register from '../components/Register.vue';
 import ResetPassword from '../components/ResetPassword.vue';
+import Articles from '../components/Articles.vue';
 import Article from '../components/Article.vue';
 import Search from '../components/Search.vue';
 
@@ -14,6 +15,7 @@ const routes = [
   { path: '/auth/google', component: AuthGoogle },
   { path: '/register', component: Register, name: 'Register' },
   { path: '/reset', component: ResetPassword, name: 'ResetPassword' },
+  { path: '/articles', component: Articles, name: 'Articles' },
   { path: '/articles/:slug', component: Article, name: 'Article' },
   { path: '/search', component: Search, name: 'Search' },
 ];
