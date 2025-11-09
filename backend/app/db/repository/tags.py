@@ -1,6 +1,6 @@
 from sqlalchemy import update, select, literal_column, func, union_all
 
-from app.db.models import Tags, Countries, Aircraft, Articles
+from app.db.models import Tags, Countries, Aircraft, Articles, ArticlesTagsAssociation, TagsCategories
 from app.db.repository.base import BaseRepository
 
 
@@ -87,5 +87,27 @@ class TagsRepository(BaseRepository):
         ]
 
         query = (union_all(*union_all_query).select())
+
+        return (await self.session.execute(query)).mappings().all()
+
+    async def tags_list(self):
+        """
+        Вывод списка доступных тегов
+        """
+
+        query = (
+            select(
+                TagsCategories.title.label("category"),
+                ArticlesTagsAssociation.tag_id.label("tag"),
+            )
+            .join(Tags, Tags.tag_id == ArticlesTagsAssociation.tag_id)
+            .join(TagsCategories, TagsCategories.category_id == Tags.tag_category_id)
+            .join(Articles, Articles.id == ArticlesTagsAssociation.article_id)
+            .where(
+                Articles.is_published.is_(True),
+                Articles.is_archived.is_(False),
+            )
+            .distinct()
+        )
 
         return (await self.session.execute(query)).mappings().all()
