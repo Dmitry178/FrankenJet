@@ -1,6 +1,6 @@
 from sqlalchemy import select, func, true, case, literal, union_all, cast, String
 
-from app.db.models import Articles, Aircraft, Facts
+from app.db.models import Articles, Aircraft, Facts, ArticlesTagsAssociation
 from app.db.repository.base import BaseRepository
 from app.schemas.search import SSearch
 
@@ -168,3 +168,35 @@ class ArticlesRepository(BaseRepository):
             },
             "categories": all_categories,
         }
+
+    async def select_articles_paginated(self, tags: list[str] | None = None, offset: int = 0, limit: int = None):
+        """
+        Получение списка статей по тегам с пагинацией
+        """
+
+        query = (
+            select(
+                Articles.id.label("id"),
+                Articles.slug,
+                Articles.title,
+                Articles.summary,
+                Aircraft.image_url,
+            )
+            .select_from(Articles)
+            .join(Aircraft, Aircraft.article_id == Articles.id)
+            .join(ArticlesTagsAssociation, ArticlesTagsAssociation.article_id == Articles.id)
+            .where(
+                Articles.is_published.is_(True),
+                Articles.is_archived.is_(False),
+            )
+            .distinct()
+            .offset(offset)
+        )
+
+        if tags:
+            query = query.where(ArticlesTagsAssociation.tag_id.in_(tags))
+
+        if limit is not None:
+            query = query.limit(limit)
+
+        return (await self.session.execute(query)).mappings().all()
