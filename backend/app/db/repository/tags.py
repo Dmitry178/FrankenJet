@@ -99,6 +99,8 @@ class TagsRepository(BaseRepository):
             select(
                 TagsCategories.title.label("category"),
                 ArticlesTagsAssociation.tag_id.label("tag"),
+                TagsCategories.sort_order.label("category_sort_order"),
+                Tags.sort_order.label("tag_sort_order"),
             )
             .join(Tags, Tags.tag_id == ArticlesTagsAssociation.tag_id)
             .join(TagsCategories, TagsCategories.category_id == Tags.tag_category_id)
@@ -107,6 +109,7 @@ class TagsRepository(BaseRepository):
                 Articles.is_published.is_(True),
                 Articles.is_archived.is_(False),
             )
+            .order_by(TagsCategories.sort_order, Tags.sort_order)
             .distinct()
         )
 
