@@ -26,6 +26,12 @@ class AppServices:
             ),
         }
 
+        # пути
+        urls = {
+            "images": settings.S3_DIRECT_URL,
+        }
+
         return {
             "auth_methods": auth_methods,
+            "urls": urls,
         }
