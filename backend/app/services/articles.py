@@ -49,11 +49,11 @@ class ArticlesServices:
         return result
 
     @handle_basic_db_errors
-    async def get_articles_list(
+    async def get_articles_list_filtered(
             self,
+            filters: str | None = None,
             page: int | None = None,
             page_size: int | None = None,
-            filters: str | None = None,
     ) -> List[Articles]:
         """
         Получение списка статей с фильтром
@@ -70,6 +70,32 @@ class ArticlesServices:
         return await self.db.articles.select_all_paginated(
             offset, limit, *filter_conditions
         )
+
+    @handle_basic_db_errors
+    async def get_articles_list_tags(
+            self,
+            tags: str | None = None,
+            page: int | None = None,
+            page_size: int | None = None
+    ) -> list[Articles]:
+        """
+        Получение списка статей с заданными тегами с пагинацией
+        """
+
+        tags_list = []
+
+        if tags:
+            tags_raw_list = tags.split(",")
+            tags_list = [tag.strip() for tag in tags_raw_list if tag.strip()]
+
+        if page is None or page_size is None:
+            # вызов с использованием значений по умолчанию для offset и limit
+            return await self.db.articles.select_articles_paginated(tags_list)
+
+        offset = (page - 1) * page_size
+        limit = page_size
+
+        return await self.db.articles.select_articles_paginated(tags_list, offset, limit)
 
     @handle_basic_db_errors
     async def add_article(self, data: SArticles):
