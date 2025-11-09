@@ -169,7 +169,7 @@ export default {
 
     const breadcrumbs = computed(() => [
       { title: 'Главная', href: '/' },
-      { title: 'Статьи', disabled: true },
+      { title: 'Статьи',href: '/articles'},
       { title: article.value?.article.title || 'Статья не найдена', disabled: true },
     ]);
 
