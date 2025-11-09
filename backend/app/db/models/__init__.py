@@ -7,6 +7,7 @@ from app.db.models.articles import (
     Articles,
     ArticlesTagsAssociation,
     Tags,
+    TagsCategories,
 )
 from app.db.models.facts import (
     Facts,
@@ -32,6 +33,7 @@ __all__ = [
     "RefreshTokens",
     "Roles",
     "Tags",
+    "TagsCategories",
     "Users",
     "UsersRolesAssociation",
 ]
