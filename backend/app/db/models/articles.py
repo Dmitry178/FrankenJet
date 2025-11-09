@@ -79,6 +79,7 @@ class TagsCategories(Base):
 
     category_id: Mapped[str_32] = mapped_column(primary_key=True)
     title: Mapped[str_32] = mapped_column(unique=True)
+    sort_order: Mapped[int_0]
 
     tags: Mapped[List["Tags"]] = relationship(back_populates="tag_category")
 
@@ -93,6 +94,7 @@ class Tags(Base):
 
     tag_id: Mapped[str_32] = mapped_column(primary_key=True)
     tag_category_id: Mapped[fk_tag_category]
+    sort_order: Mapped[int_0]
 
     tag_category: Mapped["TagsCategories"] = relationship(back_populates="tags")
 
