@@ -55,6 +55,7 @@ fk_aircraft = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey(
 fk_article = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.articles.id"))]
 fk_country = Annotated[str, mapped_column(String(2), ForeignKey("articles.countries.id"))]
 fk_tag = Annotated[str, mapped_column(String(32), ForeignKey("articles.tags.tag_id"))]
+fk_tag_category = Annotated[str, mapped_column(String(32), ForeignKey("articles.tags_categories.category_id"))]
 
 # раскомментировать при использовании этих моделей в проекте
 # fk_design_bureau = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.design_bureaus.id"))]
