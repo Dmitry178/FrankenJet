@@ -27,7 +27,8 @@ async def home(db: DDB):
 
 
 @pages_router.get("/articles", summary="Информация для страницы статей")
-async def home(db: DDB):
+@cache_manager.cached(ttl=3600)
+async def articles(db: DDB):
     """
     Получение информации для страницы статей
     """
