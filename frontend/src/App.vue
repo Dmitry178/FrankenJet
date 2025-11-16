@@ -34,6 +34,15 @@
 
       <v-btn
         v-if="$vuetify.display.mdAndUp"
+        :to="{ name: 'Home' }"
+        variant="text"
+        class="mr-2"
+      >
+        Главная
+      </v-btn>
+
+      <v-btn
+        v-if="$vuetify.display.mdAndUp"
         :to="{ name: 'Articles' }"
         variant="text"
         class="mr-2"
@@ -277,3 +286,23 @@ export default {
   }
 };
 </script>
+
+<style scoped>
+.v-btn--variant-text:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.v-btn--variant-text:hover::before {
+  opacity: 0;
+}
+
+.v-overlay .v-btn--variant-text:hover {
+  text-decoration: none;
+  color: inherit;
+}
+
+.v-overlay .v-btn--variant-text:hover::before {
+  opacity: 0;
+}
+</style>
