@@ -60,30 +60,55 @@
               class="search-result-card"
               @click="() => router.push(`/articles/${item.slug}`)"
             >
-              <v-row no-gutters>
-                <v-col cols="3" md="2">
-                  <v-img
-                    :src="getImageUrl(item.image_url)"
-                    height="120"
-                    class="ma-4 grayscale-image"
-                    cover
-                  >
-                    <template #placeholder>
-                      <div class="d-flex align-center justify-center fill-height">
-                        <v-icon>mdi-image-off</v-icon>
-                      </div>
-                    </template>
-                  </v-img>
-                </v-col>
-                <v-col cols="9" md="10">
-                  <v-card-title class="text-h6 pa-2">
-                    {{ item.title }}
-                  </v-card-title>
-                  <v-card-text class="pa-2">
-                    <div v-html="item.summary"></div>
-                  </v-card-text>
-                </v-col>
-              </v-row>
+              <!-- Mobile -->
+              <div v-if="$vuetify.display.xs || $vuetify.display.sm">
+                <v-img
+                  :src="getImageUrl(item.image_url)"
+                  aspect-ratio="16/9"
+                  class="grayscale-image"
+                  cover
+                >
+                  <template #placeholder>
+                    <div class="d-flex align-center justify-center fill-height">
+                      <v-icon>mdi-image-off</v-icon>
+                    </div>
+                  </template>
+                </v-img>
+                <v-card-title class="text-h6 pa-4">
+                  {{ item.title }}
+                </v-card-title>
+                <v-card-text class="pa-4">
+                  <div v-html="item.summary"></div>
+                </v-card-text>
+              </div>
+
+              <!-- Desktop -->
+              <div v-else>
+                <v-row no-gutters>
+                  <v-col cols="3" md="2">
+                    <v-img
+                      :src="getImageUrl(item.image_url)"
+                      height="120"
+                      class="ma-4 grayscale-image"
+                      cover
+                    >
+                      <template #placeholder>
+                        <div class="d-flex align-center justify-center fill-height">
+                          <v-icon>mdi-image-off</v-icon>
+                        </div>
+                      </template>
+                    </v-img>
+                  </v-col>
+                  <v-col cols="9" md="10">
+                    <v-card-title class="text-h6 pa-2">
+                      {{ item.title }}
+                    </v-card-title>
+                    <v-card-text class="pa-2">
+                      <div v-html="item.summary"></div>
+                    </v-card-text>
+                  </v-col>
+                </v-row>
+              </div>
             </v-card>
           </v-col>
         </v-row>
