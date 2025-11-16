@@ -2,7 +2,8 @@
   <v-container>
     <!-- Описание проекта -->
     <v-card class="mb-4">
-      <v-card-title>Добро пожаловать в мир авиации!</v-card-title>
+      <v-card-title class="hidden-md-and-up">Добро пожаловать!</v-card-title>
+      <v-card-title class="hidden-sm-and-down">Добро пожаловать в мир авиации!</v-card-title>
       <v-card-text>
         <p>
           Этот проект - ваш путеводитель по истории авиации, созданный для всех, кто увлекается крылатыми машинами и героями неба.
