@@ -92,7 +92,7 @@ export default {
   defaults: {
     VContainer: {
       fluid: true,
-      style: 'padding: 10px;',
+      class: 'py-2 pt-sm-4 pb-sm-0',
     },
     VAppBar: {
       elevation: 0,
@@ -103,6 +103,13 @@ export default {
       elevation: 0,
       rounded: '2',
       style: 'border: 1px solid rgb(var(--v-theme-border));',
+      class: 'mb-2 mb-sm-4',
+    },
+    VCardTitle: {
+      class: 'ma-0 pa-0 px-sm-4 py-sm-3 mx-sm-3',
+    },
+    VCardText: {
+      class: 'ma-0 pa-0 px-sm-4 pb-sm-4 mx-sm-3',
     },
     VTextField: {
       density: 'compact',

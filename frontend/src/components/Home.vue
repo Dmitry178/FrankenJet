@@ -1,11 +1,11 @@
 <template>
   <v-container>
     <!-- Описание проекта -->
-    <v-card class="mb-4">
+    <v-card>
       <v-card-title class="hidden-md-and-up">Добро пожаловать!</v-card-title>
       <v-card-title class="hidden-sm-and-down">Добро пожаловать в мир авиации!</v-card-title>
       <v-card-text>
-        <p>
+        <p class="mb-0 mb-sm-1">
           Этот проект - ваш путеводитель по истории авиации, созданный для всех, кто увлекается крылатыми машинами и героями неба.
           Здесь вы  найдете увлекательные истории о самолетах, вертолетах, дирижаблях и множестве других летательных аппаратов.
           Узнайте о выдающихся конструкторах, легендарных производителях и  странах, которые внесли свой вклад в развитие авиации.
@@ -14,7 +14,7 @@
     </v-card>
 
     <!-- Статьи -->
-    <v-card class="mb-4" v-if="articles.length > 0">
+    <v-card v-if="articles.length > 0">
       <v-card-title>Статьи</v-card-title>
       <v-card-text>
         <v-row>
@@ -50,7 +50,7 @@
     </v-card>
 
     <!-- Интересные факты -->
-    <v-card class="mb-4" v-if="facts.length > 0">
+    <v-card v-if="facts.length > 0">
       <v-card-title>Интересные факты</v-card-title>
       <v-card-text>
         <ul>
