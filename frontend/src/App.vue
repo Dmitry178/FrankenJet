@@ -1,6 +1,6 @@
 <template>
   <v-app>
-    <!-- Тулбар -->
+    <!-- Toolbar -->
     <v-app-bar app flat>
       <router-link
           to="/"
@@ -10,7 +10,7 @@
         <v-toolbar-title class="font-weight-bold">Franken Jet</v-toolbar-title>
       </router-link>
 
-      <!--  Строка поиска  -->
+      <!-- Search (desktop) -->
       <v-text-field
         v-if="!isSearchRoute"
         v-model="searchQuery"
@@ -29,22 +29,140 @@
       <v-spacer></v-spacer>
 
       <v-btn
+        v-if="$vuetify.display.mdAndUp"
         :to="{ name: 'Articles' }"
         variant="text"
-        class="mr-2 hidden-sm-and-down"
+        class="mr-2"
       >
         Статьи
       </v-btn>
 
-      <v-btn icon @click="toggleTheme" class="mr-2">
+      <v-btn
+        v-if="$vuetify.display.mdAndUp"
+        icon
+        @click="toggleTheme"
+        class="mr-2"
+      >
         <v-icon>{{ themeIcon }}</v-icon>
       </v-btn>
 
       <v-divider vertical></v-divider>
 
-      <Login v-if="!isLoggedIn" />
-      <Logout v-else />
+      <Login
+        v-if="!isLoggedIn && $vuetify.display.mdAndUp"
+      />
+      <Logout v-else-if="$vuetify.display.mdAndUp" />
+
+      <v-btn
+        v-if="$vuetify.display.smAndDown"
+        icon
+        @click="drawer = true"
+        class="ml-2"
+      >
+        <v-icon>mdi-menu</v-icon>
+      </v-btn>
+
     </v-app-bar>
+
+    <!-- Drawer (mobile) -->
+    <v-overlay
+      v-model="drawer"
+      width="100%"
+      class="bg-surface"
+      :scrim="false"
+      @click:outside="drawer = false"
+    >
+
+      <v-toolbar flat class="px-0">
+        <v-toolbar-title class="text-h6 font-weight-bold">
+        </v-toolbar-title>
+        <v-spacer></v-spacer>
+        <v-btn
+          icon
+          @click="drawer = false"
+        >
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-toolbar>
+
+      <v-divider></v-divider>
+
+      <!-- Search -->
+      <v-list-item>
+        <v-text-field
+          v-model="searchQuery"
+          label="Поиск..."
+          append-inner-icon="mdi-magnify"
+          @click:append-inner="search"
+          @keydown.enter="search"
+          hide-details
+          rounded="pill"
+          variant="outlined"
+          clearable
+          density="compact"
+          class="mt-2"
+        ></v-text-field>
+      </v-list-item>
+
+      <v-divider class="my-2 mt-0"></v-divider>
+
+      <!-- Menu -->
+      <v-btn
+      block
+      variant="text"
+      :to="{ name: 'Home' }"
+      @click="drawer = false"
+      >
+        Главная
+      </v-btn>
+
+      <v-divider class="my-2"></v-divider>
+
+      <v-btn
+      block
+      variant="text"
+      :to="{ name: 'Articles' }"
+      @click="drawer = false"
+      >
+        Статьи
+      </v-btn>
+
+      <v-divider class="my-2"></v-divider>
+
+      <!-- Theme -->
+      <v-btn
+      block
+      variant="text"
+      @click="toggleTheme"
+      >
+        Тема
+        <v-icon end>{{ themeIcon }}</v-icon>
+      </v-btn>
+
+      <v-divider class="my-2"></v-divider>
+
+      <!-- Login / Logout -->
+      <v-btn
+        v-if="!isLoggedIn"
+        block
+        variant="text"
+        @click="drawer = false"
+        class="py-3"
+      >
+        Вход
+        <v-icon end>mdi-login</v-icon>
+      </v-btn>
+      <v-btn
+        v-else
+        block
+        variant="text"
+        @click="drawer = false"
+        class="py-3"
+      >
+        Выход
+        <v-icon end>mdi-logout</v-icon>
+      </v-btn>
+    </v-overlay>
 
     <!-- Основной контент -->
     <v-main>
@@ -86,6 +204,7 @@ export default {
 
     const search = () => {
       router.push({ path: "/search", query: { q: searchQuery.value } });
+      drawer.value = false; // закрываем меню после поиска
     };
 
     // получаем названия тем из vuetify.config
@@ -133,6 +252,9 @@ export default {
       localStorage.setItem('selectedTheme', nextTheme);
     };
 
+    // управление состоянием Drawer
+    const drawer = ref(false);
+
     onMounted(() => {
       settingsStore.loadSettings();
       displayAsciiArt();
@@ -146,6 +268,7 @@ export default {
       search,
       themeIcon,
       toggleTheme,
+      drawer,
     };
   }
 };
