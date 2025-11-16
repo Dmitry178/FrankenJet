@@ -5,6 +5,10 @@
       <router-link
           to="/"
           style="text-decoration: none; color: inherit; display: flex; align-items: center;"
+          :class="{
+            'pl-2': $vuetify.display.smAndDown,
+            'pl-0': $vuetify.display.mdAndUp
+          }"
       >
         <v-icon icon="mdi-airplane" class="mr-1" size="x-large" color="primary"></v-icon>
         <v-toolbar-title class="font-weight-bold">Franken Jet</v-toolbar-title>
