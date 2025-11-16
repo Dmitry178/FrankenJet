@@ -53,7 +53,7 @@
     <v-card v-if="facts.length > 0">
       <v-card-title>Интересные факты</v-card-title>
       <v-card-text>
-        <ul>
+        <ul class="mb-0">
           <li v-for="(fact, index) in facts" :key="index">{{ fact }}</li>
         </ul>
       </v-card-text>
