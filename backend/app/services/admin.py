@@ -1,6 +1,8 @@
 import json
+import xml.etree.ElementTree as Et
 import zipfile
 
+from datetime import datetime
 from fastapi import UploadFile
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -104,3 +106,51 @@ class AdminServices:
 
                 # загрузка данных в БД
                 model.insert_all(values=result, commit=True)
+
+    async def sitemap(self):
+        """
+        Генерация sitemap.xml
+        """
+
+        # список slug статей из базы
+        articles = await self.db.articles.get_articles_slugs()
+
+        # корневой элемент
+        urlset = Et.Element("urlset", xmlns="https://www.sitemaps.org/schemas/sitemap/0.9")
+
+        # главная страница
+        url_main = Et.SubElement(urlset, "url")
+        Et.SubElement(url_main, "loc").text = "https://frankenjet.ru"
+        Et.SubElement(url_main, "lastmod").text = datetime.now().strftime("%Y-%m-%d")
+        Et.SubElement(url_main, "changefreq").text = "weekly"  # always, hourly, daily, weekly, monthly, yearly, never
+        Et.SubElement(url_main, "priority").text = "1.0"
+
+        # страница со списком статей
+        url_articles = Et.SubElement(urlset, "url")
+        Et.SubElement(url_articles, "loc").text = "https://frankenjet.ru/articles"
+        Et.SubElement(url_articles, "lastmod").text = datetime.now().strftime("%Y-%m-%d")
+        Et.SubElement(url_articles, "changefreq").text = "monthly"
+        Et.SubElement(url_articles, "priority").text = "0.9"
+
+        # добавление статей
+        for article in articles:
+            if not (slug := article.get("slug")):
+                continue
+
+            if not (published_at := article.get("published_at").strftime("%Y-%m-%d")):
+                published_at = datetime.now().strftime("%Y-%m-%d")
+
+            url_elem = Et.SubElement(urlset, "url")
+            Et.SubElement(url_elem, "loc").text = f"https://frankenjet.ru/articles/{slug}"
+            Et.SubElement(url_elem, "lastmod").text = published_at
+            Et.SubElement(url_elem, "changefreq").text = "weekly"
+            Et.SubElement(url_elem, "priority").text = "0.8"
+
+        # преобразование дерева в строку
+        Et.indent(urlset, space="  ", level=0)
+        sitemap_xml_str = Et.tostring(urlset, encoding="utf-8").decode("utf-8")
+
+        # добавление XML Declaration вручную
+        sitemap_content = f'<?xml version="1.0" encoding="UTF-8"?>\n{sitemap_xml_str}'
+
+        return sitemap_content
