@@ -200,3 +200,14 @@ class ArticlesRepository(BaseRepository):
             query = query.limit(limit)
 
         return (await self.session.execute(query)).mappings().all()
+
+    async def get_articles_slugs(self):
+        """
+        Получение списка slug статей
+        """
+
+        query = (
+            select(Articles.slug, Articles.published_at)
+            .filter(Articles.is_published.is_(True), Articles.is_archived.is_(False))
+        )
+        return (await self.session.execute(query)).mappings().all()
