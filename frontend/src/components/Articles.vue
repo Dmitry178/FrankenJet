@@ -1,15 +1,15 @@
 <template>
   <v-container>
     <!-- Секции тегов -->
-    <v-card class="mb-2">
+    <v-card class="mb-0 mb-sm-2 pt-0 pt-sm-2">
       <v-card-text>
-        <div v-for="(tags, category) in allTags" :key="category" class="mb-2">
-          <h5 class="text-h6 mt-2 mb-1">{{ category }}</h5>
+        <div v-for="(tags, category) in allTags" :key="category" class="mb-1">
+          <h5 class="text-h6 mt-1 mb-1">{{ category }}</h5>
           <div>
             <v-chip
               v-for="tag in tags"
               :key="tag"
-              class="mr-2 mb-1"
+              class="mr-2 mb-2"
               size="small"
               variant="outlined"
               :class="{ 'v-chip--selected': selectedTags.includes(tag) }"
@@ -43,12 +43,12 @@
       class="mb-4"
     >
       <v-card-text>
-        <p class="text-h6">
+        <p class="text-h6 pt-0 pt-sm-3">
           Найдено {{ articles.length }} {{ pluralize(articles.length, ['статья', 'статьи', 'статей']) }}
         </p>
 
         <!-- Список результатов -->
-        <v-row class="pt-2">
+        <v-row class="pt-0">
           <v-col
             v-for="item in articles"
             :key="item.id"
@@ -124,14 +124,14 @@
       </v-card-text>
     </v-card>
 
-    <!-- Если нет данных, но и не загружается — показываем пустое состояние -->
+    <!-- Если нет данных -->
     <div v-else-if="!loading && !error && selectedTags.length > 0" class="text-center my-8">
       <p>Ничего не найдено по выбранным тегам.</p>
     </div>
 
     <!-- Если теги не выбраны -->
     <div v-else-if="selectedTags.length === 0" class="text-center my-8">
-      <p>Выберите теги для отображения статей.</p>
+      <p>Выберите теги для отображения статей</p>
     </div>
   </v-container>
 </template>
