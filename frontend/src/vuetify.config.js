@@ -90,6 +90,9 @@ export default {
     },
   },
   defaults: {
+    VMain: {
+
+    },
     VContainer: {
       fluid: true,
       class: 'py-2 pt-sm-4 pb-sm-0',
@@ -99,22 +102,32 @@ export default {
       flat: true,
       style: 'border-bottom: 1px solid rgb(var(--v-theme-border));',
     },
+    VBreadcrumbs: {
+      style: 'font-size: 0.85rem',
+      class: 'mx-2 mt-2 mb-1 my-sm-0 mx-sm-3 pt-3 pb-1',
+    },
+    VDivider: {
+
+    },
     VCard: {
       elevation: 0,
       rounded: '2',
       style: 'border: 1px solid rgb(var(--v-theme-border));',
-      class: 'mb-2 mb-sm-4',
+      class: 'mb-3 mb-sm-4',
     },
     VCardTitle: {
-      class: 'ma-0 pa-0 px-sm-4 py-sm-3 mx-sm-3',
+      class: 'ma-0 pa-0 px-sm-2 py-sm-2 mx-sm-2',
     },
     VCardText: {
-      class: 'ma-0 pa-0 px-sm-4 pb-sm-4 mx-sm-3',
+      class: 'ma-0 pa-0 px-sm-2 pb-sm-4 mx-sm-2',
     },
     VTextField: {
       density: 'compact',
       singleLine: true,
       variant: 'outlined',
+    },
+    VImg: {
+
     },
   },
   icons: {
