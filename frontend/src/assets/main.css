@@ -8,7 +8,7 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   margin-bottom: 1rem;
-  margin-top: 1.5rem;
+  margin-top: 1rem;
 }
 
 a {
@@ -19,11 +19,6 @@ a {
 a:hover {
   text-decoration: underline;
   color: rgba(var(--v-theme-info), 0.75);
-}
-
-.v-card-title {
-  padding-top: 1rem;
-  padding-bottom: 0.75rem;
 }
 
 p {
@@ -45,12 +40,6 @@ blockquote {
   border-left: 3px solid #ccc;
 }
 
-.v-breadcrumbs {
-  margin: 0 !important;
-  padding: 1rem 1.5rem 0.5rem 1.5rem !important;
-  font-size: 0.9rem !important;
-}
-
 .v-breadcrumbs a {
   color: rgb(var(--v-theme-on-surface)) !important;
 }
@@ -59,22 +48,8 @@ blockquote {
   text-decoration: underline;
 }
 
-.v-img {
-  margin: 1.5rem 1.75rem 0 1.75rem;
-}
-
 .article-image {
   margin: 0.5rem 1.75rem 0 1.75rem;
-}
-
-.v-card-title,
-.v-card-text {
-  margin-left: 0.75rem;
-  margin-right: 0.75rem;
-}
-
-.v-card-title {
-  margin-top: 0.5rem;
 }
 
 .article-content p,
@@ -82,6 +57,8 @@ blockquote {
   font-size: 1.05rem;
   line-height: 1.65;
 }
+
+/* Настройка полей для разных разрешений экрана */
 
 @media (max-width: 1499px) {
   .v-container,
@@ -91,7 +68,15 @@ blockquote {
   }
 }
 
-@media (min-width: 1500px) and (max-width: 1799px) {
+@media (min-width: 1500px) and (max-width: 1599px) {
+  .v-container,
+  .v-app-bar {
+    padding-left: 150px !important;
+    padding-right: 150px !important;
+  }
+}
+
+@media (min-width: 1600px) and (max-width: 1699px) {
   .v-container,
   .v-app-bar {
     padding-left: 200px !important;
@@ -99,11 +84,27 @@ blockquote {
   }
 }
 
-@media (min-width: 1800px) {
+@media (min-width: 1700px) and (max-width: 1799px) {
+  .v-container,
+  .v-app-bar {
+    padding-left: 250px !important;
+    padding-right: 250px !important;
+  }
+}
+
+@media (min-width: 1800px) and (max-width: 1899px) {
   .v-container,
   .v-app-bar {
     padding-left: 300px !important;
     padding-right: 300px !important;
+  }
+}
+
+@media (min-width: 1900px) {
+  .v-container,
+  .v-app-bar {
+    padding-left: 350px !important;
+    padding-right: 350px !important;
   }
 }
 
@@ -112,22 +113,22 @@ blockquote {
 @media (max-width: 768px) {
   .v-container,
   .v-app-bar,
-  .v-card,
+  /*.v-card, */
   .v-main {
-    padding-left: 4px !important;
-    padding-right: 4px !important;
+    padding-left: 0.3rem !important;
+    padding-right: 0.3rem !important;
   }
 
   .v-card {
-    padding-bottom: 4px !important;
-  }
-
-  .v-card-text {
-    padding: 0.5rem !important;
+    padding-bottom: 0.65rem !important;
   }
 
   .v-card-title {
-    padding: 0.65rem 0.5rem 0 0.5rem !important;
+    padding: 0.65rem 0.65rem 0 0.65rem !important;
+  }
+
+  .v-card-text {
+    padding: 0.5rem 0.65rem 0 0.65rem !important;
   }
 
   .v-breadcrumbs {
@@ -135,12 +136,13 @@ blockquote {
     padding: 0 !important;
   }
 
-  .article-image {
-    margin: 0.5rem;
+  .v-divider {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
   }
 
-  .v-img {
-    margin: 0.75rem 0.5rem 0 0.5rem !important;
+  .article-image {
+    margin: 0.5rem;
   }
 
   .v-text-field {
