@@ -1,8 +1,8 @@
 <template>
   <v-container>
-    <v-card class="search-card mb-4">
+    <v-card class="pt-2">
       <!--  Строка поиска  -->
-      <v-card-text>
+      <v-card-text class="pt-2">
         <v-text-field
           v-model="searchQuery"
           label="Поиск..."
@@ -39,11 +39,11 @@
     >
       <v-card-text>
         <!-- Заголовок и категории -->
-        <div class="mb-4">
-          <p class="text-h6">
+        <div class="mb-2">
+          <p class="text-h6 mt-1 mt-sm-3 mb-sm-2">
             {{ formatResultText(searchResults.metadata.total_count) }} в {{ formatCategoryText(searchResults.metadata.total_categories) }}
           </p>
-          <div class="mt-2">
+          <div>
             <v-chip
               v-for="category in searchResults.categories"
               :key="category"
@@ -309,7 +309,7 @@ export default {
 
 <style scoped>
 .search-card {
-  margin: 16px 0;
+  /* margin: 16px 0; */
 }
 
 .search-result-card {
@@ -337,7 +337,7 @@ export default {
 
 .search-result-card,
 .search-result-card-fact {
-  margin-bottom: 16px;
+  /* margin-bottom: 16px; */
 }
 
 :deep(em) {
