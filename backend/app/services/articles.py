@@ -3,6 +3,7 @@ from uuid import UUID
 
 from app.config.env import settings
 from app.core.db_manager import DBManager
+from app.db.models.aircraft import AircraftTypes, EngineTypes, AircraftStatus, AircraftPurpose
 from app.db.models.articles import ArticleCategories, Articles
 from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.aircraft import SAircraft
@@ -71,6 +72,34 @@ class ArticlesServices:
             offset, limit, *filter_conditions
         )
 
+    @staticmethod
+    def distribute_tags_by_category(tags: list[str]) -> dict[str, list[str]]:
+        """
+        Распределение тегов по категориям
+        """
+
+        groups = {
+            "countries": [],
+            "aircraft_types": [],
+            "engine_types": [],
+            "aircraft_status": [],
+            "aircraft_purpose": [],
+        }
+
+        for tag in tags:
+            if tag in AircraftTypes:
+                groups["aircraft_types"].append(tag)
+            elif tag in EngineTypes:
+                groups["engine_types"].append(tag)
+            elif tag in AircraftStatus:
+                groups["aircraft_status"].append(tag)
+            elif tag in AircraftPurpose:
+                groups["aircraft_purpose"].append(tag)
+            else:
+                groups["countries"].append(tag)
+
+        return groups
+
     @handle_basic_db_errors
     async def get_articles_list_tags(
             self,
@@ -84,18 +113,22 @@ class ArticlesServices:
 
         tags_list = []
 
+        # формирование списка тегов из строки
         if tags:
             tags_raw_list = tags.split(",")
             tags_list = [tag.strip() for tag in tags_raw_list if tag.strip()]
 
+        # распределение тегов по группам
+        groups = self.distribute_tags_by_category(tags_list)
+
         if page is None or page_size is None:
             # вызов с использованием значений по умолчанию для offset и limit
-            return await self.db.articles.select_articles_paginated(tags_list)
+            return await self.db.articles.select_articles_groups_paginated(groups)
 
         offset = (page - 1) * page_size
         limit = page_size
 
-        return await self.db.articles.select_articles_paginated(tags_list, offset, limit)
+        return await self.db.articles.select_articles_groups_paginated(groups, offset, limit)
 
     @handle_basic_db_errors
     async def add_article(self, data: SArticles):
