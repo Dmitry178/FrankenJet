@@ -108,7 +108,7 @@ class Aircraft(Base, TimestampMixin):
     aircraft_purpose: Mapped[str_24 | None] = mapped_column(Enum(AircraftPurpose, native_enum=False, length=24))
     image_url: Mapped[str_128 | None]  # основное изображение воздушного судна
     image_description: Mapped[str_128 | None]  # описание изображения воздушного судна
-    image_license: Mapped[str_32 | None]  # лицензия изображения
+    image_license: Mapped[str_64 | None]  # лицензия изображения
     image_source: Mapped[str_128 | None]  # источник изображения
     image_author: Mapped[str_64 | None]  # автор изображения
     image_author_url: Mapped[str_128 | None]  # ссылка на автора изображения
