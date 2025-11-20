@@ -40,6 +40,7 @@ const fieldDescriptions = {
   original_name: "Оригинальное название",
   image_description: "Описание изображения",
   aircraft_type: "Тип воздушного судна",
+  aircraft_purpose: "Назначение воздушного судна",
   first_flight: "Первый полёт",
   wingspan: "Размах крыльев (м)",
   length: "Длина (м)",
