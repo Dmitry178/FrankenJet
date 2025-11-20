@@ -15,7 +15,12 @@
 
     <!-- Статьи -->
     <v-card v-if="articles.length > 0">
-      <v-card-title>Статьи</v-card-title>
+      <v-card-title
+        @click="goToArticles"
+        style="cursor: pointer;"
+      >
+        Статьи
+      </v-card-title>
       <v-card-text>
         <v-row>
           <v-col cols="12" sm="12" md="6" lg="4" xl="4" v-for="article in visibleArticles" :key="article.slug">
@@ -39,7 +44,7 @@
 
               <v-card-title>{{ article.title }}</v-card-title>
 
-              <v-card-text>
+              <v-card-text class="cards">
                 {{ article.summary }}
               </v-card-text>
 
@@ -125,6 +130,9 @@ export default {
     goToArticle(slug) {
       this.router.push({ path: `/articles/${slug}` });
     },
+    goToArticles() {
+      this.router.push({ name: 'Articles' });
+    },
   },
 };
 </script>
@@ -140,6 +148,10 @@ export default {
 
 .article-card:hover {
   transform: scale(1.02);
+}
+
+.cards.v-card-text{
+  padding-bottom: 0.2rem !important;
 }
 
 .grayscale-image {
