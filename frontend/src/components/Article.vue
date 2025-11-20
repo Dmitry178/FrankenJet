@@ -55,14 +55,11 @@
           <!-- Технические характеристики воздушного судна -->
           <Aircraft :aircraft="article.aircraft" />
 
+          <!-- Статья -->
           <v-card-text class="pt-0">
             <div id="article-content" v-html="renderedContent"></div>
           </v-card-text>
 
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-card-text>Опубликовано: {{ formattedDate }}</v-card-text>
-          </v-card-actions>
         </v-card>
 
         <v-alert
@@ -98,21 +95,6 @@
         </v-card>
       </div>
     </div>
-
-    <!-- FAB -->
-    <v-btn
-      v-if="showScrollTop"
-      fab
-      icon
-      color="secondary"
-      class="scroll-top-btn"
-      @click="scrollToTop"
-      fixed
-      bottom
-      right
-    >
-      <v-icon>mdi-arrow-up</v-icon>
-    </v-btn>
 
     <v-meta v-if="article" :title="article.article.meta_title" :description="article.article.meta_description" :keywords="article.article.seo_keywords"></v-meta>
 
@@ -160,8 +142,6 @@ export default {
     const slug = route.params.slug;
     const article = ref(null);
     const error = ref(false);
-    const showScrollTop = ref(false);
-    const scrollTimer = ref(null);
 
     const toc = ref([]);
     const activeTocItem = ref(null);
@@ -267,11 +247,24 @@ export default {
       } else {
         const element = document.getElementById(id);
         if (element) {
+          // позиция элемента
           const offsetTop = element.offsetTop;
+
+          // плавный скролл
           window.scrollTo({
             top: offsetTop,
             behavior: 'smooth'
           });
+
+          // ожидание завершения скролла
+          let scrollEndHandler = () => {
+            activeTocItem.value = id; // активный пункт
+            // убираем обработчик, чтобы он не срабатывал повторно
+            window.removeEventListener('scrollend', scrollEndHandler);
+          };
+
+          // добавляем заново обработчик события scrollend
+          window.addEventListener('scrollend', scrollEndHandler);
         }
       }
     };
@@ -323,21 +316,6 @@ export default {
       }
     };
 
-    // отображение кнопки прокрутки на начало страницы
-    const handleScroll = () => {
-      showScrollTop.value = window.scrollY > 300;
-
-      // сброс предыдущего таймера
-      if (scrollTimer.value) {
-        clearTimeout(scrollTimer.value);
-      }
-
-      // отображение кнопки при скролле > 300px
-      if (window.scrollY > 300) {
-        showScrollTop.value = true;
-      }
-    };
-
     // прокрутка страницы на начало
     const scrollToTop = () => {
       window.scrollTo({
@@ -369,7 +347,6 @@ export default {
 
       activeTocItem.value = 'top';
 
-      window.addEventListener('scroll', handleScroll);
       window.addEventListener('scroll', handleScrollActiveToc);
     });
 
@@ -377,7 +354,6 @@ export default {
       if (observer) {
         observer.disconnect();
       }
-      window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('scroll', handleScrollActiveToc);
     });
 
@@ -393,7 +369,6 @@ export default {
       openImageDialog,
       closeImageDialog,
       renderedContent,
-      showScrollTop,
       scrollToTop,
       toc,
       scrollToSection,
@@ -483,15 +458,35 @@ export default {
   z-index: 9999;
 }
 
+@media (min-width: 768px) {
+  .v-card-title {
+    padding-bottom: 0.15rem !important;
+  }
+
+  .v-card-title,
+  .v-card-text {
+    padding-left: 1.25rem !important;
+    padding-right: 1.25rem !important;
+  }
+}
+
 @media (max-width: 768px) {
-  .toc-wrapper {
-    display: none !important;
+  .v-card-title {
+    padding-bottom: 0 !important;
+  }
+
+  .v-card-text {
+    padding-top: 0 !important;
   }
 
   .article-image {
     height: auto !important;
-    margin-top: 1rem !important;
-    margin-bottom: 0 !important;
+    margin-top: 0.5rem !important;
+    margin-bottom: 1rem !important;
+  }
+
+  .toc-wrapper {
+    display: none !important;
   }
 }
 </style>
