@@ -55,11 +55,11 @@
     </v-card>
 
     <!-- Интересные факты -->
-    <v-card v-if="facts.length > 0">
+    <v-card v-if="processedFacts.length > 0">
       <v-card-title>Интересные факты</v-card-title>
       <v-card-text>
         <ul class="mb-0">
-          <li v-for="(fact, index) in facts" :key="index">{{ fact }}</li>
+          <li v-for="(fact, index) in processedFacts" :key="index" v-html="fact"></li>
         </ul>
       </v-card-text>
     </v-card>
@@ -82,8 +82,9 @@ export default {
   },
   data() {
     return {
-      articles: [],
-      facts: [],
+      articles: [], // рандомные статьи
+      facts: [], // исходные факты
+      processedFacts: [], // обработанные факты (html)
     };
   },
   mounted() {
@@ -106,20 +107,29 @@ export default {
     }
   },
   methods: {
-    articleImageIsDefault(article) {
-      // return !article.image_url;
-      return true;
+    // обработка markdown-ссылок в HTML
+    processFacts(factsArray) {
+      if (!Array.isArray(factsArray)) {
+        return [];
+      }
+
+      const linkRegex = /\[([^\[\]]+)\]\(([^)]+)\)/g;
+
+      return factsArray.map(fact => {
+        if (typeof fact !== 'string') {
+          return fact;
+        }
+        return fact.replace(linkRegex, '<a href="$2">$1</a>');
+      });
     },
-    articleImage(article) {
-      // return article.image_url || '';
-      return undefined;
-    },
+
     async fetchHomeData() {
       try {
         const response = await axios.get(`/pages/home`);
         if (response.data.status === "ok") {
           this.articles = response.data.data.articles;
           this.facts = response.data.data.facts;
+          this.processedFacts = this.processFacts(this.facts);
         } else {
           console.error("Ошибка при получении данных с бэкенда:", response.data);
         }
@@ -127,9 +137,11 @@ export default {
         console.error("Ошибка при загрузке данных главной страницы:", error);
       }
     },
+
     goToArticle(slug) {
       this.router.push({ path: `/articles/${slug}` });
     },
+
     goToArticles() {
       this.router.push({ name: 'Articles' });
     },
