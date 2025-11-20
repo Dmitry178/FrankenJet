@@ -95,7 +95,7 @@ export default {
     },
     VContainer: {
       fluid: true,
-      class: 'py-2 pt-sm-4 pb-sm-0',
+      class: 'pt-3 pb-0 pt-sm-4 pb-sm-0',
     },
     VAppBar: {
       elevation: 0,
@@ -116,10 +116,10 @@ export default {
       class: 'mb-3 mb-sm-4',
     },
     VCardTitle: {
-      class: 'ma-0 pa-0 px-sm-2 py-sm-2 mx-sm-2',
+      class: 'ma-0 pa-0 px-sm-3 pt-sm-3 pb-sm-2 mx-sm-2',
     },
     VCardText: {
-      class: 'ma-0 pa-0 px-sm-2 pb-sm-4 mx-sm-2',
+      class: 'ma-0 pa-0 px-sm-3 pb-sm-4 mx-sm-2',
     },
     VTextField: {
       density: 'compact',
