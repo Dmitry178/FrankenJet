@@ -68,11 +68,6 @@
                   class="grayscale-image"
                   cover
                 >
-                  <template #placeholder>
-                    <div class="d-flex align-center justify-center fill-height">
-                      <v-icon>mdi-image-off</v-icon>
-                    </div>
-                  </template>
                 </v-img>
                 <v-card-title class="text-h6 pa-4">
                   {{ item.title }}
@@ -93,17 +88,22 @@
                       cover
                     >
                       <template #placeholder>
-                        <div class="d-flex align-center justify-center fill-height">
-                          <v-icon>mdi-image-off</v-icon>
-                        </div>
+                        <v-img
+                          src=""
+                          height="120"
+                          class="airplane-svg-wrapper"
+                          cover
+                        >
+                          <AirplaneSVG class="airplane-svg" />
+                        </v-img>
                       </template>
                     </v-img>
                   </v-col>
                   <v-col cols="9" md="10">
-                    <v-card-title class="text-h6 pa-2">
+                    <v-card-title class="result-card text-h6 pa-2">
                       {{ item.title }}
                     </v-card-title>
-                    <v-card-text class="pa-2">
+                    <v-card-text class="result-card pa-2">
                       <div v-html="item.summary"></div>
                     </v-card-text>
                   </v-col>
@@ -141,9 +141,13 @@ import { useRouter } from 'vue-router';
 import { onMounted, ref } from "vue";
 import { useSettingsStore } from '@/stores/settings';
 import axios from 'axios';
+import AirplaneSVG from "@/components/AirplaneSVG.vue";
 
 export default {
   name: 'Articles',
+  components: {
+    AirplaneSVG
+  },
   setup() {
     const router = useRouter();
     const settingsStore = useSettingsStore();
@@ -336,7 +340,8 @@ export default {
       fetchTags,
       fetchArticles,
       toggleTag,
-      changePage
+      changePage,
+      AirplaneSVG
     };
   },
 };
@@ -382,14 +387,28 @@ export default {
   font-style: normal !important;
 }
 
+.v-chip--selected {
+  background-color: rgb(var(--v-theme-primary));
+  color: white;
+}
+
+@media (min-width: 768px) {
+  .result-card.v-card-title{
+    padding-left: 0 !important;
+    padding-bottom: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .result-card.v-card-text{
+    padding-left: 0 !important;
+    padding-bottom: 1rem !important;
+    margin-left: 0 !important;
+  }
+}
+
 @media (max-width: 768px) {
   .search-result-card {
     flex-direction: column;
   }
-}
-
-.v-chip--selected {
-  background-color: rgb(var(--v-theme-primary));
-  color: white;
 }
 </style>

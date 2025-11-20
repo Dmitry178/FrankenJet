@@ -78,11 +78,6 @@
                   class="grayscale-image"
                   cover
                 >
-                  <template #placeholder>
-                    <div class="d-flex align-center justify-center fill-height">
-                      <v-icon>mdi-image-off</v-icon>
-                    </div>
-                  </template>
                 </v-img>
                 <v-card-title class="text-h6 pa-4">
                   {{ item.title }}
@@ -103,17 +98,22 @@
                       cover
                     >
                       <template #placeholder>
-                        <div class="d-flex align-center justify-center fill-height">
-                          <v-icon>mdi-image-off</v-icon>
-                        </div>
+                        <v-img
+                          src=""
+                          height="120"
+                          class="airplane-svg-wrapper"
+                          cover
+                        >
+                          <AirplaneSVG class="airplane-svg" />
+                        </v-img>
                       </template>
                     </v-img>
                   </v-col>
                   <v-col cols="9" md="10">
-                    <v-card-title class="text-h6 pa-2">
+                    <v-card-title class="result-card text-h6 pa-2">
                       {{ item.title }}
                     </v-card-title>
-                    <v-card-text class="pa-2">
+                    <v-card-text class="result-card pa-2">
                       <div v-html="item.summary"></div>
                     </v-card-text>
                   </v-col>
@@ -159,9 +159,13 @@ import { onMounted, ref, watch } from 'vue';
 import { createRouter as router, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import DOMPurify from "dompurify";
+import AirplaneSVG from "@/components/AirplaneSVG.vue";
 
 export default {
   name: 'Search',
+  components: {
+    AirplaneSVG
+  },
   methods: { router },
   setup() {
     const route = useRoute();
@@ -301,17 +305,14 @@ export default {
       changePage,
       formatDate,
       formatResultText,
-      formatCategoryText
+      formatCategoryText,
+      AirplaneSVG
     };
   }
 };
 </script>
 
 <style scoped>
-.search-card {
-  /* margin: 16px 0; */
-}
-
 .search-result-card {
   cursor: pointer;
   transition: transform 0.2s;
@@ -345,6 +346,20 @@ export default {
   padding: 2px 4px !important;
   border-radius: 3px !important;
   font-style: normal !important;
+}
+
+@media (min-width: 768px) {
+  .result-card.v-card-title{
+    padding-left: 0 !important;
+    padding-bottom: 0 !important;
+    margin-left: 0 !important;
+  }
+
+  .result-card.v-card-text{
+    padding-left: 0 !important;
+    padding-bottom: 1rem !important;
+    margin-left: 0 !important;
+  }
 }
 
 @media (max-width: 768px) {
