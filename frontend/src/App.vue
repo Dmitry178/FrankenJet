@@ -10,7 +10,7 @@
             'pl-0': $vuetify.display.mdAndUp
           }"
       >
-        <v-icon icon="mdi-airplane" class="mr-1" size="x-large" color="primary"></v-icon>
+        <v-icon icon="mdi-airplane" class="mr-2 mr-sm-1" size="x-large" color="primary"></v-icon>
         <v-toolbar-title class="font-weight-bold">Franken Jet</v-toolbar-title>
       </router-link>
 
@@ -70,7 +70,7 @@
         v-if="$vuetify.display.smAndDown"
         icon
         @click="drawer = true"
-        class="ml-2"
+        class="mx-0"
       >
         <v-icon>mdi-menu</v-icon>
       </v-btn>
@@ -98,9 +98,9 @@
         </v-btn>
       </v-toolbar>
 
-      <v-divider></v-divider>
+      <v-divider class="drawer"></v-divider>
 
-      <!-- Search -->
+      <!-- Search (mobile) -->
       <v-list-item>
         <v-text-field
           v-model="searchQuery"
@@ -117,50 +117,57 @@
         ></v-text-field>
       </v-list-item>
 
-      <v-divider class="my-2 mt-0"></v-divider>
+      <v-divider class="drawer"></v-divider>
 
-      <!-- Menu -->
+      <!-- Menu (mobile) -->
       <v-btn
       block
+      rounded="0"
       variant="text"
+      class="py-6"
       :to="{ name: 'Home' }"
       @click="drawer = false"
       >
         Главная
       </v-btn>
 
-      <v-divider class="my-2"></v-divider>
+      <v-divider class="drawer"></v-divider>
 
       <v-btn
       block
+      rounded="0"
       variant="text"
+      class="py-6"
       :to="{ name: 'Articles' }"
       @click="drawer = false"
       >
         Статьи
       </v-btn>
 
-      <v-divider class="my-2"></v-divider>
+      <v-divider class="drawer"></v-divider>
 
       <!-- Theme -->
       <v-btn
       block
+      rounded="0"
       variant="text"
+      class="py-6"
       @click="toggleTheme"
       >
         Тема
         <v-icon end>{{ themeIcon }}</v-icon>
       </v-btn>
 
-      <v-divider class="my-2"></v-divider>
+      <v-divider class="drawer"></v-divider>
 
       <!-- Login / Logout -->
       <v-btn
         v-if="!isLoggedIn"
         block
+        rounded="0"
         variant="text"
         @click="drawer = false"
-        class="py-3"
+        class="py-6"
       >
         Вход
         <v-icon end>mdi-login</v-icon>
@@ -168,9 +175,10 @@
       <v-btn
         v-else
         block
+        rounded="0"
         variant="text"
         @click="drawer = false"
-        class="py-3"
+        class="py-6"
       >
         Выход
         <v-icon end>mdi-logout</v-icon>
@@ -180,13 +188,28 @@
     <!-- Основной контент -->
     <v-main>
       <router-view></router-view>
+
+      <!-- FAB -->
+      <v-btn
+        v-if="showScrollTop"
+        fab
+        icon
+        color="secondary"
+        class="scroll-top-btn"
+        @click="scrollToTop"
+        fixed
+        bottom
+        right
+      >
+        <v-icon>mdi-arrow-up</v-icon>
+      </v-btn>
     </v-main>
   </v-app>
 </template>
 
 <script>
 
-import { computed, onMounted, ref } from 'vue';
+import {computed, onMounted, onUnmounted, ref} from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
 import { useRouter, useRoute } from 'vue-router';
@@ -219,6 +242,10 @@ export default {
       router.push({ path: "/search", query: { q: searchQuery.value } });
       drawer.value = false; // закрываем меню после поиска
     };
+
+    // FAB (Floating Action Button)
+    const showScrollTop = ref(false);
+    const scrollTimer = ref(null);
 
     // получаем названия тем из vuetify.config
     const themeNames = Object.keys(vuetifyConfig.theme.themes);
@@ -268,9 +295,39 @@ export default {
     // управление состоянием Drawer
     const drawer = ref(false);
 
+    // отображение кнопки прокрутки на начало страницы
+    const handleScroll = () => {
+      showScrollTop.value = window.scrollY > 300;
+
+      // сброс предыдущего таймера
+      if (scrollTimer.value) {
+        clearTimeout(scrollTimer.value);
+      }
+
+      // отображение кнопки при скролле > 300px
+      if (window.scrollY > 300) {
+        showScrollTop.value = true;
+      }
+    };
+
+    // прокрутка страницы на начало
+    const scrollToTop = () => {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+      // activeTocItem.value = 'top';
+    };
+
     onMounted(() => {
       settingsStore.loadSettings();
       displayAsciiArt();
+
+      window.addEventListener('scroll', handleScroll);
+    });
+
+    onUnmounted(() => {
+      window.removeEventListener('scroll', handleScroll);
     });
 
     return {
@@ -282,6 +339,8 @@ export default {
       themeIcon,
       toggleTheme,
       drawer,
+      showScrollTop,
+      scrollToTop,
     };
   }
 };
@@ -297,6 +356,15 @@ export default {
   opacity: 0;
 }
 
+.drawer.v-divider {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+:deep(.v-breadcrumbs-item--link) {
+  font-size: 0.85rem !important;
+}
+
 .v-overlay .v-btn--variant-text:hover {
   text-decoration: none;
   color: inherit;
@@ -304,5 +372,12 @@ export default {
 
 .v-overlay .v-btn--variant-text:hover::before {
   opacity: 0;
+}
+
+.scroll-top-btn {
+  position: fixed !important;
+  bottom: 23px !important;
+  right: 23px !important;
+  z-index: 9999;
 }
 </style>
