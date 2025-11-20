@@ -408,6 +408,7 @@ async def main() -> None:
     # чтение аргументов скрипта
     args = sys.argv
     skip_migrations = "skip-migrations" in args
+    skip_facts = "skip-facts" in args
 
     async with DataCreator(db_conn) as db_handler:
 
@@ -457,11 +458,12 @@ async def main() -> None:
         await db.countries.insert_all_conflict(values=countries_data_model)
         '''
 
-        logger.info("Добавление фактов")
-        facts = await read_text("/scripts/data/facts.txt")
-        facts_data = [{"fact": fact} for fact in facts]
-        facts_data_model = DataUtils().convert_data_types(Facts, facts_data)
-        await db.facts.insert_all_conflict(values=facts_data_model)
+        if not skip_facts:
+            logger.info("Добавление фактов")
+            facts = await read_text("/scripts/data/facts.txt")
+            facts_data = [{"fact": fact} for fact in facts]
+            facts_data_model = DataUtils().convert_data_types(Facts, facts_data)
+            await db.facts.insert_all_conflict(values=facts_data_model)
 
         '''
         logger.info("Добавление списка тегов")
@@ -477,8 +479,6 @@ async def main() -> None:
         aircraft_data_model = DataUtils().convert_data_types(Aircraft, aircraft_data)
         await db.aircraft.insert_all_conflict(values=aircraft_data_model)
         '''
-
-        # TODO: сделать добавление тегов к статьям
 
     logger.info("Добавление данных завершено")
 
