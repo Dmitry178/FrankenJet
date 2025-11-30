@@ -3,6 +3,8 @@
 from app.db.repository.aircraft import AircraftRepository
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
+from app.db.repository.chat_bot import ChatBotSettingsRepository, ChatBotHistoryRepository
+from app.db.repository.knowledge_base import ProjectKnowledgeRepository
 from app.db.repository.countries import CountriesRepository
 from app.db.repository.facts import FactsRepository
 from app.db.repository.roles import RolesRepository, UserRolesRepository
@@ -26,10 +28,33 @@ class DBManager:
             self.roles = RolesRepository(self.session)
             self.user_roles = UserRolesRepository(self.session)
 
+    class AppDBManager:
+        """
+        Менеджер БД репозиториев схемы app
+        """
+
+        def __init__(self, session):
+            self.session = session
+
+            self.project_knowledge = ProjectKnowledgeRepository(self.session)
+
+    class ChatBotDBManager:
+        """
+        Менеджер БД репозиториев чат-бота
+        """
+
+        def __init__(self, session):
+            self.session = session
+
+            self.settings = ChatBotSettingsRepository(self.session)
+            self.history = ChatBotHistoryRepository(self.session)
+
     async def __aenter__(self):
         self.session = self.session_factory()
 
+        self.app = self.AppDBManager(self.session)
         self.auth = self.AuthDBManager(self.session)
+        self.chatbot = self.ChatBotDBManager(self.session)
 
         self.aircraft = AircraftRepository(self.session)
         self.articles = ArticlesRepository(self.session)
@@ -37,11 +62,6 @@ class DBManager:
         self.facts = FactsRepository(self.session)
         self.tags = TagsRepository(self.session)
         self.users = UsersRepository(self.session)
-
-        # раскомментировать при использовании данных моделей
-        # self.design_bureaus = DesignBureausRepository(self.session)
-        # self.designers = DesignersRepository(self.session)
-        # self.manufacturers = ManufacturersRepository(self.session)
 
         return self
 
