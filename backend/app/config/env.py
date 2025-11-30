@@ -88,6 +88,10 @@ class Settings(BaseSettings):
     # префикс для Swagger UI, ReDoc и OpenAPI
     SWAGGER_URL_PREFIX: str = ""
 
+    # настройки чат-бота
+    GIGACHAT_AUTH_KEY: str | None = None
+    GIGACHAT_SCOPE: str | None = None
+
     @property
     def db_url(self):
         return f"postgresql+asyncpg://{self.DB_CONN}"
