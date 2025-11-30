@@ -6,6 +6,13 @@ from typing import Type, List, Dict
 from app.db import Base
 
 
+class BaseEmptyRepository:
+    model: Type[Base] | None = None
+
+    def __init__(self, session):
+        self.session = session
+
+
 class BaseRepository:
     model: Type[Base] | None = None
 
