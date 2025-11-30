@@ -1,9 +1,14 @@
+import json
+
 from fastapi import WebSocket, WebSocketDisconnect
 from uuid import UUID
 
 from app.core.db_manager import DBManager
-from app.core.ws_manager import WSManager
+from app.core.ws_manager import WSBotManager
+from app.dependencies.db import DDB
 from app.schemas.jti import SRefreshTokens
+from app.services.chatbot import ChatBotServices
+from scripts.init_db import logger
 
 
 class WebSocketsAuthServices:
@@ -26,20 +31,31 @@ class WebSocketsAuthServices:
 
 class WebSocketService:
 
-    def __init__(self, ws_manager: WSManager):
+    def __init__(self, ws_manager: WSBotManager, db: DDB):
         self.ws_manager = ws_manager
+        self.db = db
 
-    async def handle_websocket_connection(self, websocket: WebSocket, user_id: int, jti: UUID):
-        await self.ws_manager.connect(user_id, jti, websocket)
+    async def handle_websocket_connection(self, chat_id: UUID, websocket: WebSocket):
+        await self.ws_manager.connect(chat_id, websocket)
 
         try:
             while True:
                 data = await websocket.receive_text()
-                await self.process_websocket_message(data, user_id, jti)
+                await self.process_websocket_message(chat_id, data)
 
         except WebSocketDisconnect:
-            self.ws_manager.disconnect(user_id, jti, websocket)
+            self.ws_manager.disconnect(chat_id, websocket)
 
-    async def process_websocket_message(self, data: str, user_id: int, jti: UUID | None = None):
-        print(user_id, jti)
-        await self.ws_manager.broadcast_to_user(user_id, f"User {user_id}: {data}")
+    async def process_websocket_message(self, chat_id: UUID, data: str):
+        """
+        Обработка входящих сообщений через websocket
+        """
+
+        try:
+            data = json.loads(data)
+            if data.get("type", "") == "message":
+                message = data.get("message")
+                await ChatBotServices(db=self.db, ws_manager=self.ws_manager).proceed_user_message(chat_id, message)
+
+        except (json.JSONDecodeError, Exception) as ex:
+            logger.error(ex)
