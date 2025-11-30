@@ -45,13 +45,16 @@ BASE_ARTICLES_PATH = "./scripts/articles"
 extensions = [
     # "citext",
     "uuid-ossp",
+    # "vector",
 ]
 
 # схемы базы данных,
 # выполняется sql-запрос: CREATE SCHEMA IF NOT EXISTS {schema}
 schemas = [
+    "app",
     "articles",
-    "users"
+    "chat_bot",
+    "users",
 ]
 
 
@@ -205,7 +208,12 @@ class DataCreator:
 
             # создание расширений
             for extension in extensions:
-                await conn.execute(DDL(f'CREATE EXTENSION IF NOT EXISTS "{extension}"'))  # noqa
+                try:
+                    await conn.execute(DDL(f'CREATE EXTENSION IF NOT EXISTS "{extension}"'))  # noqa
+                except Exception as ex:
+                    # данная ошибка возникает при добавлении расширения "vector",
+                    # если postgres без расширения "pgvector"
+                    logger.warning(f"Ошибка создания расширения {extension}: {ex}")
 
             # создание схем
             for schema in schemas:
