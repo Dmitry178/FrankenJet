@@ -16,10 +16,10 @@ from app.schemas.bot import SBotNotification, SBotAuthNotification, SBotModerati
 from app.services.bot import BotServices, MsgTypes
 from app.types import status_ok
 
-bot_router = APIRouter(prefix="/bot", tags=["Notification Bot"])
+tgbot_router = APIRouter(prefix="/bot", tags=["Notification Bot"])
 
 
-@bot_router.post(
+@tgbot_router.post(
     "/notifications",
     summary="Отправка уведомления в бот",
     dependencies=[Depends(get_auth_admin_id)],
@@ -45,7 +45,7 @@ async def send_notification(
         return http_error_500
 
 
-@bot_router.post(
+@tgbot_router.post(
     "/auth-notification",
     summary="Уведомление об аутентификации",
     dependencies=[Depends(get_auth_admin_id)],
@@ -80,7 +80,7 @@ async def send_auth_notification(
         return http_error_500
 
 
-@bot_router.post(
+@tgbot_router.post(
     "/moderation",
     summary="Модерация комментария",
     dependencies=[Depends(get_auth_admin_id)],
