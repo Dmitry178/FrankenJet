@@ -9,14 +9,21 @@ from app.db.models.articles import (
     Tags,
     TagsCategories,
 )
-from app.db.models.facts import (
-    Facts,
+from app.db.models.auth import (
+    RefreshTokens,
+)
+from app.db.models.chat_bot import (
+    ChatBotSettings,
+    ChatHistory,
 )
 from app.db.models.countries import (
     Countries,
 )
-from app.db.models.auth import (
-    RefreshTokens,
+from app.db.models.facts import (
+    Facts,
+)
+from app.db.models.knowledge_base import (
+    ProjectKnowledge,
 )
 from app.db.models.users import (
     Roles,
@@ -28,8 +35,11 @@ __all__ = [
     "Aircraft",
     "Articles",
     "ArticlesTagsAssociation",
+    "ChatBotSettings",
+    "ChatHistory",
     "Countries",
     "Facts",
+    "ProjectKnowledge",
     "RefreshTokens",
     "Roles",
     "Tags",
