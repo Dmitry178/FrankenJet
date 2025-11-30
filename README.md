@@ -1,5 +1,7 @@
 # FrankenJet. Энциклопедия истории авиации
 
+![](/images/fj.png)
+
 [https://frankenjet.ru]()
 
 ## О проекте
