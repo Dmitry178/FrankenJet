@@ -22,3 +22,6 @@ RMQ_FJ_INPUT_QUEUE = "fj_input"  # очередь для приёма сообщ
 
 # настройки S3
 BUCKET_IMAGES = "images"
+
+# настройки GigaChat API
+GIGACHAT_USER_MESSAGE_MAX_SIZE = 200  # максимальная длина сообщения от пользователя
