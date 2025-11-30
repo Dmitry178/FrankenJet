@@ -15,6 +15,7 @@ str_128 = Annotated[str, 128]
 str_256 = Annotated[str, 256]
 str_512 = Annotated[str, 512]
 str_1024 = Annotated[str, 1024]
+str_2048 = Annotated[str, 2048]
 
 # числовые аннотированные типы
 int_0 = Annotated[int, mapped_column(Integer, default=0, server_default=literal(0))]
@@ -72,6 +73,7 @@ annotation_map = {
     str_256: String(256),
     str_512: String(512),
     str_1024: String(1024),
+    str_2048: String(2048),
 
     int_0: Integer,
     int64: BigInteger,
