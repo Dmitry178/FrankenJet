@@ -189,6 +189,9 @@
     <v-main>
       <router-view></router-view>
 
+      <!-- Чат-бот -->
+      <ChatBot v-if="isChatBotAvailable" />
+
       <!-- FAB -->
       <v-btn
         v-if="showScrollTop"
@@ -218,12 +221,14 @@ import { displayAsciiArt } from '@/plugins/console.js';
 import vuetifyConfig from '@/vuetify.config.js';
 import Login from '@/components/Login.vue';
 import Logout from '@/components/Logout.vue';
+import ChatBot from '@/components/ChatBot.vue';
 
 export default {
   name: 'App',
   components: {
     Login,
     Logout,
+    ChatBot,
   },
   setup() {
     const authStore = useAuthStore();
@@ -233,6 +238,7 @@ export default {
     const theme = useTheme();
 
     const isLoggedIn = computed(() => authStore.accessToken !== null);
+    const isChatBotAvailable = computed(() => settingsStore.isChatBotAvailable);
     const searchQuery = ref('');
 
     // true, если текущий маршрут - /search
@@ -316,7 +322,6 @@ export default {
         top: 0,
         behavior: 'smooth'
       });
-      // activeTocItem.value = 'top';
     };
 
     onMounted(() => {
@@ -333,6 +338,7 @@ export default {
     return {
       isLoggedIn,
       isSearchRoute,
+      isChatBotAvailable,
       settingsStore,
       searchQuery,
       search,
