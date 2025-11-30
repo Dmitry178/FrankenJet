@@ -18,6 +18,7 @@ dependencies = [
     "fastapi[all]>=0.118.3",
     "faststream[rabbit]>=0.5.48",
     "passlib>=1.7.4",
+    "pgvector>=0.4.1",
     "pyjwt[crypto]>=2.10.1",
     "redis>=6.4.0",
     "sqlalchemy>=2.0.43",
