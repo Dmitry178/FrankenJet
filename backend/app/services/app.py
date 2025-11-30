@@ -1,4 +1,5 @@
 from app.config.env import settings
+from app.core import chatbot_settings
 
 
 class AppServices:
@@ -28,10 +29,17 @@ class AppServices:
 
         # пути
         urls = {
-            "images": settings.S3_DIRECT_URL,
+            "images": settings.S3_DIRECT_URL,  # путь к S3-хранилищу
         }
 
+        if settings.GIGACHAT_AUTH_KEY and settings.GIGACHAT_SCOPE:
+            await chatbot_settings.initialize()
+            chat_bot = chatbot_settings.get("enabled")
+        else:
+            chat_bot = False
+
         return {
-            "auth_methods": auth_methods,
-            "urls": urls,
+            "auth_methods": auth_methods,  # доступные методы аутентификации
+            "urls": urls,  # пути к сервисам
+            "chat_bot": chat_bot,  # включен ли чат-бот
         }
