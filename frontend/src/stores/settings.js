@@ -9,8 +9,12 @@ export const useSettingsStore = defineStore('settings', {
         registration: false,
         reset_password: false,
         oauth2_google: false,
-        oauth2_vk: false
-      }
+        oauth2_vk: false,
+      },
+      urls: {
+        images: '',
+      },
+      chat_bot: false,
     },
     loading: false,
     error: null
@@ -22,6 +26,8 @@ export const useSettingsStore = defineStore('settings', {
     isResetPasswordEnabled: (state) => state.settings.auth_methods.reset_password,
     isGoogleOAuthEnabled: (state) => state.settings.auth_methods.oauth2_google,
     isVkOAuthEnabled: (state) => state.settings.auth_methods.oauth2_vk,
+    imagesUrl: (state) => state.settings.urls.images,
+    isChatBotAvailable: (state) => state.settings.chat_bot,
     isLoading: (state) => state.loading,
     hasError: (state) => state.error
   },
