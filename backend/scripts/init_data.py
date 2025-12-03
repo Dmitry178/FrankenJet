@@ -4,13 +4,14 @@
 Добавление расширений, инициализация данных
 """
 
+import sys
+
+sys.path.append("/code")
+
 import asyncio
 import json
 import logging
 import os
-import sys
-
-sys.path.append("/code")
 
 from alembic import command
 from alembic.config import Config
@@ -29,10 +30,10 @@ from urllib.parse import urlparse
 from uuid import UUID
 
 from app.config.app import BUCKET_IMAGES
-from app.core.db_manager import DBManager
 from app.core.s3_manager import S3Manager
-from app.db import Base, async_session_maker
-from app.db.models import *
+from app.db import Base
+from app.db.models import Users, UsersRolesAssociation, Roles, Countries, TagsCategories, Tags, Articles, Aircraft, \
+    ArticlesTagsAssociation, Facts
 from app.services.security import SecurityService
 
 T = TypeVar("T", bound=Base)
@@ -452,41 +453,12 @@ async def main() -> None:
         await db_handler.add_data(Aircraft, data)
         await db_handler.add_data(ArticlesTagsAssociation, tags)
 
-    async with DBManager(session_factory=async_session_maker) as db:
-
-        '''
-        logger.info("Добавление ролей пользователей")
-        roles_data = await read_json("/scripts/data/roles.json")
-        roles_data_model = DataUtils().convert_data_types(Roles, roles_data)
-        await db.auth.roles.insert_all_conflict(values=roles_data_model)
-
-        logger.info("Добавление стран")
-        countries_data = await read_json("/scripts/data/countries.json")
-        countries_data_model = DataUtils().convert_data_types(Countries, countries_data)
-        await db.countries.insert_all_conflict(values=countries_data_model)
-        '''
-
         if not skip_facts:
             logger.info("Добавление фактов")
             facts = await read_text("/scripts/data/facts.txt")
             facts_data = [{"fact": fact} for fact in facts]
-            facts_data_model = DataUtils().convert_data_types(Facts, facts_data)
-            await db.facts.insert_all_conflict(values=facts_data_model)
-
-        '''
-        logger.info("Добавление списка тегов")
-        await TagsServices(db).auto_create()
-
-        logger.info("Добавление статей")
-        articles_data = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
-        articles_data_model = DataUtils().convert_data_types(Articles, articles_data)
-        await db.articles.insert_all_conflict(values=articles_data_model)
-
-        logger.info("Добавление карточек воздушных судов")
-        aircraft_data = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
-        aircraft_data_model = DataUtils().convert_data_types(Aircraft, aircraft_data)
-        await db.aircraft.insert_all_conflict(values=aircraft_data_model)
-        '''
+            data = DataUtils().convert_data_types(Facts, facts_data)
+            await db_handler.add_data(Facts, data)
 
     logger.info("Добавление данных завершено")
 
