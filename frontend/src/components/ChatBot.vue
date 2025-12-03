@@ -5,8 +5,8 @@
     :class="{ 'chat-bot-card--mobile': $vuetify.display.smAndDown }"
     elevation="10"
     rounded="lg"
-    width="350"
-    style="position: fixed; bottom: 80px; right: 23px; z-index: 9998; max-height: 60vh; overflow-y: auto;"
+    width="370"
+    style="position: fixed; bottom: 20px; right: 20px; z-index: 9998; max-height: 60vh; overflow-y: auto;"
   >
     <!-- Заголовок -->
     <v-card-title class="d-flex align-center pa-3">
