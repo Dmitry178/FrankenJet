@@ -1,0 +1,18 @@
+services:
+  vectorizer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: vectorizer:latest
+    container_name: fj-vectorizer
+    hostname: vectorizer
+    environment:
+      - GRPC_PORT=50051
+    networks:
+      - fj_network
+    restart: unless-stopped
+
+networks:
+  fj_network:
+    external: true
+    name: frankenjet
