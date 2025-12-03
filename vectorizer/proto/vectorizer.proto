@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package vectorizer;
+
+service VectorizerService {
+  rpc EmbedText(EmbedTextRequest) returns (EmbedTextResponse);
+}
+
+message EmbedTextRequest {
+  string text = 1;
+}
+
+message EmbedTextResponse {
+  repeated float embedding = 1;
+}
