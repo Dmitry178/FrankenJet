@@ -2,6 +2,8 @@ from sqlalchemy import select, text, func
 from sqlalchemy.dialects.postgresql import insert
 from uuid import UUID
 
+from sqlalchemy.exc import IntegrityError
+
 from app.db.models import ChatBotSettings, ChatHistory
 from app.db.models.chatbot import MessageIntent
 from app.db.repository.base import BaseEmptyRepository, BaseRepository
@@ -54,7 +56,7 @@ class ChatBotHistoryRepository(BaseRepository):
                 ChatHistory.total_tokens + ChatHistory.precached_prompt_tokens
             ).label("total_daily_tokens")
         ).where(
-            func.date(ChatHistory.created_at) == func.date(func.now()),
+            func.date(ChatHistory.created_at) == func.date(func.now()),  # noqa
         )
 
         result = (await self.session.execute(query)).one_or_none()
@@ -93,13 +95,34 @@ class ChatBotSettingsRepository(BaseEmptyRepository):
 
     model = ChatBotSettings
 
-    async def get_settings(self):
+    async def _get_settings(self):
         """
         Чтение настроек чат-бота
         """
 
-        query = select(ChatBotSettings).limit(1)
+        query = select(self.model).limit(1)
         return (await self.session.execute(query)).scalars().one_or_none()
+
+    async def get_settings(self):
+        """
+        Чтение, либо создание настроек чат-бота
+        """
+
+        if result := await self._get_settings():
+            return result
+
+        try:
+            stmt = insert(self.model).values(id=1).returning(self.model)
+            result = await self.session.execute(stmt)
+            await self.session.commit()
+            return result.scalars().one()
+
+        except IntegrityError:
+            await self.session.rollback()
+            return await self._get_settings()
+
+        except Exception as ex:
+            raise ex
 
     async def update_settings(self, settings: SChatBotSettings):
         """
