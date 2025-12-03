@@ -8,7 +8,7 @@ from app.config.app import GIGACHAT_USER_MESSAGE_MAX_SIZE
 from app.core.db_manager import DBManager
 from app.core.gigachat import gigachat_api
 from app.core.ws_manager import WSBotManager
-from app.db.models.chat_bot import MessageIntent
+from app.db.models.chatbot import MessageIntent
 from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.gigachat import SGigaChatAnswer
 from scripts.init_db import logger
@@ -69,12 +69,16 @@ class ChatBotServices:
         if not message:
             return
 
+        # проверка длины сообщения
         if len(message) > GIGACHAT_USER_MESSAGE_MAX_SIZE:
             await self.ws_manager.send_message_to_chat(
                 chat_id,
                 f"⚠️ Превышение максимальной длины сообщения в {GIGACHAT_USER_MESSAGE_MAX_SIZE} символов"
             )
             return False
+
+        # проверка оставшегося количества токенов
+        # TODO: сделать проверку
 
         asyncio.create_task(self.background_task(chat_id, message))
 
