@@ -61,6 +61,9 @@ class Settings(BaseSettings):
     S3_ENDPOINT_URL: str | None = None  # url для API
     S3_DIRECT_URL: str | None = ""  # url для доступа к данным в S3
 
+    # подключение к Vectorizer
+    VECTORIZER_GRPC_ADDRESS: str | None = None
+
     # учётная запись админа по умолчанию (создаётся при первом запуске)
     ADMIN_USER: str | None = None
     ADMIN_PASS: str | None = None
