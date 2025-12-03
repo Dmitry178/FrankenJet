@@ -1,7 +1,7 @@
 import enum
 import uuid
 
-from sqlalchemy import Integer, UUID, Enum
+from sqlalchemy import Integer, UUID, Enum, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
@@ -15,7 +15,10 @@ class ChatBotSettings(Base):
     """
 
     __tablename__ = "settings"
-    __table_args__ = {"schema": "chatbot"}
+    __table_args__ = (
+        CheckConstraint("id=1", name="settings_single_row_check"),
+        {"schema": "chatbot"},
+    )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     enabled: Mapped[bool_false]  # активирован ли чат-бот
