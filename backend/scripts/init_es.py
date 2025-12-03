@@ -33,16 +33,26 @@ index_settings = {
                     "synonyms": [
                         "санкт-петербург, петербург, питер, спб, с-пб, с-петербург, петроград, ленинград",
                         "москва, мос, мск",
-                        "екатеринбург, екат, ебург, ёбург, екб, свердловск"
+                        "екатеринбург, екат, ебург, ёбург, екб, свердловск",
+                    ]
+                },
+                "country_synonyms": {
+                    "type": "synonym",
+                    "synonyms": [
+                        "ссср, союз, советский, советский союз",
+                        "сша, америка, американский",
+                        "ес, европа, евросоюз, европейский, европейский союз",
+                        "британия, британский, великобритания, англия, английский",
+                        "германия, германский, немецкий, фрг, гдр",
                     ]
                 },
                 "russian_stemmer": {
                     "type": "stemmer",
-                    "language": "russian"
+                    "language": "russian",
                 },
                 "english_stemmer": {
                     "type": "stemmer",
-                    "language": "english"
+                    "language": "english",
                 }
             },
             "analyzer": {
@@ -55,7 +65,7 @@ index_settings = {
                         "city_synonyms",
                         "russian_stemmer",
                         "english_stemmer",
-                        "snowball"
+                        "snowball",
                     ]
                 }
             }
@@ -67,6 +77,12 @@ index_settings = {
             "content": {"type": "text", "analyzer": "custom_synonym_analyzer"},
             "tags": {"type": "keyword"},
             "image_url": {"type": "keyword"},
+            "content_vector": {
+                "type": "dense_vector",
+                "dims": 768,  # sbert_large_nlu_ru и multilingual-e5-base - 768, multilingual-e5-small - 384
+                "index": True,
+                "similarity": "cosine"
+            }
         }
     }
 }
