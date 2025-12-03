@@ -3,7 +3,7 @@
 from app.db.repository.aircraft import AircraftRepository
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
-from app.db.repository.chat_bot import ChatBotSettingsRepository, ChatBotHistoryRepository
+from app.db.repository.chatbot import ChatBotSettingsRepository, ChatBotHistoryRepository
 from app.db.repository.knowledge_base import ProjectKnowledgeRepository
 from app.db.repository.countries import CountriesRepository
 from app.db.repository.facts import FactsRepository

@@ -12,7 +12,7 @@ from app.db.models.articles import (
 from app.db.models.auth import (
     RefreshTokens,
 )
-from app.db.models.chat_bot import (
+from app.db.models.chatbot import (
     ChatBotSettings,
     ChatHistory,
 )

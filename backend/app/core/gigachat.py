@@ -7,13 +7,12 @@ https://github.com/ai-forever/gigachat
 
 import aiohttp
 import requests
+import urllib3
 
 from datetime import datetime
 from uuid import UUID, uuid4
 
-import urllib3
-
-from app.config.chat_bot import ChatBotSettingsManager
+from app.config.chatbot import ChatBotSettingsManager
 from app.config.env import settings
 from app.core import chatbot_settings
 from app.schemas.gigachat import SGigaChatAnswer

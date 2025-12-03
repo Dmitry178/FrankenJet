@@ -3,7 +3,7 @@ from typing import Any
 from app.core.db_manager import DBManager
 from app.core.logs import logger
 from app.db import async_session_maker
-from app.schemas.chat_bot import SChatBotSettings
+from app.schemas.chatbot import SChatBotSettings
 
 
 class ChatBotSettingsManager:
