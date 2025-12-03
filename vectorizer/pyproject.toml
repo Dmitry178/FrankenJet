@@ -1,0 +1,11 @@
+[project]
+name = "vectorizer"
+version = "0.1.0"
+description = "FrankenJet Vectorizer Microservice"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastembed==0.5.1",
+    "grpcio-tools>=1.76.0",
+    "pydantic-settings>=2.12.0",
+]
