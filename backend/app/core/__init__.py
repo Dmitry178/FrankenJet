@@ -1,9 +1,10 @@
-from app.config.chat_bot import ChatBotSettingsManager
+from app.config.chatbot import ChatBotSettingsManager
 from app.config.env import settings
 from app.core.cache_manager import CacheManager
 from app.core.es_manager import ESManager
 from app.core.http_manager import HTTPManager
 from app.core.rmq_manager import RMQManager
+from app.core.vectorizer import VectorizerManager
 from app.core.ws_manager import WSBotManager
 
 # инициализация RabbitMQ-менеджера
@@ -27,3 +28,6 @@ ws_manager = WSBotManager()
 
 # инициализация менеджера настроек чат-бота
 chatbot_settings = ChatBotSettingsManager()
+
+# инициализация менеджера векторизатора текста
+vectorizer_manager = VectorizerManager(server_address=settings.VECTORIZER_GRPC_ADDRESS)
