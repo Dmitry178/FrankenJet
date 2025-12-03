@@ -1,0 +1,4 @@
+.venv
+_*
+!__init__.py
+*.json
