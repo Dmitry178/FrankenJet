@@ -1,11 +1,11 @@
-from sqlalchemy import select, text
+from sqlalchemy import select, text, func
 from sqlalchemy.dialects.postgresql import insert
 from uuid import UUID
 
 from app.db.models import ChatBotSettings, ChatHistory
-from app.db.models.chat_bot import MessageIntent
+from app.db.models.chatbot import MessageIntent
 from app.db.repository.base import BaseEmptyRepository, BaseRepository
-from app.schemas.chat_bot import SChatBotSettings
+from app.schemas.chatbot import SChatBotSettings
 
 
 class ChatBotHistoryRepository(BaseRepository):
@@ -40,6 +40,36 @@ class ChatBotHistoryRepository(BaseRepository):
             )
 
         return (await self.session.execute(query)).mappings().all()
+
+    async def count_daily_tokens(self, chat_id: UUID) -> dict[str, int]:
+        """
+        Подсчёт токенов, потраченных за день
+        """
+
+        query = select(
+            func.sum(
+                ChatHistory.total_tokens + ChatHistory.precached_prompt_tokens
+            ).filter(ChatHistory.chat_id == chat_id).label("user_daily_tokens"),
+            func.sum(
+                ChatHistory.total_tokens + ChatHistory.precached_prompt_tokens
+            ).label("total_daily_tokens")
+        ).where(
+            func.date(ChatHistory.created_at) == func.date(func.now()),
+        )
+
+        result = (await self.session.execute(query)).one_or_none()
+
+        if result is None:
+            user_daily_tokens = 0
+            total_daily_tokens = 0
+        else:
+            user_daily_tokens = result.user_daily_tokens or 0
+            total_daily_tokens = result.total_daily_tokens or 0
+
+        return {
+            "user_daily_tokens": user_daily_tokens,
+            "total_daily_tokens": total_daily_tokens,
+        }
 
     async def put_message(self, **values) -> int:
         """
