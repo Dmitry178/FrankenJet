@@ -384,6 +384,6 @@ export default {
   position: fixed !important;
   bottom: 23px !important;
   right: 23px !important;
-  z-index: 9999;
+  z-index: 9998;
 }
 </style>
