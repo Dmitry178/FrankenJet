@@ -4,6 +4,7 @@ package vectorizer;
 
 service VectorizerService {
   rpc EmbedText(EmbedTextRequest) returns (EmbedTextResponse);
+  rpc EmbedTextBatch(EmbedTextBatchRequest) returns (EmbedTextBatchResponse);
 }
 
 message EmbedTextRequest {
@@ -11,5 +12,17 @@ message EmbedTextRequest {
 }
 
 message EmbedTextResponse {
+  repeated float embedding = 1;
+}
+
+message EmbedTextBatchRequest {
+  repeated string text = 1;
+}
+
+message EmbedTextBatchResponse {
+  repeated EmbeddingResult embeddings = 1;
+}
+
+message EmbeddingResult {
   repeated float embedding = 1;
 }
