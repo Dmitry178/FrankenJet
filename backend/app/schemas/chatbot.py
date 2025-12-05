@@ -26,5 +26,5 @@ class SChatBotSettings(BaseModel):
     model: str | None = Field(None, max_length=32, description="Название LLM-модели")
     scope: str | None = Field(None, max_length=32, description="Название scope")
     system_prompt: str | None = Field(None, description="Системный промт")
-    messages_per_user: int | None = Field(None, description="Количество сообщений на пользователя в день")
-    messages_per_day: int | None = Field(None, description="Количество сообщений в день на всех пользователей")
+    user_daily_tokens: int | None = Field(None, description="Количество токенов в день на пользователя")
+    total_daily_tokens: int | None = Field(None, description="Количество токенов в день на всех пользователей")
