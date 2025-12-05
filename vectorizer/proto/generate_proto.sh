@@ -1,2 +1,2 @@
 #!/bin/bash
-python -m grpc_tools.protoc -I./proto --python_out=./src --grpc_python_out=./src proto/vectorizer.proto
+python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. vectorizer.proto
