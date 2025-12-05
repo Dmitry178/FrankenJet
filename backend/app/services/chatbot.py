@@ -5,13 +5,14 @@ import unicodedata
 from uuid import UUID
 
 from app.config.app import GIGACHAT_USER_MESSAGE_MAX_SIZE
+from app.core import chatbot_settings
 from app.core.db_manager import DBManager
 from app.core.gigachat import gigachat_api
+from app.core.logs import logger
 from app.core.ws_manager import WSBotManager
 from app.db.models.chatbot import MessageIntent
 from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.gigachat import SGigaChatAnswer
-from scripts.init_db import logger
 
 
 class ChatBotServices:
@@ -61,13 +62,13 @@ class ChatBotServices:
         return history
 
     @handle_basic_db_errors
-    async def proceed_user_message(self, chat_id: UUID, message: str) -> bool | None:
+    async def _check_limits(self, chat_id: UUID, message: str) -> bool:
         """
-        Обработка сообщения пользователя
+        Проверка длины сообщения лимитов по токенам
         """
 
         if not message:
-            return
+            return False
 
         # проверка длины сообщения
         if len(message) > GIGACHAT_USER_MESSAGE_MAX_SIZE:
@@ -78,14 +79,30 @@ class ChatBotServices:
             return False
 
         # проверка оставшегося количества токенов
-        # TODO: сделать проверку
+        count_tokens = self.db.chatbot.history.count_daily_tokens(chat_id)
+
+        if count_tokens.get("user_daily_tokens", 0) > chatbot_settings.settings.user_daily_tokens:
+            await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение лимита токенов")
+            return False
+
+        if count_tokens.get("total_daily_tokens", 0) > chatbot_settings.settings.total_daily_tokens:
+            await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение общего лимита токенов")
+            return False
+
+    async def proceed_user_message(self, chat_id: UUID, message: str) -> bool:
+        """
+        Обработка сообщения пользователя
+        """
+
+        if not self._check_limits(chat_id, message):
+            return False
 
         asyncio.create_task(self.background_task(chat_id, message))
 
         return True
 
     @classmethod
-    def sanitize_string_optimized(cls, text: str) -> str:
+    def _sanitize_string_optimized(cls, text: str) -> str:
         """
         Очистка строки от потенциально опасных символов для подачи в LLM
         """
@@ -121,7 +138,7 @@ class ChatBotServices:
             history = await self.get_history_for_api(chat_id)
 
             async with gigachat_api as chatbot:
-                cleaned_message = self.sanitize_string_optimized(message)
+                cleaned_message = self._sanitize_string_optimized(message)
                 giga_chat_answer: SGigaChatAnswer = await chatbot.send_message(cleaned_message, history)
 
             answer = giga_chat_answer.answer
