@@ -13,9 +13,9 @@ class VectorizerService(vectorizer_pb2_grpc.VectorizerServiceServicer):
         # инициализация модели векторизации
         self.embedding_model = EmbeddingModel(model_name=app_settings.MODEL_NAME)
 
-    def EmbedText(self, request: vectorizer_pb2.EmbedTextRequest, context) -> vectorizer_pb2.EmbedTextResponse:
+    def EmbedText(self, request: vectorizer_pb2.EmbedTextRequest, context) -> vectorizer_pb2.EmbedTextResponse:  # noqa
         """
-        Реализация RPC метода EmbedText, определённого в .proto файле
+        Реализация RPC метода EmbedText (векторизация текста)
         """
 
         try:
@@ -23,7 +23,7 @@ class VectorizerService(vectorizer_pb2_grpc.VectorizerServiceServicer):
             embedding = self.embedding_model.embed(request.text)
 
             # создание объекта ответа клиенту
-            response = vectorizer_pb2.EmbedTextResponse(embedding=embedding)
+            response = vectorizer_pb2.EmbedTextResponse(embedding=embedding)  # noqa
 
             return response
 
@@ -31,7 +31,37 @@ class VectorizerService(vectorizer_pb2_grpc.VectorizerServiceServicer):
             app_logger.error(f"Ошибка генерации вектора: {ex}")
             context.set_code(grpc.StatusCode.INTERNAL)  # установка кода ошибки gRPC на INTERNAL
             context.set_details(str(ex))
-            return vectorizer_pb2.EmbedTextResponse(embedding=[])
+            return vectorizer_pb2.EmbedTextResponse(embedding=[])  # noqa
+
+    def EmbedTextBatch(
+            self,
+            request: vectorizer_pb2.EmbedTextBatchRequest,  # noqa
+            context
+    ) -> vectorizer_pb2.EmbedTextBatchResponse:  # noqa
+        """
+        Реализация RPC метода EmbedTextBatch (пакетная векторизация текста)
+        """
+
+        try:
+            # преобразование массива текстов в массив векторов
+            embeddings = self.embedding_model.embed_batch(request.text)
+
+            # создание объектов EmbeddingResult для каждого эмбеддинга
+            embedding_results = []
+            for embedding_vector in embeddings:
+                embedding_result = vectorizer_pb2.EmbeddingResult(embedding=embedding_vector)  # noqa
+                embedding_results.append(embedding_result)
+
+            # создание объекта ответа клиенту
+            response = vectorizer_pb2.EmbedTextBatchResponse(embeddings=embedding_results)  # noqa
+
+            return response
+
+        except Exception as ex:
+            app_logger.error(f"Ошибка генерации векторов: {ex}")
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(ex))
+            return vectorizer_pb2.EmbedTextBatchResponse(embedding=[])  # noqa
 
 
 def serve():
