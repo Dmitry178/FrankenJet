@@ -7,4 +7,4 @@ if __name__ == "__main__":
         serve()
 
     except KeyboardInterrupt:
-        app_logger("Stopping gRPC service")
+        app_logger.info("Stopping gRPC service")
