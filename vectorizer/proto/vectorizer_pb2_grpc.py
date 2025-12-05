@@ -39,12 +39,23 @@ class VectorizerServiceStub(object):
                 request_serializer=vectorizer__pb2.EmbedTextRequest.SerializeToString,
                 response_deserializer=vectorizer__pb2.EmbedTextResponse.FromString,
                 _registered_method=True)
+        self.EmbedTextBatch = channel.unary_unary(
+                '/vectorizer.VectorizerService/EmbedTextBatch',
+                request_serializer=vectorizer__pb2.EmbedTextBatchRequest.SerializeToString,
+                response_deserializer=vectorizer__pb2.EmbedTextBatchResponse.FromString,
+                _registered_method=True)
 
 
 class VectorizerServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def EmbedText(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def EmbedTextBatch(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +68,11 @@ def add_VectorizerServiceServicer_to_server(servicer, server):
                     servicer.EmbedText,
                     request_deserializer=vectorizer__pb2.EmbedTextRequest.FromString,
                     response_serializer=vectorizer__pb2.EmbedTextResponse.SerializeToString,
+            ),
+            'EmbedTextBatch': grpc.unary_unary_rpc_method_handler(
+                    servicer.EmbedTextBatch,
+                    request_deserializer=vectorizer__pb2.EmbedTextBatchRequest.FromString,
+                    response_serializer=vectorizer__pb2.EmbedTextBatchResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +102,33 @@ class VectorizerService(object):
             '/vectorizer.VectorizerService/EmbedText',
             vectorizer__pb2.EmbedTextRequest.SerializeToString,
             vectorizer__pb2.EmbedTextResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def EmbedTextBatch(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/vectorizer.VectorizerService/EmbedTextBatch',
+            vectorizer__pb2.EmbedTextBatchRequest.SerializeToString,
+            vectorizer__pb2.EmbedTextBatchResponse.FromString,
             options,
             channel_credentials,
             insecure,
