@@ -1,11 +1,9 @@
+from app.config.app import ARTICLES_INDEX_NAME
 from app.config.env import settings
 from app.core import ESManager
 from app.core.db_manager import DBManager
 from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.search import SSearch
-
-# название индекса
-ARTICLES_INDEX = "articles"
 
 
 class SearchService:
@@ -16,7 +14,7 @@ class SearchService:
     def __init__(self, db: DBManager | None = None, es: ESManager | None = None) -> None:
         self.db = db
         self.es = es
-        self.index = [ARTICLES_INDEX]
+        self.index = [ARTICLES_INDEX_NAME]
 
     @handle_basic_db_errors
     async def search(self, data: SSearch):
