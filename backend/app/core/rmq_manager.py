@@ -6,6 +6,9 @@ from aiormq import AMQPConnectionError, ChannelClosed, AMQPError
 from contextlib import asynccontextmanager
 from faststream.rabbit import RabbitBroker
 
+from app.core.logs import logger
+
+
 # from app.core.logs import logger
 
 
@@ -47,14 +50,14 @@ class RMQManager:
 
             except (AMQPConnectionError, ChannelClosed, AMQPError) as ex:
                 if attempt == self.max_retries - 1:
-                    # logger.critical(
-                    #     f"Не удалось опубликовать сообщение в очередь {queue} после {self.max_retries} попыток"
-                    # )
+                    logger.critical(
+                        f"Не удалось опубликовать сообщение в очередь {queue} после {self.max_retries} попыток"
+                    )
                     raise RuntimeError(
                         f"Ошибка публикации сообщения в очередь {queue} после {self.max_retries} попыток"
                     )
 
-                # logger.warning(f"Ошибка публикации (попытка {attempt + 1}): {ex}")
+                logger.warning(f"Ошибка публикации (попытка {attempt + 1}): {ex}")
 
                 # экспоненциальная задержка перед повторной попыткой отправки сообщения
                 await asyncio.sleep(1 * (attempt + 1))
@@ -63,14 +66,12 @@ class RMQManager:
                 try:
                     await self.broker.stop()
                 except Exception as ex:
-                    # logger.error(ex)
-                    pass
+                    logger.error(ex)
 
                 try:
                     await self.broker.connect()
                 except Exception as ex:
-                    # logger.error(ex)
-                    pass
+                    logger.error(ex)
 
     def subscriber(self, queue: str):
         """
