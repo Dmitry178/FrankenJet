@@ -44,7 +44,7 @@ class VectorizerService(vectorizer_pb2_grpc.VectorizerServiceServicer):
 
         try:
             # преобразование массива текстов в массив векторов
-            embeddings = self.embedding_model.embed_batch(request.text)
+            embeddings = self.embedding_model.embed_batch(request.texts)
 
             # создание объектов EmbeddingResult для каждого эмбеддинга
             embedding_results = []
@@ -61,7 +61,7 @@ class VectorizerService(vectorizer_pb2_grpc.VectorizerServiceServicer):
             app_logger.error(f"Ошибка генерации векторов: {ex}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(ex))
-            return vectorizer_pb2.EmbedTextBatchResponse(embedding=[])  # noqa
+            return vectorizer_pb2.EmbedTextBatchResponse(embeddings=[])  # noqa
 
 
 def serve():
