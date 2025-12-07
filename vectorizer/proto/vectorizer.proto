@@ -16,7 +16,7 @@ message EmbedTextResponse {
 }
 
 message EmbedTextBatchRequest {
-  repeated string text = 1;
+  repeated string texts = 1;
 }
 
 message EmbedTextBatchResponse {
