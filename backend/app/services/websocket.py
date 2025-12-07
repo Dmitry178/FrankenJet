@@ -3,6 +3,7 @@ import json
 from fastapi import WebSocket, WebSocketDisconnect
 from uuid import UUID
 
+from app.core import chatbot_settings
 from app.core.db_manager import DBManager
 from app.core.ws_manager import WSBotManager
 from app.dependencies.db import DDB
@@ -55,7 +56,11 @@ class WebSocketService:
             data = json.loads(data)
             if data.get("type", "") == "message":
                 message = data.get("message")
-                await ChatBotServices(db=self.db, ws_manager=self.ws_manager).proceed_user_message(chat_id, message)
+                await ChatBotServices(
+                    db=self.db,
+                    ws_manager=self.ws_manager,
+                    bot_settings=chatbot_settings
+                ).proceed_user_message(chat_id, message)
 
         except (json.JSONDecodeError, Exception) as ex:
             logger.error(ex)
