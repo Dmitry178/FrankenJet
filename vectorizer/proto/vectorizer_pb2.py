@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10vectorizer.proto\x12\nvectorizer\" \n\x10\x45mbedTextRequest\x12\x0c\n\x04text\x18\x01 \x01(\t\"&\n\x11\x45mbedTextResponse\x12\x11\n\tembedding\x18\x01 \x03(\x02\"%\n\x15\x45mbedTextBatchRequest\x12\x0c\n\x04text\x18\x01 \x03(\t\"I\n\x16\x45mbedTextBatchResponse\x12/\n\nembeddings\x18\x01 \x03(\x0b\x32\x1b.vectorizer.EmbeddingResult\"$\n\x0f\x45mbeddingResult\x12\x11\n\tembedding\x18\x01 \x03(\x02\x32\xb6\x01\n\x11VectorizerService\x12H\n\tEmbedText\x12\x1c.vectorizer.EmbedTextRequest\x1a\x1d.vectorizer.EmbedTextResponse\x12W\n\x0e\x45mbedTextBatch\x12!.vectorizer.EmbedTextBatchRequest\x1a\".vectorizer.EmbedTextBatchResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10vectorizer.proto\x12\nvectorizer\" \n\x10\x45mbedTextRequest\x12\x0c\n\x04text\x18\x01 \x01(\t\"&\n\x11\x45mbedTextResponse\x12\x11\n\tembedding\x18\x01 \x03(\x02\"&\n\x15\x45mbedTextBatchRequest\x12\r\n\x05texts\x18\x01 \x03(\t\"I\n\x16\x45mbedTextBatchResponse\x12/\n\nembeddings\x18\x01 \x03(\x0b\x32\x1b.vectorizer.EmbeddingResult\"$\n\x0f\x45mbeddingResult\x12\x11\n\tembedding\x18\x01 \x03(\x02\x32\xb6\x01\n\x11VectorizerService\x12H\n\tEmbedText\x12\x1c.vectorizer.EmbedTextRequest\x1a\x1d.vectorizer.EmbedTextResponse\x12W\n\x0e\x45mbedTextBatch\x12!.vectorizer.EmbedTextBatchRequest\x1a\".vectorizer.EmbedTextBatchResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,11 +36,11 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_EMBEDTEXTRESPONSE']._serialized_start=66
   _globals['_EMBEDTEXTRESPONSE']._serialized_end=104
   _globals['_EMBEDTEXTBATCHREQUEST']._serialized_start=106
-  _globals['_EMBEDTEXTBATCHREQUEST']._serialized_end=143
-  _globals['_EMBEDTEXTBATCHRESPONSE']._serialized_start=145
-  _globals['_EMBEDTEXTBATCHRESPONSE']._serialized_end=218
-  _globals['_EMBEDDINGRESULT']._serialized_start=220
-  _globals['_EMBEDDINGRESULT']._serialized_end=256
-  _globals['_VECTORIZERSERVICE']._serialized_start=259
-  _globals['_VECTORIZERSERVICE']._serialized_end=441
+  _globals['_EMBEDTEXTBATCHREQUEST']._serialized_end=144
+  _globals['_EMBEDTEXTBATCHRESPONSE']._serialized_start=146
+  _globals['_EMBEDTEXTBATCHRESPONSE']._serialized_end=219
+  _globals['_EMBEDDINGRESULT']._serialized_start=221
+  _globals['_EMBEDDINGRESULT']._serialized_end=257
+  _globals['_VECTORIZERSERVICE']._serialized_start=260
+  _globals['_VECTORIZERSERVICE']._serialized_end=442
 # @@protoc_insertion_point(module_scope)
