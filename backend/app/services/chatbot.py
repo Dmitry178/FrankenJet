@@ -5,7 +5,8 @@ import unicodedata
 from uuid import UUID
 
 from app.config.app import GIGACHAT_USER_MESSAGE_MAX_SIZE
-from app.core import chatbot_settings
+from app.config.chatbot import ChatBotSettingsManager
+from app.core import chatbot_settings, es_manager, vectorizer_manager
 from app.core.db_manager import DBManager
 from app.core.gigachat import gigachat_api
 from app.core.logs import logger
@@ -13,6 +14,7 @@ from app.core.ws_manager import WSBotManager
 from app.db.models.chatbot import MessageIntent
 from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.gigachat import SGigaChatAnswer
+from app.services.ragbot import RagBotService
 
 
 class ChatBotServices:
@@ -22,8 +24,6 @@ class ChatBotServices:
     intent_mapper = {
         str(MessageIntent.intent_greeting): "Приветствую. Вы можете задать вопрос по теме авиации.",
         str(MessageIntent.intent_offtopic): "Я могу отвечать только по теме авиации.",
-        str(MessageIntent.intent_feedback): "Функция ответа на этот вопрос в процессе разработки.",
-        str(MessageIntent.intent_project): "Функция ответа на этот вопрос в процессе разработки.",
         str(MessageIntent.intent_timeout): "⚠️ Превышено время ожидания ответа от сервера.",
         str(MessageIntent.intent_blacklist): "Я могу отвечать только по теме авиации.",
         str(MessageIntent.intent_spam): "Я могу отвечать только по теме авиации.",
@@ -31,9 +31,15 @@ class ChatBotServices:
 
     REGEX = re.compile(r'\s+')
 
-    def __init__(self, db: DBManager | None = None, ws_manager: WSBotManager | None = None) -> None:
-        self.ws_manager = ws_manager
+    def __init__(
+            self,
+            db: DBManager | None = None,
+            ws_manager: WSBotManager | None = None,
+            bot_settings: ChatBotSettingsManager | None = None,
+    ) -> None:
         self.db = db
+        self.ws_manager = ws_manager
+        self.bot_settings = bot_settings  # менеджер настроек бота
 
     @handle_basic_db_errors
     async def get_history_for_bot(self, chat_id: UUID) -> list:
@@ -41,17 +47,17 @@ class ChatBotServices:
         Получение истории чата пользователя для отправки на frontend
         """
 
-        result = await self.db.chatbot.history.get_user_history(chat_id, api=False)
+        result = await self.db.chatbot.history.get_user_history(chat_id)
         return result[::-1]
 
     @handle_basic_db_errors
-    async def get_history_for_api(self, chat_id: UUID) -> list:
+    async def get_history_for_api(self, chat_id: UUID, intent: str | None = None) -> list:
         """
         Получение истории чата пользователя для отправки в LLM по API
         """
 
         history = []
-        raw_history = await self.db.chatbot.history.get_user_history(chat_id, api=True, limit=4)
+        raw_history = await self.db.chatbot.history.get_user_history(chat_id, intent=intent, limit=4)
 
         for item in raw_history[::-1]:
             if message := item.get("message"):
@@ -94,7 +100,7 @@ class ChatBotServices:
         Обработка сообщения пользователя
         """
 
-        if not self._check_limits(chat_id, message):
+        if not await self._check_limits(chat_id, message):
             return False
 
         asyncio.create_task(self.background_task(chat_id, message))
@@ -129,31 +135,81 @@ class ChatBotServices:
         result = "".join(result_chars)
         return cls.REGEX.sub(" ", result).strip()
 
+    async def _get_llm_answer(self, chat_id: UUID, message: str, chunks: str | None = None) -> SGigaChatAnswer:
+        """
+        Получение ответа от LLM
+        """
+
+        # загрузка истории сообщений
+        intent = MessageIntent.intent_project if chunks else MessageIntent.intent_ontopic
+        history = await self.get_history_for_api(chat_id, str(intent))
+
+        # очистка сообщения пользователя от потенциально опасных символов
+        cleaned_message = self._sanitize_string_optimized(message)
+
+        # запрос к LLM
+        async with gigachat_api as chatbot:
+            giga_chat_answer: SGigaChatAnswer = await chatbot.send_message(cleaned_message, history, chunks)
+
+        return giga_chat_answer
+
+    @staticmethod
+    async def _get_answer_intent(answer: str) -> str:
+        """
+        Определение intent
+        """
+
+        # поиск команды intent_* от LLM
+        pattern = r"\bintent_\w+"
+        pattern_match = re.search(pattern, answer, re.IGNORECASE)
+
+        return pattern_match.group(0)[:24].strip() if pattern_match else MessageIntent.intent_ontopic
+
+    async def _get_ragbot_answer(self, chat_id: UUID, message: str) -> str:
+        """
+        Формирование ответа RAG-бота
+        """
+
+        # поиск ближайших чанков
+        async with es_manager as es, vectorizer_manager as vectorizer:
+            chunks = await RagBotService(es, vectorizer).get_top_chunks_list(message)
+
+        # TODO: сделать обработку chunks is None
+        chunks = "\n".join(chunks)
+
+        # запрос к LLM
+        giga_chat_answer = await self._get_llm_answer(chat_id, message, chunks=chunks)
+
+        return giga_chat_answer.answer
+
     async def background_task(self, chat_id: UUID, message: str) -> None:
         """
         Фоновая отправка сообщения в LLM и обработка результата
         """
 
         try:
-            history = await self.get_history_for_api(chat_id)
-
-            async with gigachat_api as chatbot:
-                cleaned_message = self._sanitize_string_optimized(message)
-                giga_chat_answer: SGigaChatAnswer = await chatbot.send_message(cleaned_message, history)
-
+            # ответ от LLM
+            giga_chat_answer = await self._get_llm_answer(chat_id, message)
             answer = giga_chat_answer.answer
 
-            # поиск команды intent_* от LLM
-            pattern = r"\bintent_\w+"
-            match = re.search(pattern, answer, re.IGNORECASE)
+            # определение intent
+            intent = await self._get_answer_intent(answer)
 
-            if match:
-                # вопрос пользователя не по теме авиации, формируем ответ
-                intent = match.group(0)[:24]
-                giga_chat_answer.answer = self.intent_mapper.get(intent, MessageIntent.intent_offtopic)
+            if intent == MessageIntent.intent_ontopic:
+                # вопрос пользователя по теме авиации, выдаётся прямой ответ
+                pass
+
+            elif intent == MessageIntent.intent_project:
+                # вопрос по теме проекта, ответ обрабатывает логика RAG-бота
+                giga_chat_answer.answer = await self._get_ragbot_answer(chat_id, message)
+
+            elif intent == MessageIntent.intent_feedback:
+                # вопрос по теме обратной связи
+                giga_chat_answer.answer = self.bot_settings.get("feedback", "⚠️ Ошибка сервиса")
+
             else:
-                # вопрос пользователя по теме авиации, выдаём прямой ответ
-                intent = MessageIntent.intent_ontopic
+                # вопрос не по теме авиации, формируется шаблонный ответ
+                giga_chat_answer.answer = self.intent_mapper.get(intent, MessageIntent.intent_offtopic)
 
             # отметка вопроса, ответа, темы и токенов в базе
             await self.db.chatbot.history.insert_one(
