@@ -9,20 +9,18 @@ import os
 import re
 import sys
 
-sys.path.append("/code")
-
 from environs import Env
 from pathlib import Path
 
-from app.core import ESManager
+sys.path.append("/code")
+
+from app.config.app import ARTICLES_INDEX_NAME
+from app.core import ESManager, es_manager
 from app.db.models import Countries, Articles, Aircraft
 from scripts.init_data import DataUtils
 
 # путь к статьям
 BASE_ARTICLES_PATH = "./scripts/articles"
-
-# название индекса
-ARTICLES_INDEX = "articles"
 
 index_settings = {
     "settings": {
@@ -79,7 +77,7 @@ index_settings = {
             "image_url": {"type": "keyword"},
             "content_vector": {
                 "type": "dense_vector",
-                "dims": 768,  # sbert_large_nlu_ru и multilingual-e5-base - 768, multilingual-e5-small - 384
+                "dims": 384,
                 "index": True,
                 "similarity": "cosine"
             }
@@ -184,7 +182,7 @@ class InitData:
             doc = {
                 "_id": str(article_id),
                 "_source": {
-                    "category": ARTICLES_INDEX,
+                    "category": ARTICLES_INDEX_NAME,
                     "title": title,
                     "content": content,
                     "slug": slug,
@@ -242,19 +240,19 @@ async def read_json(file: str) -> list:
         return json.load(f)
 
 
-async def index_articles(es_manager: ESManager):
+async def index_articles(manager: ESManager):
     """
     Индексация статей
     """
 
-    index_name = ARTICLES_INDEX
+    index_name = ARTICLES_INDEX_NAME
 
     # проверка существования индекса перед индексацией документа
     try:
-        index_exists = await es_manager.es.indices.exists(index=index_name)
+        index_exists = await manager.es.indices.exists(index=index_name)
         if not index_exists:
             # создание индекса с настройками
-            await es_manager.es.indices.create(index=index_name, body=index_settings)
+            await manager.es.indices.create(index=index_name, body=index_settings)
             logger.info(f'Индекс "{index_name}" создан')
 
     except Exception as ex:
@@ -283,7 +281,7 @@ async def index_articles(es_manager: ESManager):
             source_data = doc["_source"]
 
             # индексация документа через ESManager
-            success = await es_manager.index_document(index=index_name, doc_id=doc_id, document=source_data)
+            success = await manager.index_document(index=index_name, doc_id=doc_id, document=source_data)
 
             if success:
                 logger.info(f'Документ ID {doc_id} успешно проиндексирован в индекс "{index_name}"')
@@ -303,20 +301,9 @@ async def main() -> None:
         logger.warning("Строка подключения к Elasticsearch отсутствует")
         sys.exit(0)
 
-    es_password = env.str("ELASTIC_PASSWORD")
-
-    es_manager = ESManager(url=es_url, password=es_password, use_ssl=False)
-
-    try:
-        await es_manager.start()
-        await index_articles(es_manager)
+    async with es_manager as es:
+        await index_articles(es)
         # TODO: добавить индексацию фактов об авиации
-
-    except Exception as ex:
-        logger.exception(ex)
-
-    finally:
-        await es_manager.close()
 
 
 logging.basicConfig(
