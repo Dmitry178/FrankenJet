@@ -1,0 +1,11 @@
+stages:
+  - deploy
+
+deploy_job:
+  stage: deploy
+  tags:
+    - notification
+  rules:
+    - if: $CI_COMMIT_BRANCH == "deploy"
+  script:
+    - docker compose up -d --build
