@@ -38,6 +38,16 @@ class ChatBotSettingsManager:
             logger.error(f"Ошибка загрузки настроек: {ex}")
             raise ex
 
+    async def get_settings(self) -> SChatBotSettings:
+        """
+        Получение настроек чат-бота
+        """
+
+        if not self.initialized:
+            await self.initialize()
+
+        return self._settings
+
     @property
     def settings(self) -> SChatBotSettings:
         """
@@ -47,7 +57,7 @@ class ChatBotSettingsManager:
         if not self.initialized:
             raise RuntimeError("Настройки не загружены")
 
-        return self.settings
+        return self._settings
 
     def get(self, field: str, default: Any = None) -> Any:
         """
