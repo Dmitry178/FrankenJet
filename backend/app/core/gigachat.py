@@ -59,14 +59,16 @@ class GigaChatRequestError(GigaChatAPIError):
 
 
 class GigaChatAPIContextManager:
-    def __init__(self, auth_token: UUID, scope: str, chatbot_settings_manager: ChatBotSettingsManager):
+    def __init__(self, auth_token: UUID, scope: str, bot_settings: ChatBotSettingsManager):
 
-        self.chatbot_settings_manager = chatbot_settings_manager  # менеджер настроек бота
+        self.bot_settings = bot_settings  # менеджер настроек бота
         self.chatbot_enabled: bool | None = None  # активирован ли чат-бот
         self.auth_token = auth_token  # токен аутентификации
         self.token = None  # токен авторизации
-        self.system_prompt: str | None = None  # системный промт
-        self.scope = scope  # scope api
+        self.system_prompt: str | None = None  # общий системный промт
+        self.rag_prompt: str | None = None  # системный промт для RAG-бота
+        self.feedback: str | None = None  # ответ по вопросам обратной связи
+        self.scope = scope  # значение scope
         self.model: str | None = None  # название модели
         self.expires_at: int | None = None  # время истечения токена
 
@@ -86,6 +88,10 @@ class GigaChatAPIContextManager:
         # создание сессии
         connector = aiohttp.TCPConnector(verify_ssl=False)
         self.session = aiohttp.ClientSession(connector=connector)
+
+        # инициализация
+        await self.init_settings()
+
         return self
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
@@ -106,10 +112,12 @@ class GigaChatAPIContextManager:
         Загрузка настроек
         """
 
-        await self.chatbot_settings_manager.initialize()
-        self.chatbot_enabled = self.chatbot_settings_manager.get("enabled", False)
-        self.system_prompt = self.chatbot_settings_manager.get("system_prompt")
-        self.model = self.chatbot_settings_manager.get("model")
+        await self.bot_settings.initialize()
+        self.chatbot_enabled = self.bot_settings.get("enabled", False)
+        self.system_prompt = self.bot_settings.get("system_prompt")
+        self.rag_prompt = self.bot_settings.get("rag_prompt")
+        self.feedback = self.bot_settings.get("feedback")
+        self.model = self.bot_settings.get("model")
         self.initialized = True
 
     async def authenticate(self):
@@ -184,7 +192,7 @@ class GigaChatAPIContextManager:
 
         return self.token is not None and not self.is_token_expired()
 
-    async def send_message(self, message: str, history=None):
+    async def send_message(self, message: str, history=None, chunks: str | None = None):
         """
         Отправка сообщение в модель LLM
         """
@@ -202,13 +210,15 @@ class GigaChatAPIContextManager:
             if not await self.authenticate():
                 return None
 
+        prompt = self.rag_prompt + chunks if chunks else self.system_prompt
+
         reason_mapping = {
             "blacklist": "intent_blacklist",
             "timeout": "intent_timeout",
         }
 
         # подготовка истории сообщений
-        messages = [{"role": "system", "content": self.system_prompt}] if self.system_prompt else []
+        messages = [{"role": "system", "content": prompt}] if prompt else []
         if history and isinstance(history, list):
             messages.extend(history)
 
@@ -261,12 +271,12 @@ class GigaChatAPIContextManager:
                 error_text = response.text
                 raise GigaChatRequestError(f"Ошибка запроса к GigaChat: {response.status_code} - {error_text}")
 
-        raise GigaChatRequestError(f"Все попытки отправки сообщения исчерпаны ({max_retries}).")
+        raise GigaChatRequestError(f"Все попытки отправки сообщения исчерпаны ({max_retries})")
 
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 gigachat_api = GigaChatAPIContextManager(
     auth_token=settings.GIGACHAT_AUTH_KEY,
     scope=settings.GIGACHAT_SCOPE,
-    chatbot_settings_manager=chatbot_settings,
+    bot_settings=chatbot_settings,
 )
