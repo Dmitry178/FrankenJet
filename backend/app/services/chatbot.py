@@ -85,7 +85,7 @@ class ChatBotServices:
             return False
 
         # проверка оставшегося количества токенов
-        count_tokens = self.db.chatbot.history.count_daily_tokens(chat_id)
+        count_tokens = await self.db.chatbot.history.count_daily_tokens(chat_id)
 
         if count_tokens.get("user_daily_tokens", 0) > chatbot_settings.settings.user_daily_tokens:
             await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение лимита токенов")
