@@ -45,3 +45,26 @@ class VectorizerManager:
 
         except Exception as ex:
             raise RuntimeError(f"Произошла ошибка: {ex}")
+
+    async def embed_text_batch(self, texts: list[str]) -> list[list[float]]:
+        """
+        Векторизация массива текстов
+        """
+
+        if not self.server_address:
+            return []
+
+        if not self._stub:
+            raise RuntimeError("Клиент не инициализирован")
+
+        request = vectorizer_pb2.EmbedTextBatchRequest(texts=texts)  # noqa
+
+        try:
+            response = await self._stub.EmbedTextBatch(request)
+            return [list(embedding_result.embedding) for embedding_result in response.embeddings]
+
+        except grpc.aio.AioRpcError as ex:
+            raise RuntimeError(f"Ошибка gRPC: {ex.code()}, {ex.details()}")
+
+        except Exception as ex:
+            raise RuntimeError(f"Произошла ошибка: {ex}")
