@@ -1,3 +1,7 @@
+"""
+Контекстный менеджер для работы с Elasticsearch
+"""
+
 import asyncio
 
 from contextlib import asynccontextmanager
@@ -81,12 +85,19 @@ class ESManager:
         finally:
             await self.close()
 
-    async def search(self, query: Dict[str, Any], index: str | list = "articles") -> Dict[str, Any] | None:
+    async def __aenter__(self):
+        await self.start()
+        return self
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        await self.close()
+
+    async def search(self, query: Dict[str, Any], index: str | list) -> Dict[str, Any] | None:
         """
         Индексированный поиск
         """
 
-        if not self.es:
+        if not self.es or not query or not index:
             return None
 
         for attempt in range(self.max_retries):
