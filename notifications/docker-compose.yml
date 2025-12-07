@@ -1,0 +1,21 @@
+services:
+  notification-bot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: notification-bot:latest
+    container_name: fj-notification-bot
+    hostname: notification
+    environment:
+      - APP_MODE=production
+      - RMQ_CONN=${RMQ_CONN}
+      - TELEGRAM_ADMIN_ID=${TELEGRAM_ADMIN_ID}
+      - TELEGRAM_API_TOKEN=${TELEGRAM_API_TOKEN}
+    networks:
+      - fj_network
+    restart: unless-stopped
+
+networks:
+  fj_network:
+    external: true
+    name: frankenjet
