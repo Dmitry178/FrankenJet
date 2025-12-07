@@ -14,7 +14,7 @@ from app.db.models.auth import (
 )
 from app.db.models.chatbot import (
     ChatBotSettings,
-    ChatHistory,
+    Chat,
 )
 from app.db.models.countries import (
     Countries,
@@ -36,7 +36,7 @@ __all__ = [
     "Articles",
     "ArticlesTagsAssociation",
     "ChatBotSettings",
-    "ChatHistory",
+    "Chat",
     "Countries",
     "Facts",
     "ProjectKnowledge",
