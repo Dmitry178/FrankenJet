@@ -5,17 +5,22 @@
     :class="{ 'chat-bot-card--mobile': $vuetify.display.smAndDown }"
     elevation="10"
     rounded="lg"
-    width="370"
-    style="position: fixed; bottom: 20px; right: 20px; z-index: 9999; max-height: 60vh; overflow-y: auto;"
+    width="400"
+    style="position: fixed; bottom: 5px; right: 20px; z-index: 9999; max-height: 60vh; overflow-y: auto;"
   >
     <!-- Заголовок -->
     <v-card-title class="d-flex align-center pa-3">
       <v-icon size="large" color="primary" class="mr-2">mdi-airplane</v-icon>
       <span class="font-weight-bold">Авиабот</span>
       <v-spacer></v-spacer>
-      <v-btn icon size="small" @click="toggleChat">
+      <v-icon
+        size="xs-small"
+        color="primary"
+        class="cursor-pointer"
+        @click="toggleChat"
+      >
         <v-icon>mdi-close</v-icon>
-      </v-btn>
+      </v-icon>
     </v-card-title>
 
     <v-divider></v-divider>
@@ -48,8 +53,8 @@
                 line-height: 1.5;
                 font-size: 0.875rem;
               "
+              v-html="msg.text"
             >
-              {{ msg.text }}
             </div>
           </div>
           <div
@@ -162,6 +167,7 @@ const welcomeMessage = () => {
   }];
 };
 
+// загрузка истории чата
 const loadChatHistory = async (chatId) => {
   try {
     const response = await axios.get(`/chat/history/${chatId}`);
@@ -177,9 +183,10 @@ const loadChatHistory = async (chatId) => {
           });
 
           // ответ бота
+          const processedText = chatStore.processText(item.answer);
           messages.value.push({
             sender: 'bot',
-            text: item.answer
+            text: processedText
           });
         });
       } else {
@@ -232,9 +239,10 @@ const handleWebSocketMessage = (event) => {
     const data = JSON.parse(event.detail.data);
 
     if (data.type === 'answer') {
+      const processedText = chatStore.processText(data.text);
       messages.value.push({
         sender: 'bot',
-        text: data.text
+        text: processedText
       });
 
       isInputDisabled.value = false;
@@ -307,7 +315,7 @@ onUnmounted(() => {
 }
 
 .chat-messages-desktop {
-  height: 350px !important;
+  height: 360px !important;
 }
 
 .chat-messages-mobile {
