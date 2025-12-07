@@ -8,6 +8,10 @@ services:
     hostname: vectorizer
     environment:
       - GRPC_PORT=50051
+    ports:
+      - "50051:50051"
+    volumes:
+      - /opt/vectorizer:/code/models/cache
     networks:
       - fj_network
     restart: unless-stopped
