@@ -4,8 +4,7 @@ from uuid import UUID
 
 from sqlalchemy.exc import IntegrityError
 
-from app.db.models import ChatBotSettings, ChatHistory
-from app.db.models.chatbot import MessageIntent
+from app.db.models import ChatBotSettings, Chat
 from app.db.repository.base import BaseEmptyRepository, BaseRepository
 from app.schemas.chatbot import SChatBotSettings
 
@@ -15,31 +14,26 @@ class ChatBotHistoryRepository(BaseRepository):
     Репозиторий модели истории чат-бота
     """
 
-    model = ChatHistory
+    model = Chat
 
-    async def get_user_history(self, chat_id: UUID, api: bool, limit=20):
+    async def get_user_history(self, chat_id: UUID, intent: str | None = None, limit=20):
         """
         Получение истории чата
         """
 
         query = (
-            select(ChatHistory.message, ChatHistory.answer, ChatHistory.created_at)
+            select(Chat.message, Chat.answer, Chat.created_at)
             .where(
-                ChatHistory.chat_id == chat_id,
-                ChatHistory.answer.is_not(None),
-                ChatHistory.is_active.is_(True)
+                Chat.chat_id == chat_id,
+                Chat.answer.is_not(None),
+                Chat.is_active.is_(True)
             )
             .limit(limit)
-            .order_by(ChatHistory.created_at.desc())
+            .order_by(Chat.created_at.desc())
         )
 
-        if api:
-            query = (
-                query
-                .where(
-                    ChatHistory.intent == str(MessageIntent.intent_ontopic)
-                )
-            )
+        if intent:
+            query = query.where(Chat.intent == intent)
 
         return (await self.session.execute(query)).mappings().all()
 
@@ -50,13 +44,13 @@ class ChatBotHistoryRepository(BaseRepository):
 
         query = select(
             func.sum(
-                ChatHistory.total_tokens + ChatHistory.precached_prompt_tokens
-            ).filter(ChatHistory.chat_id == chat_id).label("user_daily_tokens"),
+                Chat.total_tokens + Chat.precached_prompt_tokens
+            ).filter(Chat.chat_id == chat_id).label("user_daily_tokens"),
             func.sum(
-                ChatHistory.total_tokens + ChatHistory.precached_prompt_tokens
+                Chat.total_tokens + Chat.precached_prompt_tokens
             ).label("total_daily_tokens")
         ).where(
-            func.date(ChatHistory.created_at) == func.date(func.now()),  # noqa
+            func.date(Chat.created_at) == func.date(func.now()),  # noqa
         )
 
         result = (await self.session.execute(query)).one_or_none()
@@ -79,9 +73,9 @@ class ChatBotHistoryRepository(BaseRepository):
         """
 
         stmt = (
-            insert(ChatHistory)
+            insert(Chat)
             .values(**values)
-            .returning(ChatHistory.id)
+            .returning(Chat.id)
         )
 
         result = await self.session.execute(stmt)
