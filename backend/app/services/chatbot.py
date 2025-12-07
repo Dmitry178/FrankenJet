@@ -6,7 +6,7 @@ from uuid import UUID
 
 from app.config.app import GIGACHAT_USER_MESSAGE_MAX_SIZE
 from app.config.chatbot import ChatBotSettingsManager
-from app.core import chatbot_settings, es_manager, vectorizer_manager
+from app.core import es_manager, vectorizer_manager
 from app.core.db_manager import DBManager
 from app.core.gigachat import gigachat_api
 from app.core.logs import logger
@@ -67,7 +67,6 @@ class ChatBotServices:
 
         return history
 
-    @handle_basic_db_errors
     async def _check_limits(self, chat_id: UUID, message: str) -> bool:
         """
         Проверка длины сообщения лимитов по токенам
@@ -76,23 +75,32 @@ class ChatBotServices:
         if not message:
             return False
 
-        # проверка длины сообщения
-        if len(message) > GIGACHAT_USER_MESSAGE_MAX_SIZE:
-            await self.ws_manager.send_message_to_chat(
-                chat_id,
-                f"⚠️ Превышение максимальной длины сообщения в {GIGACHAT_USER_MESSAGE_MAX_SIZE} символов"
-            )
-            return False
+        try:
+            # проверка длины сообщения
+            if len(message) > GIGACHAT_USER_MESSAGE_MAX_SIZE:
+                await self.ws_manager.send_message_to_chat(
+                    chat_id,
+                    f"⚠️ Превышение максимальной длины сообщения в {GIGACHAT_USER_MESSAGE_MAX_SIZE} символов"
+                )
+                return False
 
-        # проверка оставшегося количества токенов
-        count_tokens = await self.db.chatbot.history.count_daily_tokens(chat_id)
+            # проверка оставшегося количества токенов
+            count_tokens = await self.db.chatbot.history.count_daily_tokens(chat_id)
+            settings = await self.bot_settings.get_settings()
 
-        if count_tokens.get("user_daily_tokens", 0) > chatbot_settings.settings.user_daily_tokens:
-            await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение лимита токенов")
-            return False
+            if count_tokens.get("user_daily_tokens", 0) > settings.user_daily_tokens:
+                await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение лимита токенов")
+                return False
 
-        if count_tokens.get("total_daily_tokens", 0) > chatbot_settings.settings.total_daily_tokens:
-            await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение общего лимита токенов")
+            if count_tokens.get("total_daily_tokens", 0) > settings.total_daily_tokens:
+                await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение общего лимита токенов")
+                return False
+
+            return True
+
+        except Exception as ex:
+            logger.error(ex)
+            await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Ошибка сервиса")
             return False
 
     async def proceed_user_message(self, chat_id: UUID, message: str) -> bool:
@@ -205,11 +213,16 @@ class ChatBotServices:
 
             elif intent == MessageIntent.intent_feedback:
                 # вопрос по теме обратной связи
-                giga_chat_answer.answer = self.bot_settings.get("feedback", "⚠️ Ошибка сервиса")
+                settings = await self.bot_settings.get_settings()
+                giga_chat_answer.answer = settings.feedback
 
             else:
                 # вопрос не по теме авиации, формируется шаблонный ответ
                 giga_chat_answer.answer = self.intent_mapper.get(intent, MessageIntent.intent_offtopic)
+
+            if not giga_chat_answer.answer:
+                logger.warning("Пустой ответ для передачи пользователю")
+                giga_chat_answer.answer = "⚠️ Ошибка сервиса"
 
             # отметка вопроса, ответа, темы и токенов в базе
             await self.db.chatbot.history.insert_one(
