@@ -46,6 +46,7 @@ skip-string-normalization = false
 [tool.ruff]
 exclude = [
     "alembic",
+    "**/grpc_clients/*.py",
 ]
 line-length = 120
 lint.unfixable = ["E712"]
