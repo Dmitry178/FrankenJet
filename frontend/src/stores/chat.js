@@ -30,9 +30,18 @@ export const useChatStore = defineStore('chat', () => {
     localStorage.removeItem('chat_id');
   };
 
+  const processText = (text) => {
+    if (typeof text !== 'string') {
+      return text;
+    }
+    const telegramLinkRegex = /\[([^\[\]]+)\]\(\s*(https?:\/\/[^\s)]+)\s*\)/g;
+    return text.replace(telegramLinkRegex, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+  };
+
   return {
     chatId,
     initializeChatId,
     resetChatId,
+    processText,
   };
 });
