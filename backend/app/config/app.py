@@ -23,5 +23,9 @@ RMQ_FJ_INPUT_QUEUE = "fj_input"  # очередь для приёма сообщ
 # настройки S3
 BUCKET_IMAGES = "images"
 
+# настройки индексов Elasticsearch
+ARTICLES_INDEX_NAME = "articles"
+RAGBOT_INDEX_NAME = "rag-bot"
+
 # настройки GigaChat API
 GIGACHAT_USER_MESSAGE_MAX_SIZE = 200  # максимальная длина сообщения от пользователя
