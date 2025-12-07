@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import bool_false, str_24, str_32, str_512, bool_true, int_0
+from app.db.types import bool_false, str_24, str_32, str_128, str_512, bool_true, int_0
 
 
 class ChatBotSettings(Base):
@@ -25,6 +25,8 @@ class ChatBotSettings(Base):
     model: Mapped[str_32 | None]  # название LLM-модели
     scope: Mapped[str_32 | None]  # scope
     system_prompt: Mapped[str | None]  # общий системный промт
+    rag_prompt: Mapped[str | None]  # системный промт для RAG-бота
+    feedback: Mapped[str_128 | None]  # текст ответа на вопрос по обратной связи
     user_daily_tokens: Mapped[int | None]  # количество токенов в день на пользователя
     total_daily_tokens: Mapped[int | None]  # количество токенов в день на всех пользователей
 
@@ -48,7 +50,7 @@ class MessageIntent(str, enum.Enum):
         return self.value
 
 
-class ChatHistory(Base, TimestampMixin):
+class Chat(Base, TimestampMixin):
     """
     История чата
     """
@@ -60,7 +62,7 @@ class ChatHistory(Base, TimestampMixin):
     chat_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True))  # id чата
     message: Mapped[str_512]  # сообщение пользователя
     answer: Mapped[str | None]  # ответ LLM (или автоответ)
-    intent: Mapped[str_24 | None] = mapped_column(Enum(MessageIntent, native_enum=False, length=16))  # тема сообщения
+    intent: Mapped[str_24 | None] = mapped_column(Enum(MessageIntent, native_enum=False, length=24))  # тема сообщения
     prompt_tokens: Mapped[int | None]  # количество токенов промта
     completion_tokens: Mapped[int | None]  # количество токенов ответа модели
     total_tokens: Mapped[int_0]  # количество токенов всего
