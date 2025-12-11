@@ -78,6 +78,7 @@ class GigaChatAPIContextManager:
         self.payment_required = True
         self.initialized = False
 
+        # TODO: вынести url из кода, выделить базовые методы, сделать расширяемость под разные версии API
         self.auth_url = "https://ngw.devices.sberbank.ru:9443/api/v2/oauth"
         self.completion_url = "https://gigachat.devices.sberbank.ru/api/v1/chat/completions"
 
@@ -101,7 +102,7 @@ class GigaChatAPIContextManager:
         if self.session and not self.session.closed:
             await self.session.close()
 
-    def set_headers(self, token: str):
+    def _set_headers(self, token: str):
         self.headers = {
             "Authorization": f"Bearer {token}",
             "Content-Type": "application/json"
@@ -120,7 +121,7 @@ class GigaChatAPIContextManager:
         self.model = self.bot_settings.get("model")
         self.initialized = True
 
-    async def authenticate(self):
+    async def _authenticate(self):
         """
         Аутентификация и получение токена
         """
@@ -172,7 +173,7 @@ class GigaChatAPIContextManager:
             self.expires_at = None
             return False
 
-    def is_token_expired(self) -> bool | None:
+    def _is_token_expired(self) -> bool | None:
         """
         Проверка, истёк ли токен авторизации
         """
@@ -182,7 +183,7 @@ class GigaChatAPIContextManager:
 
         return not self.expires_at or datetime.now().timestamp() >= self.expires_at
 
-    def is_authenticated(self) -> bool:
+    def _is_authenticated(self) -> bool:
         """
         Проверка аутентификации
         """
@@ -190,9 +191,9 @@ class GigaChatAPIContextManager:
         if not self.auth_token:
             return False
 
-        return self.token is not None and not self.is_token_expired()
+        return self.token is not None and not self._is_token_expired()
 
-    async def send_message(self, message: str, history=None, chunks: str | None = None):
+    async def send_message_to_llm(self, message: str, history=None, chunks: str | None = None):
         """
         Отправка сообщение в модель LLM
         """
@@ -206,8 +207,8 @@ class GigaChatAPIContextManager:
         if not self.chatbot_enabled:
             return None
 
-        if self.is_token_expired():
-            if not await self.authenticate():
+        if self._is_token_expired():
+            if not await self._authenticate():
                 return None
 
         prompt = self.rag_prompt + chunks if chunks else self.system_prompt
@@ -259,7 +260,7 @@ class GigaChatAPIContextManager:
                 )
 
             elif response.status_code == 401:
-                if not await self.authenticate():
+                if not await self._authenticate():
                     raise GigaChatAuthenticationError("Ошибка аутентификации")
                 continue
 
