@@ -157,7 +157,7 @@ class ChatBotServices:
 
         # запрос к LLM
         async with gigachat_api as chatbot:
-            giga_chat_answer: SGigaChatAnswer = await chatbot.send_message(cleaned_message, history, chunks)
+            giga_chat_answer: SGigaChatAnswer = await chatbot.send_message_to_llm(cleaned_message, history, chunks)
 
         return giga_chat_answer
 
@@ -183,7 +183,7 @@ class ChatBotServices:
             chunks = await RagBotService(es, vectorizer).get_top_chunks_list(message)
 
         # TODO: сделать обработку chunks is None
-        chunks = "\n".join(chunks)
+        chunks = "\n\n".join(chunks)
 
         # запрос к LLM
         giga_chat_answer = await self._get_llm_answer(chat_id, message, chunks=chunks)
