@@ -189,16 +189,32 @@
     <v-main>
       <router-view></router-view>
 
+      <!-- FAB -->
+      <v-btn
+        v-if="isChatBotAvailable"
+        v-show="showScrollTop"
+        fab
+        icon
+        color="secondary"
+        class="scroll-top-btn"
+        @click="scrollToTop"
+        fixed
+        bottom
+        right
+      >
+        <v-icon>mdi-arrow-up</v-icon>
+      </v-btn>
+
       <!-- Чат-бот -->
       <ChatBot v-if="isChatBotAvailable" />
 
       <!-- FAB -->
       <v-btn
-        v-if="showScrollTop"
+        v-show="showScrollTop && !isChatBotAvailable"
         fab
         icon
         color="secondary"
-        class="scroll-top-btn"
+        class="scroll-top-btn final-fab-position"
         @click="scrollToTop"
         fixed
         bottom
@@ -212,7 +228,7 @@
 
 <script>
 
-import {computed, onMounted, onUnmounted, ref} from 'vue';
+import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
 import { useRouter, useRoute } from 'vue-router';
@@ -381,9 +397,18 @@ export default {
 }
 
 .scroll-top-btn {
-  position: fixed !important;
-  bottom: 23px !important;
-  right: 23px !important;
   z-index: 9998;
+}
+
+.scroll-top-btn:not(.final-fab-position) {
+  bottom: 90px !important;
+  right: 20px !important;
+  position: fixed !important;
+}
+
+.final-fab-position {
+  bottom: 30px !important;
+  right: 20px !important;
+  position: fixed !important;
 }
 </style>
