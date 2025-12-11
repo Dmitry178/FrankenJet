@@ -9,7 +9,7 @@
     style="position: fixed; bottom: 5px; right: 20px; z-index: 9999; max-height: 60vh; overflow-y: auto;"
   >
     <!-- Заголовок -->
-    <v-card-title class="d-flex align-center pa-3">
+    <v-card-title class="d-flex align-center pa-3" style="flex-shrink: 0;">
       <v-icon size="large" color="primary" class="mr-2">mdi-airplane</v-icon>
       <span class="font-weight-bold">Авиабот</span>
       <v-spacer></v-spacer>
@@ -26,12 +26,15 @@
     <v-divider></v-divider>
 
     <!-- Область переписки -->
-    <v-card-text class="pa-3 d-flex flex-column" style="flex: 1 1 auto; min-height: 0;">
+    <v-card-text
+      class="pa-3 d-flex flex-column"
+      style="flex: 1 1 auto; min-height: 0; overflow-y: hidden;"
+    >
       <div
         ref="chatMessagesContainer"
         class="chat-messages-inner"
         :class="mobile ? 'chat-messages-mobile' : 'chat-messages-desktop'"
-        style="overflow-y: auto;"
+        style="flex-grow: 1; overflow-y: auto;"
       >
         <div v-for="(msg, index) in messages" :key="index" class="mb-2">
           <div
@@ -88,7 +91,7 @@
     <v-divider></v-divider>
 
     <!-- Поле ввода -->
-    <v-card-text class="pa-3 pt-2">
+    <v-card-text class="pa-3 input-field" style="flex-shrink: 0;">
       <v-textarea
         ref="chatInputRef"
         v-model="userInput"
@@ -123,7 +126,7 @@
     fixed
     bottom
     right
-    style="z-index: 9999; bottom: 85px !important; right: 23px !important;"
+    style="z-index: 9999; bottom: 30px !important; right: 20px !important;"
   >
     <RobotIcon size="26" />
   </v-btn>
@@ -289,19 +292,6 @@ onUnmounted(() => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
 }
 
-.chat-bot-card--mobile {
-  width: 100vw !important;
-  height: 100vh !important;
-  right: 0 !important;
-  left: 0 !important;
-  bottom: 0 !important;
-  top: 0 !important;
-  max-height: none !important;
-  position: fixed !important;
-  z-index: 9998 !important;
-  border-radius: 0 !important;
-}
-
 .chat-bot-fab {
   position: fixed !important;
   bottom: 85px !important;
@@ -314,14 +304,32 @@ onUnmounted(() => {
   overflow-y: auto;
 }
 
+.chat-bot-card--mobile {
+  width: 100vw !important;
+  height: 100vh !important;
+  max-height: 100vh !important;
+  right: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  top: 0 !important;
+  position: fixed !important;
+  z-index: 9998 !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: visible !important;
+}
+
 .chat-messages-desktop {
   height: 360px !important;
 }
 
 .chat-messages-mobile {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
+  flex-grow: 1;
+  overflow-y: auto;
+  padding: 0;
+  margin: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
 .chat-input-area {
@@ -330,4 +338,31 @@ onUnmounted(() => {
     box-shadow: none !important;
   }
 }
+
+@media (min-width: 768px) {
+  .input-field {
+    padding-bottom: 12px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .v-card {
+    padding-bottom: 0 !important;
+  }
+
+  .v-card-title {
+    padding: 8px 16px 6px 12px !important;
+  }
+
+  .v-card-text {
+    padding-top: 4px !important;
+    padding-bottom: 4px !important;
+  }
+
+  .v-input {
+    padding-top: 4px !important;
+    margin: 0 !important;
+  }
+}
+
 </style>
