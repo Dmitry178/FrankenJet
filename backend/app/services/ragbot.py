@@ -36,10 +36,11 @@ class RagBotService:
         response = await self.es.search(query=search_body, index=RAGBOT_INDEX_NAME)
         hits = response["hits"]["hits"]
 
-        # извлечение текста и метаданных из результата
+        # извлечение текста и прочих данных из результата
         top_chunks = [
             {
-                "text": hit["_source"]["text"],
+                "idx": hit["_id"],  # индекс
+                "text": hit["_source"]["text"],  # текст чанка
                 "score": hit["_score"]  # оценка релевантности
             }
             for hit in hits
