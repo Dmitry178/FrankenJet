@@ -4,6 +4,7 @@
 Добавление расширений, инициализация данных
 """
 
+import re
 import sys
 
 sys.path.append("/code")
@@ -306,84 +307,107 @@ class DataCreator:
         return None
 
 
+def split_content_by_sources(content: str) -> tuple[str, str]:
+    """
+    Разделение содержимого на две части: до и после заголовка "список источников"
+    """
+
+    pattern = r"^(#{1,5})\s*\**\s*список\s+источников\s*\**.*?$"
+    match = re.search(pattern, content, re.MULTILINE | re.IGNORECASE)
+
+    if match:
+        sources_start = match.start()
+        content_before = content[:sources_start].strip()
+        sources_end = match.end()
+        content_after = content[sources_end:].strip()
+        return content_before, content_after
+    else:
+        return content, ""
+
+
+async def assemble_json(path: str, is_article=False, has_image=False, s3manager=None) -> (list[dict], dict):
+    """
+    Сборка json из файлов для добавления в БД
+    """
+
+    directory = Path(f"{os.getcwd()}/{path}")
+
+    # чтение списка файлов с расширением json
+    files = [file.name for file in directory.glob("*.json")]
+
+    result_data = []
+    result_tags = []
+    tags_list = ["country", "aircraft_type", "aircraft_purpose", "engine_type", "status"]
+
+    for file_name in files:
+        file_path = directory / file_name
+
+        # чтение json-файла
+        with open(file_path, "r", encoding="utf-8") as json_file:
+            json_data = json.load(json_file)
+
+            # дополнительная обработка статей
+            if is_article:
+                # присоединение контента
+                content_path = directory / json_data.get("content")
+                with open(content_path, "r", encoding="utf-8") as content_file:
+                    full_content_data = content_file.read()
+                    content_data, sources_data = split_content_by_sources(full_content_data)
+                    json_data["content"] = content_data  # добавление контента
+                    json_data["sources"] = sources_data  # добавление списка источников
+
+                # указание даты публикации
+                if json_data.get("is_published"):
+                    json_data["published_at"] = datetime.now()
+
+            # дополнительная обработка фотографий
+            if has_image and s3manager and (image_name := json_data.get("image_url")):
+                image_path = directory / image_name
+                s3_key = "/aircraft/" + str(image_name).lstrip('_').replace("_", "-")
+                if await s3manager.upload_file(BUCKET_IMAGES, image_path, s3_key=s3_key):
+                    json_data["image_url"] = f"/{BUCKET_IMAGES}{s3_key}"
+                else:
+                    json_data["image_url"] = None  # ошибка загрузки изображения в S3
+
+            # обработка тегов
+            if json_data.get("article_id") and json_data.get("country"):
+                for key in tags_list:
+                    if json_data.get(key):
+                        result_tags.append(
+                            {"article_id": json_data.get("article_id"), "tag_id": json_data.get(key)}
+                        )
+                json_data.pop("country")
+
+            result_data.append(json_data)
+
+    return result_data, result_tags
+
+
+async def read_json(file: str) -> list:
+    """
+    Чтение json
+    """
+
+    file_path = Path(f"{os.getcwd()}/{file}")
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+async def read_text(file: str) -> list:
+    """
+    Получение списка из текстового файла
+    """
+
+    file_path = Path(f"{os.getcwd()}/{file}")
+    with open(file_path, "r", encoding="utf-8") as f:
+        file_data = [line.strip() for line in f if line.strip()]
+        return file_data
+
+
 async def main() -> None:
     """
     Запуск скриптов инициализации данных
     """
-
-    async def assemble_json(path: str, is_article=False, has_image=False, s3manager=None) -> (list[dict], dict):
-        """
-        Сборка json из файлов для добавления в БД
-        """
-
-        directory = Path(f"{os.getcwd()}/{path}")
-
-        # чтение списка файлов с расширением json
-        files = [file.name for file in directory.glob("*.json")]
-
-        result_data = []
-        result_tags = []
-        tags_list = ["country", "aircraft_type", "aircraft_purpose", "engine_type", "status"]
-
-        for file_name in files:
-            file_path = directory / file_name
-
-            # чтение json-файла
-            with open(file_path, "r", encoding="utf-8") as json_file:
-                json_data = json.load(json_file)
-
-                # дополнительная обработка статей
-                if is_article:
-                    # присоединение контента
-                    content_path = directory / json_data.get("content")
-                    with open(content_path, "r", encoding="utf-8") as content_file:
-                        content_data = content_file.read()
-                        json_data["content"] = content_data  # добавление контента
-
-                    # указание даты публикации
-                    if json_data.get("is_published"):
-                        json_data["published_at"] = datetime.now()
-
-                # дополнительная обработка фотографий
-                if has_image and s3manager and (image_name := json_data.get("image_url")):
-                    image_path = directory / image_name
-                    s3_key = "/aircraft/" + str(image_name).lstrip('_').replace("_", "-")
-                    if await s3manager.upload_file(BUCKET_IMAGES, image_path, s3_key=s3_key):
-                        json_data["image_url"] = f"/{BUCKET_IMAGES}{s3_key}"
-                    else:
-                        json_data["image_url"] = None  # ошибка загрузки изображения в S3
-
-                # обработка тегов
-                if json_data.get("article_id") and json_data.get("country"):
-                    for key in tags_list:
-                        if json_data.get(key):
-                            result_tags.append(
-                                {"article_id": json_data.get("article_id"), "tag_id": json_data.get(key)}
-                            )
-                    json_data.pop("country")
-
-                result_data.append(json_data)
-
-        return result_data, result_tags
-
-    async def read_json(file: str) -> list:
-        """
-        Чтение json
-        """
-
-        file_path = Path(f"{os.getcwd()}/{file}")
-        with open(file_path, "r", encoding="utf-8") as f:
-            return json.load(f)
-
-    async def read_text(file: str) -> list:
-        """
-        Получение списка из текстового файла
-        """
-
-        file_path = Path(f"{os.getcwd()}/{file}")
-        with open(file_path, "r", encoding="utf-8") as f:
-            file_data = [line.strip() for line in f if line.strip()]
-            return file_data
 
     env = Env()
     env.read_env()
