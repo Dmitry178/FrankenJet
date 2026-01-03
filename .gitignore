@@ -1,6 +1,7 @@
 .idea
+.run
 .venv
 _*
+!__init__.py
 .env
 *.sh
-!__init__.py
