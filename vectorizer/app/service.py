@@ -1,8 +1,7 @@
 import grpc
 
-from concurrent import futures
-
 from proto import vectorizer_pb2_grpc, vectorizer_pb2
+
 from app.config import app_settings
 from app.logs import app_logger
 from app.models import EmbeddingModel
@@ -11,7 +10,7 @@ from app.models import EmbeddingModel
 class VectorizerService(vectorizer_pb2_grpc.VectorizerServiceServicer):
     def __init__(self):
         # инициализация модели векторизации
-        self.embedding_model = EmbeddingModel(model_name=app_settings.MODEL_NAME)
+        self.embedding_model = EmbeddingModel(model_name=app_settings.MODEL_NAME, model_lib=app_settings.MODEL_LIB)
 
     def EmbedText(self, request: vectorizer_pb2.EmbedTextRequest, context) -> vectorizer_pb2.EmbedTextResponse:  # noqa
         """
@@ -64,15 +63,13 @@ class VectorizerService(vectorizer_pb2_grpc.VectorizerServiceServicer):
             return vectorizer_pb2.EmbedTextBatchResponse(embeddings=[])  # noqa
 
 
-def serve():
-    server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+async def serve():
+    server = grpc.aio.server()
     vectorizer_pb2_grpc.add_VectorizerServiceServicer_to_server(VectorizerService(), server)
 
     listen_addr = f"{app_settings.GRPC_HOST}:{app_settings.GRPC_PORT}"
     server.add_insecure_port(listen_addr)
     app_logger.info(f"Starting gRPC service on {listen_addr}")
-    server.start()
-    server.wait_for_termination()
 
-
-service_instance = VectorizerService()
+    await server.start()
+    await server.wait_for_termination()
