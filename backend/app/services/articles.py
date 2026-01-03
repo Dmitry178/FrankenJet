@@ -31,20 +31,27 @@ class ArticlesServices:
         Загрузка статьи по slug
         """
 
-        data = await self.db.articles.get_article_by_slug(slug)
-        if not data:
+        article = await self.db.articles.get_article_by_slug(slug)
+        if not article:
             return {}
 
-        if data.get("Aircraft"):
-            aircraft = SAircraft.model_validate(data.get("Aircraft"), from_attributes=True)
+        # преобразование статьи
+        article_data = SArticles.model_validate(article, from_attributes=True)
+
+        # извлечение тегов
+        tags = [tag.tag_id for tag in article.tags]
+
+        # получение данных воздушного судна
+        aircraft = None
+        if article.aircraft:
+            aircraft = SAircraft.model_validate(article.aircraft, from_attributes=True)
             if aircraft.image_url:
                 aircraft.image_url = f"{settings.S3_DIRECT_URL}{aircraft.image_url}"
-        else:
-            aircraft = None
 
         result = {
-            "article": data.get("Articles"),
+            "article": article_data,
             "aircraft": aircraft,
+            "tags": tags,
         }
 
         return result
