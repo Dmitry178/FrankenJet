@@ -7,7 +7,7 @@ services:
     container_name: fj-vectorizer
     hostname: vectorizer
     environment:
-      - GRPC_PORT=50051
+      - RMQ_CONN=$RMQ_CONN
     ports:
       - "50051:50051"
     volumes:
