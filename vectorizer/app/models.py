@@ -1,20 +1,42 @@
 import math
 
 from fastembed import TextEmbedding
+from sentence_transformers import SentenceTransformer
+
 from typing import List
 
-from app.config import app_settings
+from app.config import app_settings, ModelLib
 from app.logs import app_logger
 
 
 class EmbeddingModel:
-    def __init__(self, model_name: str):
+    def __init__(self, model_name: str, model_lib: str):
+
+        self.model = None
+        self.model_lib = None
+        self.model_name = None
+
+        app_logger.info(f"Initializing embedding model: {model_name}")
+
+        if model_lib == ModelLib.fastembed.name:
+            self.model = TextEmbedding(
+                model_name=model_name,
+                cache_dir=app_settings.MODEL_CACHE_DIR,
+            )
+
+        elif model_lib == ModelLib.sentence_transformers.name:
+            self.model = SentenceTransformer(
+                model_name_or_path=model_name,
+                # cache_folder=app_settings.MODEL_CACHE_DIR,
+            )
+
+        else:
+            app_logger.error("Embedding model not loaded")
+            return
+
+        self.model_lib = model_lib
         self.model_name = model_name
-        app_logger.info(f"Initializing embedding model: {self.model_name}")
-        self.model = TextEmbedding(
-            model_name=model_name,
-            cache_dir=app_settings.FASTEMBED_CACHE_DIR
-        )
+
         app_logger.info("Embedding model loaded successfully")
 
     def embed(self, text: str) -> List[float]:
@@ -22,20 +44,32 @@ class EmbeddingModel:
         Векторизация текста
         """
 
-        # embeddings_generator = self.model.embed([text])
-        # embedding_vector = next(embeddings_generator)
-        # return embedding_vector.tolist()
+        if self.model_lib == ModelLib.fastembed:
+            embeddings = list(self.model.embed([text]))
+            return embeddings[0].tolist()
 
-        embeddings = list(self.model.embed([text]))
-        return embeddings[0].tolist()
+        elif self.model_lib == ModelLib.sentence_transformers:
+            embedding = self.model.encode([text], convert_to_numpy=True)[0]
+            return embedding.tolist()
+
+        else:
+            return []
 
     def embed_batch(self, texts: List[str]) -> List[List[float]]:
         """
         Пакетная векторизация текста
         """
 
-        embeddings_generator = self.model.embed(texts)
-        return [embedding.tolist() for embedding in embeddings_generator]
+        if self.model_lib == ModelLib.fastembed:
+            embeddings_generator = self.model.embed(texts)
+            return [embedding.tolist() for embedding in embeddings_generator]
+
+        elif self.model_lib == ModelLib.sentence_transformers:
+            embeddings = self.model.encode(texts, convert_to_numpy=True)
+            return [embedding.tolist() for embedding in embeddings]
+
+        else:
+            return []
 
     @staticmethod
     def cosine_similarity(vector1: List[float], vector2: List[float]) -> float:
@@ -55,10 +89,13 @@ class EmbeddingModel:
 
         return dot_product / (magnitude1 * magnitude2)
 
-    def cosine_similarity_texts(self, text1: str, text2: str) -> float:
+    def cosine_similarity_texts(self, text1: str, text2: str) -> float | None:
         """
         Вычисление косинусного сходства между двумя текстами
         """
+
+        if not self.model:
+            return None
 
         embedding1 = self.embed(text1)
         embedding2 = self.embed(text2)
@@ -75,13 +112,16 @@ class EmbeddingModel:
             raise ValueError("Векторы должны быть одинаковой длины")
 
         squared_diffs = [(a - b) ** 2 for a, b in zip(vector1, vector2)]
-        
+
         return math.sqrt(sum(squared_diffs))
 
-    def euclidean_distance_texts(self, text1: str, text2: str) -> float:
+    def euclidean_distance_texts(self, text1: str, text2: str) -> float | None:
         """
         Вычисление евклидова расстояния между двумя текстами
         """
+
+        if not self.model:
+            return None
 
         embedding1 = self.embed(text1)
         embedding2 = self.embed(text2)
@@ -104,6 +144,9 @@ class EmbeddingModel:
         :param similarity_func: Функция сходства ("cosine" или "euclidean").
         :return: Список кортежей (индекс_кандидата, значение_сходства), отсортированный по убыванию сходства.
         """
+
+        if not self.model:
+            return []
 
         similarities = []
 
@@ -142,6 +185,9 @@ class EmbeddingModel:
         :returns: Список кортежей (индекс_кандидата, значение_сходства, текст_кандидата),
             отсортированный по убыванию сходства.
         """
+
+        if not self.model:
+            return []
 
         query_vector = self.embed(query_text)
         candidate_vectors = self.embed_batch(candidate_texts)
