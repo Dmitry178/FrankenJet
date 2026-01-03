@@ -7,15 +7,15 @@ class SArticles(BaseModel):
     Схема статей
     """
 
-    article_category: str | None = Field(None, max_length=32, description="Категория статьи")  # TODO: уточнить размер
+    article_category: str | None = Field(None, max_length=32, description="Категория статьи")
     slug: str = Field(..., max_length=64, description="Строковый идентификатор")
-    title: str = Field(..., max_length=32, description="Заголовок статьи")
-    summary: str | None = Field(None, description="Краткое описание статьи")
+    title: str = Field(..., max_length=64, description="Заголовок статьи")
+    summary: str | None = Field(None, max_length=1024, description="Краткое описание статьи")
     content: str = Field(..., description="Текст статьи")
-    meta_title: str | None = Field(None, max_length=64, description="Мета-информация для SEO (название)")
-    meta_description: str | None = Field(None, max_length=128, description="Мета-информация для SEO (описание)")
-    view_count: int = Field(0, ge=0, description="Количество просмотров страницы")
-    seo_keywords: str | None = Field(None, max_length=128, description="Ключевые слова SEO")
+    sources: str | None = Field(None, description="Список источников")
+    meta_title: str | None = Field(None, max_length=512, description="Мета-информация для SEO (название)")
+    meta_description: str | None = Field(None, max_length=1024, description="Мета-информация для SEO (описание)")
+    seo_keywords: str | None = Field(None, max_length=256, description="Ключевые слова SEO")
     is_published: bool = Field(False, description="Статья опубликована")
     is_archived: bool = Field(False, description="Статья в архиве")
     published_at: datetime | None = Field(None, description="Дата публикации")
