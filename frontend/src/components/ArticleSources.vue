@@ -2,7 +2,7 @@
   <v-card-text class="pb-0 pt-0">
     <v-expansion-panels flat tile>
       <v-expansion-panel>
-        <v-expansion-panel-title class="pb-0 pt-0 pl-4 pr-4">
+        <v-expansion-panel-title class="pa-0 ma-0">
           <h2>
             <strong>Список источников</strong>
           </h2>
@@ -41,24 +41,29 @@ const renderedSources = computed(() => {
 
 <style scoped>
 :deep(.v-expansion-panel-text__wrapper) {
-  padding: 0.5rem 0 0 0 !important;
+  padding: 0 !important;
 }
 
 :deep(.v-expansion-panel-title),
 :deep(.v-expansion-panel-title--active) {
-  min-height: 2.5rem !important;
+  min-height: 3rem !important;
+  max-height: 3rem !important;
 }
 
-.sources-content >>> ul,
-.sources-content >>> ol {
+.sources-content :deep(ul),
+.sources-content :deep(ol) {
+  padding-top: 0.5rem;
   padding-left: 1rem;
 }
 
-.sources-content >>> li {
-  margin-bottom: 0.1rem;
+.sources-content :deep(li) {
+  margin-bottom: 0;
 }
 
-.sources-content >>> a:hover {
+.sources-content :deep(a) {
+  font-size: 0.95rem;
+}
+.sources-content :deep(a:hover) {
   text-decoration: underline;
 }
 </style>
