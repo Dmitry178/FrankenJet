@@ -1,4 +1,5 @@
 from sqlalchemy import select, func, true, case, literal, union_all, cast, String
+from sqlalchemy.orm import selectinload
 
 from app.db.models import Articles, Aircraft, Facts, ArticlesTagsAssociation, Countries
 from app.db.repository.base import BaseRepository
@@ -34,13 +35,14 @@ class ArticlesRepository(BaseRepository):
         """
 
         query = (
-            select(Articles, Aircraft)
-            .outerjoin(Aircraft, Articles.id == Aircraft.article_id)
+            select(Articles)
+            .options(selectinload(Articles.aircraft))
+            .options(selectinload(Articles.tags))
             .filter(Articles.slug == slug)
             .limit(1)
         )
         result = await self.session.execute(query)
-        return result.mappings().one_or_none()
+        return result.scalar_one_or_none()
 
     async def search(self, data: SSearch):
         """
