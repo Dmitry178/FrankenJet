@@ -8,7 +8,7 @@
 
           <v-card-title class="pb-2">{{ article.article.title }}</v-card-title>
 
-          <v-card-subtitle v-if="article.article.is_archived">В архиве</v-card-subtitle>
+          <v-card-subtitle v-if="article.article.is_archived">Статья в архиве</v-card-subtitle>
 
           <!-- Изображение -->
           <v-img
@@ -60,6 +60,28 @@
             <div id="article-content" v-html="renderedContent"></div>
           </v-card-text>
 
+          <!-- Список источников -->
+          <ArticleSources v-if="article.article.sources" :sources="article.article.sources" />
+
+          <!-- Список тегов -->
+          <v-card-text class="pt-0">
+            <div v-if="article.tags && article.tags.length > 0" class="mt-4">
+              <h4 class="text-h6 mb-2">Теги</h4>
+              <div class="tag-chips-wrapper">
+                <v-chip
+                  v-for="tag in article.tags"
+                  :key="tag"
+                  class="mr-2 mb-2 tag-chip"
+                  size="small"
+                  variant="outlined"
+                  @click="setTagAndNavigate(tag)"
+                >
+                  {{ tag }}
+                </v-chip>
+              </div>
+            </div>
+          </v-card-text>
+
         </v-card>
 
         <v-alert
@@ -103,17 +125,19 @@
 
 <script>
 import axios from 'axios';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import AirplaneSVG from "@/components/AirplaneSVG.vue";
 import Aircraft from '@/components/Aircraft.vue';
+import ArticleSources from '@/components/ArticleSources.vue';
 
 export default {
   components: {
     AirplaneSVG,
     Aircraft,
+    ArticleSources,
     'v-meta': {
       props: ['title', 'description', 'keywords'],
       template: `
@@ -139,6 +163,7 @@ export default {
   },
   setup() {
     const route = useRoute();
+    const router = useRouter();
     const slug = route.params.slug;
     const article = ref(null);
     const error = ref(false);
@@ -197,6 +222,13 @@ export default {
         description: image_description || null
       };
     });
+
+    // запись выбранного тега в localStorage и переход на /articles
+    const setTagAndNavigate = (tag) => {
+      localStorage.setItem('articles_selected_tags', JSON.stringify([tag]));
+      localStorage.setItem('articles_current_page', '1');
+      router.push('/articles');
+    };
 
     // конвертация текста из MD в HTML
     const renderedContent = computed(() => {
@@ -368,6 +400,7 @@ export default {
       imageCaption,
       openImageDialog,
       closeImageDialog,
+      setTagAndNavigate,
       renderedContent,
       scrollToTop,
       toc,
