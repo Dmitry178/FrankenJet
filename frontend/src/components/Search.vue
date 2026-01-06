@@ -229,7 +229,7 @@ export default {
         const requestData = {
           query: searchQuery.value,
           page: currentPage.value,
-          per_page: 10,
+          page_size: 10,
         };
 
         const response = await axios.post(`/search`, requestData);
