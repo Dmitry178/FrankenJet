@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List
 
 from app.db import Base
 from app.db.models.base import TimestampMixin
-from app.db.types import str_16, str_64, str_256, fk_role, fk_user_cascade
+from app.db.types import uid_pk, str_16, str_64, str_256, fk_role, fk_user_cascade
 
 if TYPE_CHECKING:
     from app.db.models import RefreshTokens
@@ -19,8 +19,8 @@ class Users(Base, TimestampMixin):
     __tablename__ = "users"
     __table_args__ = {"schema": "users"}
 
-    # при использовании UUID установить расширение "uuid-ossp"
-    id: Mapped[int] = mapped_column(primary_key=True)
+    # установить расширение "uuid-ossp"
+    id: Mapped[uid_pk]
 
     # при использовании CITEXT установить расширение "citext";
     email: Mapped[str] = mapped_column(String(254), unique=True, nullable=False)  # длина 254 символа согласно RFC 5321
@@ -36,7 +36,7 @@ class Users(Base, TimestampMixin):
         cascade="all, delete-orphan",  # каскадно удаляются роли в ассоциативной таблице
     )
     roles: Mapped[List["Roles"]] = relationship(
-        secondary="users.users_roles_as",
+        secondary="users.users_roles_at",
         back_populates="users",
         viewonly=True,
     )
@@ -56,7 +56,7 @@ class Roles(Base):
         back_populates="role",
     )
     users: Mapped[List["Users"]] = relationship(
-        secondary="users.users_roles_as",
+        secondary="users.users_roles_at",
         back_populates="roles",
         viewonly=True,
     )
@@ -67,10 +67,10 @@ class UsersRolesAssociation(Base):
     Ассоциативная таблица для связи пользователей и ролей
     """
 
-    __tablename__ = "users_roles_as"
+    __tablename__ = "users_roles_at"
     __table_args__ = (
-        Index("ix_users_roles_as_user_id", "user_id"),
-        Index("ix_users_roles_as_role_id", "role_id"),
+        Index("ix_users_roles_at_user_id", "user_id"),
+        Index("ix_users_roles_at_role_id", "role_id"),
         {"schema": "users"},
     )
 
