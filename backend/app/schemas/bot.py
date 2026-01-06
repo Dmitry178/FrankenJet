@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field, EmailStr
+from uuid import UUID
 
 
 class SBotNotification(BaseModel):
@@ -14,7 +15,7 @@ class SBotAuthNotification(BaseModel):
     Схема для отправки уведомления об аутентификации администратора в телеграм-бот
     """
 
-    user_id: int = Field(..., alias="user-id")  # id пользователя
+    user_id: UUID = Field(..., alias="user-id")  # id пользователя
     user_name: str | None = Field(None, alias="user-name")  # имя пользователя
     email: str | EmailStr = Field(..., alias="email")  # email пользователя
     roles: list | None = Field(None, alias="roles")  # роли пользователя

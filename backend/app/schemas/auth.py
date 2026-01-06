@@ -1,4 +1,5 @@
 from pydantic import BaseModel, EmailStr
+from uuid import UUID
 
 
 class SLoginUser(BaseModel):
@@ -41,7 +42,7 @@ class SAuthUserInfo(BaseModel):
     Схема информации об аутентифицированном пользователе
     """
 
-    id: int
+    id: UUID
     name: str | None = None
     email: EmailStr | str
     roles: list | None = None

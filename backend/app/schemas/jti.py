@@ -10,7 +10,7 @@ class SRefreshTokens(BaseModel):
     """
 
     id: int
-    user_id: int
+    user_id: UUID
     jti: UUID
     issued_at: datetime
     revoked: bool
