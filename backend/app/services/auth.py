@@ -1,7 +1,9 @@
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from uuid import uuid4, UUID
 
-from app.config.app import JWT_TYPE_ACCESS, JWT_TYPE_REFRESH, JWT_ACCESS_EXPIRE_MINUTES, JWT_REFRESH_EXPIRE_MINUTES
+from app.config.app import JWT_TYPE_ACCESS, JWT_TYPE_REFRESH, JWT_ACCESS_EXPIRE_MINUTES, JWT_REFRESH_EXPIRE_MINUTES, \
+    JWT_ACCESS_LOCAL_EXPIRE_MINUTES
+from app.config.env import settings, AppMode
 from app.core.db_manager import DBManager
 from app.core.logs import logger
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx
@@ -18,7 +20,7 @@ class AuthServices:
 
     async def issue_tokens(
             self,
-            user_id: int,
+            user_id: UUID,
             email: str,
             roles: list | None,
             user_name: str | None = None,
@@ -28,11 +30,15 @@ class AuthServices:
         Выпуск токенов
         """
 
-        access_payload = {"id": user_id, "type": JWT_TYPE_ACCESS, "name": user_name, "email": email, "roles": roles}
-        access_token = SecurityService().create_jwt_token(access_payload, JWT_ACCESS_EXPIRE_MINUTES)
+        access_payload = {
+            "id": str(user_id), "type": JWT_TYPE_ACCESS, "name": user_name, "email": email, "roles": roles
+        }
+        jwt_access_expire = JWT_ACCESS_LOCAL_EXPIRE_MINUTES \
+            if settings.APP_MODE == AppMode.local else JWT_ACCESS_EXPIRE_MINUTES  # в локальном режиме своё значение
+        access_token = SecurityService().create_jwt_token(access_payload, jwt_access_expire)
 
         new_jti = uuid4()
-        refresh_payload = {"id": user_id, "type": JWT_TYPE_REFRESH, "jti": str(new_jti)}
+        refresh_payload = {"id": str(user_id), "type": JWT_TYPE_REFRESH, "jti": str(new_jti)}
         refresh_token = SecurityService().create_jwt_token(refresh_payload, JWT_REFRESH_EXPIRE_MINUTES)
 
         # регистрация токена
@@ -54,14 +60,16 @@ class AuthServices:
             "tokens": (await self.issue_tokens(user.id, user.email, roles, jti)).model_dump()
         } if tokens else {}
 
+        picture = settings.S3_DIRECT_URL + user.picture if user.picture else None
+
         user_data |= {
             "user": {
-                "id": user.id,
+                "id": str(user.id),
                 "email": user.email,
                 "full_name": user.full_name,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "picture": user.picture,
+                "picture": picture,
             },
             "roles": roles,
         }
@@ -114,7 +122,7 @@ class AuthServices:
 
         return await self.prepare_user_data(user, tokens=False)
 
-    async def register_user_jti(self, user_id: int, jti: UUID) -> bool:
+    async def register_user_jti(self, user_id: UUID, jti: UUID) -> bool:
         """
         Регистрация refresh-токена (jti) в базе
         """
@@ -131,7 +139,7 @@ class AuthServices:
             await self.db.rollback()
             return False
 
-    async def revoke_user_jti(self, user_id: int, jti: UUID) -> bool:
+    async def revoke_user_jti(self, user_id: UUID, jti: UUID) -> bool:
         """
         Отзыв refresh-токена (jti) из базы
         """
