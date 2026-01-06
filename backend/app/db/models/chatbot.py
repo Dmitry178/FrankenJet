@@ -5,7 +5,7 @@ from sqlalchemy import Integer, UUID, Enum, CheckConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db import Base
-from app.db.models.base import TimestampMixin
+from app.db.models.base import TimestampIdxMixin
 from app.db.types import bool_false, str_24, str_32, str_128, str_512, bool_true, int_0
 
 
@@ -50,7 +50,7 @@ class MessageIntent(str, enum.Enum):
         return self.value
 
 
-class Chat(Base, TimestampMixin):
+class Chat(Base, TimestampIdxMixin):
     """
     История чата
     """
