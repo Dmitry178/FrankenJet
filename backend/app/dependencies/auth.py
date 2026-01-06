@@ -2,6 +2,7 @@ from fastapi import Depends
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jwt import ExpiredSignatureError, InvalidTokenError
 from typing import Annotated
+from uuid import UUID
 
 from app.config.app import JWT_TYPE_ACCESS
 from app.core.logs import logger
@@ -89,7 +90,7 @@ async def get_auth_user_info(token_payload: dict = Depends(get_auth_token_payloa
         raise Exception from ex
 
 
-async def get_auth_user_id(token_payload: dict = Depends(get_auth_token_payload)) -> int:
+async def get_auth_user_id(token_payload: dict = Depends(get_auth_token_payload)) -> UUID:
     """
     Получение id текущего аутентифицированного пользователя из access-токена в заголовках
     """
@@ -122,9 +123,9 @@ async def get_auth_user_roles(token_payload: dict = Depends(get_auth_token_paylo
 
 
 async def get_auth_admin_id(
-        user_id: int = Depends(get_auth_user_id),
+        user_id: UUID = Depends(get_auth_user_id),
         roles: list = Depends(get_auth_user_roles)
-) -> int:
+) -> UUID:
     """
     Получение id авторизованного администратора
     """
@@ -144,9 +145,9 @@ async def get_auth_admin_id(
 
 
 async def get_auth_editor_id(
-        user_id: int = Depends(get_auth_user_id),
+        user_id: UUID = Depends(get_auth_user_id),
         roles: list = Depends(get_auth_user_roles)
-) -> int:
+) -> UUID:
     """
     Получение id авторизованного редактора
     """
@@ -166,9 +167,9 @@ async def get_auth_editor_id(
 
 
 async def get_auth_moderator_id(
-        user_id: int = Depends(get_auth_user_id),
+        user_id: UUID = Depends(get_auth_user_id),
         roles: list = Depends(get_auth_user_roles)
-) -> int:
+) -> UUID:
     """
     Получение id авторизованного модератора
     """
@@ -189,7 +190,7 @@ async def get_auth_moderator_id(
 
 DAuthToken = Annotated[str, Depends(get_auth_token)]
 DAuthUserInfo = Annotated[SAuthUserInfo, Depends(get_auth_user_info)]
-DAuthUserId = Annotated[int, Depends(get_auth_user_id)]
-DAuthAdminId = Annotated[int, Depends(get_auth_admin_id)]
-DAuthEditorId = Annotated[int, Depends(get_auth_editor_id)]
-DAuthModeratorId = Annotated[int, Depends(get_auth_moderator_id)]
+DAuthUserId = Annotated[UUID, Depends(get_auth_user_id)]
+DAuthAdminId = Annotated[UUID, Depends(get_auth_admin_id)]
+DAuthEditorId = Annotated[UUID, Depends(get_auth_editor_id)]
+DAuthModeratorId = Annotated[UUID, Depends(get_auth_moderator_id)]
