@@ -19,7 +19,7 @@ class WebSocketsAuthServices:
     def __init__(self, db: DBManager | None = None) -> None:
         self.db = db
 
-    async def auth_ws(self, jti: UUID) -> int | None:
+    async def auth_ws(self, jti: UUID) -> UUID | None:
         """
         Проверка аутентификации пользователя через веб-сокеты
         """
