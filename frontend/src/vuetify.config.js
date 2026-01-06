@@ -4,7 +4,7 @@ const light = {
     primary: '#CDAB8F',
     secondary: '#E8D5C4',
     accent: '#A1887F',
-    error: '#B00020',
+    error: '#FF6B6B',
     info: '#2196F3',
     success: '#4CAF50',
     warning: '#F0F000',
