@@ -398,21 +398,21 @@ export default {
       articleImageIsDefault,
       imageDialog,
       imageCaption,
+      renderedContent,
+      toc,
+      activeTocItem,
       openImageDialog,
       closeImageDialog,
       setTagAndNavigate,
-      renderedContent,
       scrollToTop,
-      toc,
       scrollToSection,
-      activeTocItem,
     };
   },
 };
 </script>
 
 <style scoped>
-.article-image >>> img {
+.article-image :deep(img) {
   object-position: left center;
 }
 
