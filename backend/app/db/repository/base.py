@@ -245,7 +245,7 @@ class BaseRepository:
 
     async def update(
             self,
-            data: BaseModel | None = None,
+            data: BaseModel | dict | None = None,
             exclude_unset: bool = False,
             scalars=False,
             commit=False,
@@ -256,9 +256,16 @@ class BaseRepository:
         Обновление данных
         """
 
+        if isinstance(data, BaseModel):
+            values = data.model_dump(by_alias=True, exclude_unset=exclude_unset)
+        elif isinstance(data, dict):
+            values = data
+        else:
+            raise ValueError("data must be a dict or a Pydantic model instance")
+
         stmt = (
             update(self.model)
-            .values(**data.model_dump(by_alias=True, exclude_unset=exclude_unset))
+            .values(**values)
             .filter(*filters)
             .filter_by(**filter_by)
             .returning(self.model)
