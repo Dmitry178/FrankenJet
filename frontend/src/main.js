@@ -11,7 +11,6 @@ import '@/assets/main.css'
 
 async function init() {
   const app = createApp(App);
-  const { router } = setupRouter();
   const pinia = createPinia();
   pinia.use(({ store }) => {
     const originalConsoleLog = console.log
@@ -28,7 +27,6 @@ async function init() {
     }
   })
 
-  app.use(router);
   app.use(pinia);
   app.use(vuetify);
 
@@ -38,6 +36,10 @@ async function init() {
   // инициализация авторизации
   const authStore = useAuthStore();
   await authStore.initAuth();
+
+  // инициализация роутера
+  const { router } = setupRouter();
+  app.use(router);
 
   // инициализация чата
   const chatStore = useChatStore();
