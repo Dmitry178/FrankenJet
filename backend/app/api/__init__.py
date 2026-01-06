@@ -14,6 +14,7 @@ from app.api.oauth2 import oauth_router
 from app.api.pages import pages_router
 from app.api.search import search_router
 from app.api.tags import tags_router
+from app.api.users import users_router
 from app.api.websocket import ws_router
 from app.config.env import AppMode, settings
 
@@ -27,6 +28,7 @@ router.include_router(app_router)
 router.include_router(admin_router)
 router.include_router(auth_router)
 router.include_router(oauth_router)
+router.include_router(users_router)
 router.include_router(chat_bot_router)
 router.include_router(search_router)
 router.include_router(pages_router)
