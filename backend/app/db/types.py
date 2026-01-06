@@ -49,8 +49,9 @@ uid_pk = Annotated[
 ]
 
 # foreign keys
-fk_user = Annotated[int, mapped_column(Integer, ForeignKey("users.users.id"))]
-fk_user_cascade = Annotated[int, mapped_column(Integer, ForeignKey("users.users.id", ondelete="CASCADE"))]
+fk_user = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("users.users.id"))]
+fk_user_cascade = \
+    Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("users.users.id", ondelete="CASCADE"))]
 fk_role = Annotated[str, mapped_column(String(16), ForeignKey("users.roles.role"))]
 fk_aircraft = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.aircraft.id"))]
 fk_article = Annotated[uuid.UUID, mapped_column(UUID(as_uuid=True), ForeignKey("articles.articles.id"))]
