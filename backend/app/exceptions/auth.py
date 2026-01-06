@@ -6,7 +6,7 @@ from app.exceptions.base import BaseCustomException
 
 class UserNotFoundEx(BaseCustomException):
     status_code = status.HTTP_404_NOT_FOUND
-    detail = "Пользователь или пароль неверный"
+    detail = "Пользователь не найден"
 
 
 class PasswordIncorrectEx(BaseCustomException):
