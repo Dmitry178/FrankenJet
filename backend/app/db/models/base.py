@@ -15,3 +15,16 @@ class TimestampMixin:
         server_default=text("now()"),
         onupdate=datetime.now()
     )
+
+
+class TimestampIdxMixin:
+    """
+    Миксин для добавления полей created_at (индексированный) и updated_at
+    """
+
+    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=text("now()"), index=True)
+    updated_at: Mapped[datetime] = mapped_column(
+        DateTime,
+        server_default=text("now()"),
+        onupdate=datetime.now()
+    )
