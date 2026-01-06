@@ -5,6 +5,7 @@ JWT_TYPE_ACCESS = "access"
 JWT_TYPE_REFRESH = "refresh"
 JWT_ALGORITHM: str = "HS256"  # TODO: переделать на RS256
 JWT_ACCESS_EXPIRE_MINUTES: int = 15  # время жизни access-токена (в минутах)
+JWT_ACCESS_LOCAL_EXPIRE_MINUTES: int = 60 * 24 * 30  # время жизни access-токена в локальном режиме (в минутах)
 JWT_REFRESH_EXPIRE_MINUTES: int = 60 * 24 * 30  # время жизни refresh-токена (в минутах)
 
 # OAuth2
@@ -29,3 +30,13 @@ RAGBOT_INDEX_NAME = "rag-bot"
 
 # настройки GigaChat API
 GIGACHAT_USER_MESSAGE_MAX_SIZE = 200  # максимальная длина сообщения от пользователя
+
+# настройки типов и размеров загружаемых изображений
+MAX_IMAGE_FILE_SIZE = 1 * 1024 * 1024  # максимальный размер загружаемого изображения (1 Mb)
+ALLOWED_IMAGE_TYPES = {
+    "image/jpeg",
+    "image/jpg",
+    "image/png",
+    "image/webp",
+    # "image/gif",
+}
