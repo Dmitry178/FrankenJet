@@ -53,7 +53,7 @@ class AircraftServices:
             self,
             name: str | None = None,
             page: int | None = None,
-            per_page: int | None = None,
+            page_size: int | None = None,
             filters: SAircraftFilters | None = None
     ) -> List[Aircraft]:
         """
@@ -63,13 +63,13 @@ class AircraftServices:
         filter_conditions = [Aircraft.name.ilike(f"%{name}%")] if name else []
         filter_by_conditions = filters.model_dump(exclude_none=True) if filters else {}
 
-        if page is None or per_page is None:
+        if page is None or page_size is None:
             return await self.db.aircraft.select_all(
                 *filter_conditions, **filter_by_conditions
             )
 
-        offset = (page-1) * per_page
-        limit = per_page
+        offset = (page-1) * page_size
+        limit = page_size
 
         return await self.db.aircraft.select_all_paginated(
             offset, limit, *filter_conditions, **filter_by_conditions

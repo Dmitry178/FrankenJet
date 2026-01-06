@@ -50,12 +50,8 @@ class ArticlesRepository(BaseRepository):
         """
 
         query = data.query
-        # categories = data.categories
         page = data.page
-        per_page = data.per_page
-
-        # TODO: добавить категории в поиск
-
+        page_size = data.page_size
         search_term = f"%{query}%"
 
         # подзапросы для каждой сущности
@@ -138,12 +134,12 @@ class ArticlesRepository(BaseRepository):
         )
 
         # выбираем результаты с пагинацией
-        offset_value = (page - 1) * per_page
+        offset_value = (page - 1) * page_size
         paginated_query = (
             select(combined_query)
             .order_by(combined_query.c.published_at.desc().nullslast())
             .offset(offset_value)
-            .limit(per_page)
+            .limit(page_size)
         )
 
         result = await self.session.execute(paginated_query)
@@ -165,7 +161,7 @@ class ArticlesRepository(BaseRepository):
             ],
             "metadata": {
                 "total_count": total_count,
-                "total_pages": (total_count + per_page - 1) // per_page,
+                "total_pages": (total_count + page_size - 1) // page_size,
                 "total_categories": total_categories,
             },
             "categories": all_categories,
