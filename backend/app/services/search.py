@@ -37,8 +37,8 @@ class SearchService:
                         ]
                     }
                 },
-                "from": (data.page - 1) * data.per_page,
-                "size": data.per_page,
+                "from": (data.page - 1) * data.page_size,
+                "size": data.page_size,
                 "highlight": {
                     "fields": {
                         "title": {},
@@ -118,7 +118,7 @@ class SearchService:
                     "results": results,
                     "metadata": {
                         "total_count": total,
-                        "total_pages": (total + data.per_page - 1) // data.per_page,
+                        "total_pages": (total + data.page_size - 1) // data.page_size,
                         "total_categories": total_categories,
                     },
                     "categories": all_categories,
