@@ -81,7 +81,7 @@ class DBManager:
                 # Игнорируем ошибку состояния, так как сессия уже закрывается или находится в промежуточном состоянии
                 pass
             except Exception as ex:
-                logger.exception(f"Error closing session", extra={"error": str(ex)})
+                logger.exception("Error closing session", extra={"error": str(ex)})
 
     async def commit(self):
         await self.session.commit()
