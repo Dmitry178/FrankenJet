@@ -30,5 +30,8 @@ export default defineConfig({
     allowedHosts: [
       'dev.lan',
     ],
+    hmr: {
+      clientPort: 3000,
+    },
   },
 })
