@@ -1,7 +1,10 @@
+from uuid import UUID
+
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import selectinload
 
+from app.db.models import RefreshTokens
 from app.db.models.users import Users
 from app.db.repository.base import BaseRepository
 from app.schemas.users import SUserCreateOAuth2
@@ -13,9 +16,13 @@ class UsersRepository(BaseRepository):
     """
 
     model = Users
-    # mapper = UsersDataMapper  # TODO: добавить mapper
+    # mapper = UsersDataMapper
 
-    async def get_user_with_roles(self, offset: int = 0, limit: int = None, *filters, **filter_by):
+    async def get_user_with_roles(
+            self,
+            offset: int = 0, limit: int = None,
+            jti: UUID | None = None,
+            *filters, **filter_by):
         """
         Получение пользователя/пользователей с ролями и пагинацией
         """
@@ -30,6 +37,14 @@ class UsersRepository(BaseRepository):
         if offset is not None and limit is not None:
             query = query.offset(offset).limit(limit)
             return (await self.session.execute(query)).scalars().all()
+
+        # если задан jti, проверяем его наличие в RefreshTokens
+        if jti is not None:
+            query = (
+                query
+                .join(Users.refresh_tokens)
+                .filter(RefreshTokens.jti == jti)
+            )
 
         return (await self.session.execute(query)).scalars().one_or_none()
 
