@@ -1,8 +1,6 @@
 # ruff: noqa: F403, F405
 
-"""
-Добавление расширений, инициализация данных
-"""
+""" Добавление расширений, инициализация данных """
 
 import re
 import sys
@@ -215,7 +213,7 @@ class DataCreator:
                 except Exception as ex:
                     # данная ошибка возникает при добавлении расширения "vector",
                     # если postgres без расширения "pgvector"
-                    logger.warning(f"Ошибка создания расширения {extension}: {ex}")
+                    init_data_logger.warning(f"Ошибка создания расширения {extension}", extra={"error": str(ex)})
 
             # создание схем
             for schema in schemas:
@@ -227,10 +225,10 @@ class DataCreator:
                 raw_connection = await conn.get_raw_connection()
                 alembic_cfg.attributes["connection"] = raw_connection.connection
                 command.upgrade(alembic_cfg, "head")
-                logger.info("Миграции завершены")
+                init_data_logger.info("Миграции завершены")
             else:
                 await conn.run_sync(Base.metadata.create_all)
-                logger.info("Схемы и таблицы созданы")
+                init_data_logger.info("Схемы и таблицы созданы")
 
         return None
 
@@ -258,7 +256,7 @@ class DataCreator:
                     .returning(Users.id)
                 )
                 user_id = (await self.session.execute(stmt)).scalar()
-                logger.info("Пользователь создан")
+                init_data_logger.info("Пользователь создан")
 
             # добавление ролей пользователя
             if not user.roles:
@@ -302,7 +300,7 @@ class DataCreator:
         await self.session.execute(stmt)
         await self.session.commit()
 
-        logger.info(f"Данные добавлены в {model.__name__}")
+        init_data_logger.info(f"Данные добавлены в {model.__name__}")
 
         return None
 
@@ -414,7 +412,7 @@ async def main() -> None:
 
     db_conn = env.str("DB_CONN")
     if not db_conn:
-        logger.error("Ошибка, строка подключения к базе данных отсутствует")
+        init_data_logger.error("Ошибка, строка подключения к базе данных отсутствует")
         sys.exit(1)
 
     # логин/пароль админа по умолчанию
@@ -446,45 +444,45 @@ async def main() -> None:
     async with DataCreator(db_conn) as db_handler:
 
         if not skip_migrations:
-            logger.info("Миграции" if db_handler.run_migrations else "Создание таблиц")
+            init_data_logger.info("Миграции" if db_handler.run_migrations else "Создание таблиц")
             await db_handler.create_tables()
 
-        logger.info("Добавление ролей пользователей")
+        init_data_logger.info("Добавление ролей пользователей")
         data = await read_json("./scripts/data/roles.json")
         await db_handler.add_data(Roles, data)
 
-        logger.info("Добавление пользователей")
+        init_data_logger.info("Добавление пользователей")
         await db_handler.insert_users(users)
 
-        logger.info("Добавление стран")
+        init_data_logger.info("Добавление стран")
         data = await read_json("./scripts/data/countries.json")
         await db_handler.add_data(Countries, data)
 
-        logger.info("Добавление категорий тегов")
+        init_data_logger.info("Добавление категорий тегов")
         data = await read_json("./scripts/data/tags_categories.json")
         await db_handler.add_data(TagsCategories, data)
 
-        logger.info("Добавление тегов")
+        init_data_logger.info("Добавление тегов")
         data = await read_json("./scripts/data/tags.json")
         await db_handler.add_data(Tags, data)
 
-        logger.info("Добавление статей")
+        init_data_logger.info("Добавление статей")
         data, _ = await assemble_json(BASE_ARTICLES_PATH, is_article=True)
         await db_handler.add_data(Articles, data)
 
-        logger.info("Добавление карточек воздушных судов")
+        init_data_logger.info("Добавление карточек воздушных судов")
         data, tags = await assemble_json(f"{BASE_ARTICLES_PATH}/aircraft", has_image=True, s3manager=s3_manager)
         await db_handler.add_data(Aircraft, data)
         await db_handler.add_data(ArticlesTagsAssociation, tags)
 
         if not skip_facts:
-            logger.info("Добавление фактов")
+            init_data_logger.info("Добавление фактов")
             facts = await read_text("/scripts/data/facts.txt")
             facts_data = [{"fact": fact} for fact in facts]
             data = DataUtils().convert_data_types(Facts, facts_data)
             await db_handler.add_data(Facts, data)
 
-    logger.info("Добавление данных завершено")
+    init_data_logger.info("Добавление данных завершено")
 
 
 logging.basicConfig(
@@ -493,7 +491,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-logger = logging.getLogger()
+init_data_logger = logging.getLogger()
 
 if __name__ == "__main__":
     asyncio.run(main())

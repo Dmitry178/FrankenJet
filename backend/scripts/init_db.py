@@ -1,8 +1,6 @@
 # ruff: noqa: F403, F405
 
-"""
-Инициализация базы данных
-"""
+""" Инициализация базы данных """
 
 import asyncio
 import asyncpg
@@ -47,26 +45,26 @@ class DatabaseCreator:
             db_exists = await conn.fetchval(f"SELECT 1 FROM pg_database WHERE datname='{self.db_name}'")
             if not db_exists:
                 await conn.execute(f"CREATE DATABASE {self.db_name}")
-                logger.info(f"Создана база данных {self.db_name}")
+                init_db_logger.info(f"Создана база данных {self.db_name}")
             else:
-                logger.info(f"База данных {self.db_name} уже существует")
+                init_db_logger.info(f"База данных {self.db_name} уже существует")
 
             user_exists = await conn.fetchval(f"SELECT 1 FROM pg_roles WHERE rolname='{self.db_user}'")
             if not user_exists:
-                logger.info(f"Создан пользователь {self.db_user}")
+                init_db_logger.info(f"Создан пользователь {self.db_user}")
                 await conn.execute(f"CREATE USER {self.db_user} WITH PASSWORD '{self.db_pass}'")
             else:
-                logger.info(f"Пользователь {self.db_user} уже существует")
+                init_db_logger.info(f"Пользователь {self.db_user} уже существует")
 
             await conn.execute(f"GRANT ALL PRIVILEGES ON DATABASE {self.db_name} TO {self.db_user}")
             await conn.close()
 
         except asyncpg.PostgresError as ex:
-            logger.error(f"Ошибка создания базы данных/пользователя: {ex}")
+            init_db_logger.error(f"Ошибка создания базы данных/пользователя: {ex}")
             sys.exit(1)
 
         except Exception as ex:
-            logger.error(f"Ошибка при создании таблиц SQLAlchemy: {ex}")
+            init_db_logger.error(f"Ошибка при создании таблиц SQLAlchemy: {ex}")
             sys.exit(1)
 
 
@@ -81,10 +79,10 @@ async def main() -> None:
     db_conn = env.str("DB_CONN")
     assert db_conn, "Строка подключения отсутствует"
 
-    logger.info("Создание базы данных и пользователя")
+    init_db_logger.info("Создание базы данных и пользователя")
     await DatabaseCreator(db_conn).create_database_and_user()
 
-    logger.info("Инициализация базы данных завершена")
+    init_db_logger.info("Инициализация базы данных завершена")
     return None
 
 
@@ -94,7 +92,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-logger = logging.getLogger()
+init_db_logger = logging.getLogger()
 
 if __name__ == "__main__":
     asyncio.run(main())

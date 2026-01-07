@@ -1,6 +1,4 @@
-"""
-Индексирование статей в Elasticsearch
-"""
+""" Индексирование статей в Elasticsearch """
 
 import asyncio
 import json
@@ -253,10 +251,10 @@ async def index_articles(manager: ESManager):
         if not index_exists:
             # создание индекса с настройками
             await manager.es.indices.create(index=index_name, body=index_settings)
-            logger.info(f'Индекс "{index_name}" создан')
+            init_es_logger.info(f'Индекс "{index_name}" создан')
 
     except Exception as ex:
-        logger.error(f"Ошибка при проверке/создании индекса {index_name}: {ex}")
+        init_es_logger.error(f"Ошибка при проверке/создании индекса {index_name}", extra={"error": str(ex)})
         return
 
     # чтение и подготовка списка стран
@@ -284,12 +282,12 @@ async def index_articles(manager: ESManager):
             success = await manager.index_document(index=index_name, doc_id=doc_id, document=source_data)
 
             if success:
-                logger.info(f'Документ ID {doc_id} успешно проиндексирован в индекс "{index_name}"')
+                init_es_logger.info(f'Документ ID {doc_id} успешно проиндексирован в индекс "{index_name}"')
             else:
-                logger.info(f'Ошибка индексации документа ID {doc_id} в индекс "{index_name}"')
+                init_es_logger.info(f'Ошибка индексации документа ID {doc_id} в индекс "{index_name}"')
 
     except Exception as ex:
-        logger.exception(f"Ошибка индексации статей: {ex}")
+        init_es_logger.exception("Ошибка индексации статей", extra={"error": str(ex)})
 
 
 async def main() -> None:
@@ -298,7 +296,7 @@ async def main() -> None:
 
     es_url = env.str("ELASTIC_URL")
     if not es_url:
-        logger.warning("Строка подключения к Elasticsearch отсутствует")
+        init_es_logger.warning("Строка подключения к Elasticsearch отсутствует")
         sys.exit(0)
 
     async with es_manager as es:
@@ -312,7 +310,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-logger = logging.getLogger()
+init_es_logger = logging.getLogger()
 
 if __name__ == "__main__":
     asyncio.run(main())

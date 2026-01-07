@@ -1,6 +1,4 @@
-"""
-Создание бакетов S3
-"""
+""" Создание бакетов S3 """
 
 import asyncio
 import logging
@@ -35,10 +33,10 @@ class S3Creator:
             for bucket in buckets_to_create:
                 if bucket not in buckets_list:
                     await self.s3manager.create_bucket(bucket, public=True)
-                    logger.info(f"Бакет {bucket} создан")
+                    init_s3_logger.info(f"Бакет {bucket} создан")
 
         except Exception as ex:
-            logger.error(f"Ошибка инициализации S3: {ex}")
+            init_s3_logger.error(f"Ошибка инициализации S3: {ex}")
 
 
 async def main() -> None:
@@ -63,10 +61,10 @@ async def main() -> None:
         endpoint_url=endpoint_url
     )
 
-    logger.info("Инициализация S3")
+    init_s3_logger.info("Инициализация S3")
     await S3Creator(s3_manager).create_buckets()
 
-    logger.info("Инициализация S3 завершена")
+    init_s3_logger.info("Инициализация S3 завершена")
     return None
 
 
@@ -76,7 +74,7 @@ logging.basicConfig(
     handlers=[logging.StreamHandler(sys.stdout)],
 )
 
-logger = logging.getLogger()
+init_s3_logger = logging.getLogger()
 
 if __name__ == "__main__":
     asyncio.run(main())
