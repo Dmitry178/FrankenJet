@@ -14,13 +14,24 @@ class PasswordIncorrectEx(BaseCustomException):
     detail = "Пользователь или пароль неверный"
 
 
+class UserNotActiveEx(BaseCustomException):
+    status_code = status.HTTP_401_UNAUTHORIZED
+    detail = "Пользователь заблокирован"
+
+
 class UserExistsEx(BaseCustomException):
     status_code = status.HTTP_409_CONFLICT
     detail = "Пользователь уже создан"
 
 
 class UserCreationErrorEx(BaseCustomException):
+    status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     detail = "Ошибка создания пользователя"
+
+
+class RegistrationNotAllowedEx(BaseCustomException):
+    status_code = status.HTTP_403_FORBIDDEN
+    detail = "Регистрация пользователя недоступна"
 
 
 class TokenInvalidEx(BaseCustomException):
