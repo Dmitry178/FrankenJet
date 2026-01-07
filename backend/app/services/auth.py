@@ -1,22 +1,27 @@
+from fastapi import Request
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from uuid import uuid4, UUID
 
 from app.config.app import JWT_TYPE_ACCESS, JWT_TYPE_REFRESH, JWT_ACCESS_EXPIRE_MINUTES, JWT_REFRESH_EXPIRE_MINUTES, \
     JWT_ACCESS_LOCAL_EXPIRE_MINUTES
 from app.config.env import settings, AppMode
+from app.core import RMQManager
 from app.core.db_manager import DBManager
 from app.core.logs import logger
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx
 from app.schemas.auth import SLoginUser, SAuthTokens
+from app.services.bot import BotServices, MsgTypes
 from app.services.security import SecurityService
+from app.services.user_info import UserInfoServices
 
 
 class AuthServices:
 
     db: DBManager | None
 
-    def __init__(self, db: DBManager | None = None) -> None:
+    def __init__(self, db: DBManager | None = None, rmq: RMQManager | None = None) -> None:
         self.db = db
+        self.rmq = rmq
 
     async def issue_tokens(
             self,
@@ -76,7 +81,7 @@ class AuthServices:
 
         return user_data
 
-    async def login(self, data: SLoginUser) -> dict:
+    async def login(self, data: SLoginUser, request: Request) -> dict:
         """
         Проверка пользователя и пароля, выпуск access и refresh токенов
         """
@@ -88,7 +93,12 @@ class AuthServices:
         if not SecurityService().verify_password(data.password, user.hashed_password):
             raise PasswordIncorrectEx
 
-        return await self.prepare_user_data(user)
+        user_data = await self.prepare_user_data(user)
+        if self.rmq and "admin" in user_data.get("roles", []):
+            bot_notification = UserInfoServices().notification_message(user.id, data.email, request)
+            await BotServices(self.rmq).send_message(MsgTypes.auth_notification, bot_notification)
+
+        return user_data
 
     async def refresh(self, refresh_token: str) -> dict:
         """
@@ -135,7 +145,7 @@ class AuthServices:
             return True
 
         except (IntegrityError, SQLAlchemyError, Exception) as ex:
-            logger.error(ex)
+            logger.exception(ex)
             await self.db.rollback()
             return False
 
@@ -152,6 +162,6 @@ class AuthServices:
             return True
 
         except (IntegrityError, SQLAlchemyError, Exception) as ex:
-            logger.error(ex)
+            logger.exception(ex)
             await self.db.rollback()
             return False
