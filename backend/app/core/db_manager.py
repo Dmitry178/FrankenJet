@@ -1,5 +1,8 @@
 """ Контекстный менеджер базы данных """
 
+from sqlalchemy.exc import IllegalStateChangeError
+
+from app.core.logs import logger
 from app.db.repository.aircraft import AircraftRepository
 from app.db.repository.articles import ArticlesRepository
 from app.db.repository.auth import RefreshTokensRepository
@@ -72,7 +75,13 @@ class DBManager:
             #     await self.session.rollback()
             await self.session.rollback()
         finally:
-            await self.session.close()
+            try:
+                await self.session.close()
+            except IllegalStateChangeError:
+                # Игнорируем ошибку состояния, так как сессия уже закрывается или находится в промежуточном состоянии
+                pass
+            except Exception as ex:
+                logger.exception(f"Error closing session", extra={"error": str(ex)})
 
     async def commit(self):
         await self.session.commit()
