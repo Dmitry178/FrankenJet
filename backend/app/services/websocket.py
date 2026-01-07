@@ -8,7 +8,7 @@ from app.core.db_manager import DBManager
 from app.core.logs import logger
 from app.core.ws_manager import WSManager
 from app.dependencies.db import DDB
-from app.schemas.jti import SRefreshTokens
+from app.schemas.refresh_tokens import SRefreshTokens
 from app.services.chatbot import ChatBotServices
 
 
@@ -40,7 +40,7 @@ class WebSocketAuthService:
         """
 
         token: SRefreshTokens = self.db.auth.refresh_tokens.select_one_or_none(jti=jti)
-        if not token or token.revoked:
+        if not token:
             return None
         return token.user_id
 
@@ -51,6 +51,7 @@ class WebSocketAuthService:
 
         try:
             print(user_id, data)
+            # TODO сделать logout
             ...
 
         except (json.JSONDecodeError, Exception) as ex:
