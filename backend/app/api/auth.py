@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Body
+from fastapi import APIRouter, Body, Request
 from starlette import status
 
 from app.api.openapi_examples import login_example
 from app.core.logs import logger
 from app.dependencies.auth import DAuthUserId, DAuthToken
 from app.dependencies.db import DDB
+from app.dependencies.rmq import DRmq
 from app.exceptions.api import http_error_500
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx, \
     UserCreationErrorEx
@@ -21,13 +22,18 @@ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
     "/login",
     summary="Аутентификация по email и паролю",
 )
-async def user_login(db: DDB, data: SLoginUser = Body(openapi_examples=login_example)):
+async def user_login(
+        db: DDB,
+        rmq: DRmq,
+        request: Request,
+        data: SLoginUser = Body(openapi_examples=login_example)
+):
     """
     Аутентификация пользователя по email и паролю
     """
 
     try:
-        result = await AuthServices(db).login(data)
+        result = await AuthServices(db, rmq).login(data, request)
         return {**status_ok, "data": result}
 
     except (UserNotFoundEx, PasswordIncorrectEx) as ex:
