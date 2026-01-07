@@ -9,7 +9,7 @@ class SLoginUser(BaseModel):
     В проекте логином по умолчанию является email, однако
     для демонстрационных целей предусмотрен пользователь с логином "admin",
     который не соответствует формату email. Поэтому тип поля email может быть
-    как строкой (str), так и EmailStr.
+    как строкой (str), так и EmailStr
     """
 
     email: str | EmailStr
@@ -21,7 +21,7 @@ class SRegisterUser(BaseModel):
     Схема регистрации пользователя
 
     При регистрации новых пользователей логином обязательно должен быть
-    корректный email адрес.
+    корректный email адрес
     """
 
     email: EmailStr
@@ -44,5 +44,5 @@ class SAuthUserInfo(BaseModel):
 
     id: UUID
     name: str | None = None
-    email: EmailStr | str
+    email: str | EmailStr
     roles: list | None = None
