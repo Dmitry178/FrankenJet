@@ -28,13 +28,15 @@
           name="password"
           autocomplete="current-password"
         ></v-text-field>
-      </v-card-text>
 
-      <v-card-actions class="d-flex flex-column">
         <v-btn
           v-if="settingsStore.isAuthenticatedEnabled"
-          color="primary"
           block @click="login"
+          elevation="0"
+          :style="{
+            'background-color': 'rgb(var(--v-theme-background))',
+            'border': '1px solid rgba(var(--v-theme-border), 0.75)'
+          }"
         >
           Войти
         </v-btn>
@@ -64,8 +66,8 @@
           <span v-if="settingsStore.isRegistrationEnabled && settingsStore.isResetPasswordEnabled"> | </span>
           <router-link v-if="settingsStore.isResetPasswordEnabled" to="/reset">Сбросить пароль</router-link>
         </div>
+      </v-card-text>
 
-      </v-card-actions>
     </v-card>
   </v-menu>
 </template>
