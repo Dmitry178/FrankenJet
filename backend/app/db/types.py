@@ -7,6 +7,7 @@ from sqlalchemy.orm import mapped_column
 from typing import Annotated
 
 # строковые аннотированные типы
+str_8 = Annotated[str, 8]
 str_16 = Annotated[str, 16]
 str_24 = Annotated[str, 24]
 str_32 = Annotated[str, 32]
@@ -66,6 +67,7 @@ fk_tag_category = Annotated[str, mapped_column(String(32), ForeignKey("articles.
 
 # карта аннотированных типов
 annotation_map = {
+    str_8: String(8),
     str_16: String(16),
     str_24: String(24),
     str_32: String(32),
