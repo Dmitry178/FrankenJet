@@ -10,7 +10,7 @@ from app.core import es_manager, vectorizer_manager
 from app.core.db_manager import DBManager
 from app.core.gigachat import gigachat_api
 from app.core.logs import logger
-from app.core.ws_manager import WSBotManager
+from app.core.ws_manager import WSManager
 from app.db.models.chatbot import MessageIntent
 from app.decorators.db_errors import handle_basic_db_errors
 from app.schemas.gigachat import SGigaChatAnswer
@@ -34,7 +34,7 @@ class ChatBotServices:
     def __init__(
             self,
             db: DBManager | None = None,
-            ws_manager: WSBotManager | None = None,
+            ws_manager: WSManager | None = None,
             bot_settings: ChatBotSettingsManager | None = None,
     ) -> None:
         self.db = db
@@ -78,7 +78,7 @@ class ChatBotServices:
         try:
             # проверка длины сообщения
             if len(message) > GIGACHAT_USER_MESSAGE_MAX_SIZE:
-                await self.ws_manager.send_message_to_chat(
+                await self.ws_manager.send_message_to_connection(
                     chat_id,
                     f"⚠️ Превышение максимальной длины сообщения в {GIGACHAT_USER_MESSAGE_MAX_SIZE} символов"
                 )
@@ -89,18 +89,18 @@ class ChatBotServices:
             settings = await self.bot_settings.get_settings()
 
             if count_tokens.get("user_daily_tokens", 0) > settings.user_daily_tokens:
-                await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение лимита токенов")
+                await self.ws_manager.send_message_to_connection(chat_id, "⚠️ Превышение лимита токенов")
                 return False
 
             if count_tokens.get("total_daily_tokens", 0) > settings.total_daily_tokens:
-                await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Превышение общего лимита токенов")
+                await self.ws_manager.send_message_to_connection(chat_id, "⚠️ Превышение общего лимита токенов")
                 return False
 
             return True
 
         except Exception as ex:
-            logger.error(ex)
-            await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Ошибка сервиса")
+            logger.exception(ex)
+            await self.ws_manager.send_message_to_connection(chat_id, "⚠️ Ошибка сервиса")
             return False
 
     async def proceed_user_message(self, chat_id: UUID, message: str) -> bool:
@@ -234,11 +234,11 @@ class ChatBotServices:
             )
 
             # отправка ответа через websocket
-            await self.ws_manager.send_message_to_chat(chat_id, giga_chat_answer.answer)
+            await self.ws_manager.send_message_to_connection(chat_id, giga_chat_answer.answer)
 
         except Exception as ex:
-            logger.error(ex)
+            logger.exception(ex)
             await self.db.rollback()
-            await self.ws_manager.send_message_to_chat(chat_id, "⚠️ Ошибка сервиса")
+            await self.ws_manager.send_message_to_connection(chat_id, "⚠️ Ошибка сервиса")
 
         return None
