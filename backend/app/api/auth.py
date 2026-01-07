@@ -2,14 +2,14 @@ from fastapi import APIRouter, Body, Request
 from starlette import status
 
 from app.api.openapi_examples import login_example
+from app.config.env import settings
 from app.core.logs import logger
 from app.dependencies.auth import DAuthUserId, DAuthToken
 from app.dependencies.db import DDB
 from app.dependencies.rmq import DRmq
 from app.exceptions.api import http_error_500
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx, \
-    UserCreationErrorEx
-from app.schemas.api import SuccessResponse
+    UserCreationErrorEx, UserNotActiveEx, RegistrationNotAllowedEx
 from app.schemas.auth import SLoginUser
 from app.services.auth import AuthServices
 from app.services.users import UsersServices
@@ -36,7 +36,7 @@ async def user_login(
         result = await AuthServices(db, rmq).login(data, request)
         return {**status_ok, "data": result}
 
-    except (UserNotFoundEx, PasswordIncorrectEx) as ex:
+    except (UserNotFoundEx, PasswordIncorrectEx, UserNotActiveEx) as ex:
         return ex.json_response
 
     except Exception as ex:
@@ -55,18 +55,14 @@ async def user_register(db: DDB, data: SLoginUser = Body(openapi_examples=login_
     """
 
     try:
+        if not settings.ALLOW_REGISTRATION:
+            raise RegistrationNotAllowedEx
+
         await UsersServices(db).create_user_by_email(data)
-        return SuccessResponse()
+        return status_ok
 
-    except UserExistsEx as ex:
+    except (UserExistsEx, UserCreationErrorEx, RegistrationNotAllowedEx) as ex:
         return ex.json_response
-
-    except UserCreationErrorEx as ex:
-        return ex.json_response
-
-    except Exception as ex:
-        logger.exception(ex)
-        return http_error_500
 
 
 @auth_router.post(
