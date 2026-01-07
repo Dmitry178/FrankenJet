@@ -13,5 +13,4 @@ class SRefreshTokens(BaseModel):
     user_id: UUID
     jti: UUID
     issued_at: datetime
-    revoked: bool
     user_agent: str | None = Field(None, max_length=256)
