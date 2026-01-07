@@ -15,7 +15,7 @@ export const useWebSocketStore = defineStore('websocket', () => {
       disconnect(currentChatId.value); // передача старого chatId
     }
 
-    const wsUrl = `${WS_BASE_URL}/ws/${chatId}`;
+    const wsUrl = `${WS_BASE_URL}/ws/chat/${chatId}`;
     ws.value = new WebSocket(wsUrl);
     currentChatId.value = chatId;
 
