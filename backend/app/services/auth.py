@@ -8,7 +8,7 @@ from app.config.env import settings, AppMode
 from app.core import RMQManager
 from app.core.db_manager import DBManager
 from app.core.logs import logger
-from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx
+from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, TokenTypeErrorEx, TokenInvalidEx, UserNotActiveEx
 from app.schemas.auth import SLoginUser, SAuthTokens
 from app.services.bot import BotServices, MsgTypes
 from app.services.security import SecurityService
@@ -90,6 +90,9 @@ class AuthServices:
         if not user:
             raise UserNotFoundEx
 
+        if not user.is_active:
+            raise UserNotActiveEx
+
         if not SecurityService().verify_password(data.password, user.hashed_password):
             raise PasswordIncorrectEx
 
@@ -115,7 +118,8 @@ class AuthServices:
         user_id = refresh_token_payload.get("id")
         jti = refresh_token_payload.get("jti")
 
-        user = await self.db.users.get_user_with_roles(id=user_id)
+        # проверка пользователя и jti-токена
+        user = await self.db.users.get_user_with_roles(id=user_id, is_active=True, jti=jti)
         if not user:
             raise UserNotFoundEx
 
@@ -126,7 +130,7 @@ class AuthServices:
         Получение информации о пользователе по его id
         """
 
-        user = await self.db.users.get_user_with_roles(id=user_id)
+        user = await self.db.users.get_user_with_roles(id=user_id, is_active=True)
         if not user:
             raise UserNotFoundEx
 
@@ -149,16 +153,17 @@ class AuthServices:
             await self.db.rollback()
             return False
 
-    async def revoke_user_jti(self, user_id: UUID, jti: UUID) -> bool:
+    async def revoke_user_jti(self, user_id: UUID, jti: UUID | None = None) -> bool:
         """
-        Отзыв refresh-токена (jti) из базы
+        Отзыв refresh-токена (jti) / всех токенов из базы
         """
 
         try:
-            await self.db.auth.refresh_tokens.delete(
-                user_id=user_id, jti=jti
-            )
-            await self.db.commit()
+            kwargs = {"user_id": user_id}
+            if jti:
+                kwargs["jti"] = jti
+            await self.db.auth.refresh_tokens.delete(commit=True, **kwargs)
+
             return True
 
         except (IntegrityError, SQLAlchemyError, Exception) as ex:
