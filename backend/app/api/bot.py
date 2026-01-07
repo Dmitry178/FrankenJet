@@ -41,7 +41,7 @@ async def send_notification(
         return status_ok
 
     except Exception as ex:
-        logger.error(ex)
+        logger.exception(ex)
         return http_error_500
 
 
