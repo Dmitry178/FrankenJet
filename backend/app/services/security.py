@@ -5,6 +5,7 @@ from datetime import datetime, timezone, timedelta
 
 from app.config.app import JWT_ALGORITHM
 from app.config.env import settings
+from app.core.logs import logger
 
 
 class SecurityService:
@@ -47,6 +48,9 @@ class SecurityService:
             payload = jwt.decode(jwt=token, key=settings.JWT_SECRET_KEY, algorithms=JWT_ALGORITHM)
             return payload
 
-        except:  # noqa
-            # TODO: сделать обработку исключений
+        except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidTokenError):
+            return {}
+
+        except Exception as ex:
+            logger.exception(ex)
             return {}
