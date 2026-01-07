@@ -5,7 +5,7 @@ from app.core.es_manager import ESManager
 from app.core.http_manager import HTTPManager
 from app.core.rmq_manager import RMQManager
 from app.core.vectorizer import VectorizerManager
-from app.core.ws_manager import WSBotManager
+from app.core.ws_manager import WSManager
 
 # инициализация RabbitMQ-менеджера
 rmq_manager = RMQManager(url=settings.RMQ_CONN)
@@ -24,7 +24,7 @@ es_manager = ESManager(
 http_manager = HTTPManager()
 
 # инициализация Websocket-менеджера
-ws_manager = WSBotManager()
+ws_manager = WSManager()
 
 # инициализация менеджера настроек чат-бота
 chatbot_settings = ChatBotSettingsManager()
