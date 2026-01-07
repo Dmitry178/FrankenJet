@@ -31,23 +31,15 @@ class UsersServices:
         try:
             hashed_password = SecurityService().hash_password(user_data.password)
             new_user_data = SRegisterUser(email=user_data.email, hashed_password=hashed_password)
-
-            user = await self.db.users.insert_one(new_user_data, scalars=True)
-            await self.db.commit()
-
+            user = await self.db.users.insert_one(new_user_data, scalars=True, commit=True)
             return user.id
 
         except IntegrityError as ex:
-            # TODO: сделать дополнительную проверку на UniqueViolationError
-            # пользователь уже существует, ошибка
+            # если пользователь уже существует, выдаётся ошибка UniqueViolationError,
+            # но в except при этом вызывается именно IntegrityError
             raise UserExistsEx from ex
 
-        except SQLAlchemyError as ex:
-            # ошибка базы данных
-            logger.error(ex)
-            raise UserCreationErrorEx from ex
-
-        except Exception as ex:
+        except (SQLAlchemyError, Exception) as ex:
             logger.exception(ex)
             raise UserCreationErrorEx from ex
 
@@ -65,8 +57,7 @@ class UsersServices:
         user_roles = [{"user_id": user_id, "role_id": role} for role in roles]
 
         try:
-            await self.db.auth.user_roles.insert_all(values=user_roles)
-            await self.db.commit()
+            await self.db.auth.user_roles.insert_all(values=user_roles, commit=True)
             return True
 
         except (IntegrityError, Exception) as ex:
@@ -83,13 +74,7 @@ class UsersServices:
             await self.db.commit()
             return user
 
-        except SQLAlchemyError as ex:
-            # ошибка базы данных
-            await self.db.rollback()
-            logger.error(ex)
-            raise UserCreationErrorEx from ex
-
-        except Exception as ex:
+        except (SQLAlchemyError, Exception) as ex:
             await self.db.rollback()
             logger.exception(ex)
             raise UserCreationErrorEx from ex
