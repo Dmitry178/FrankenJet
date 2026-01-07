@@ -1,5 +1,5 @@
-from pgvector.sqlalchemy import Vector
-from sqlalchemy import Text, Index
+# from pgvector.sqlalchemy import Vector
+from sqlalchemy import Text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import mapped_column, Mapped
 
