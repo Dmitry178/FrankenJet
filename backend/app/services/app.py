@@ -5,7 +5,7 @@ from app.core import chatbot_settings
 class AppServices:
 
     @staticmethod
-    async def get_settings() -> dict:
+    def get_settings() -> dict:
         """
         Настройки приложения
         """
@@ -33,8 +33,7 @@ class AppServices:
         }
 
         if settings.GIGACHAT_AUTH_KEY and settings.GIGACHAT_SCOPE:
-            await chatbot_settings.initialize()
-            chat_bot = chatbot_settings.get("enabled")
+            chat_bot = chatbot_settings.enabled
         else:
             chat_bot = False
 
