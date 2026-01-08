@@ -12,11 +12,12 @@ class ChatBotSettingsManager:
     """
 
     def __init__(self):
-        self.db_manager = DBManager(session_factory=async_session_maker)
+        self.db = None
+        self._chatbot_enabled = False
         self._settings: SChatBotSettings | None = None
         self.initialized = False
 
-    async def initialize(self):
+    async def initialize(self, db: DBManager):
         """
         Загрузка настроек из базы данных при инициализации приложения
         """
@@ -24,19 +25,24 @@ class ChatBotSettingsManager:
         if self.initialized:
             return
 
+        self.db = db
+
         try:
-            async with self.db_manager as db:
-                settings = await db.chatbot.settings.get_settings()
-                settings_dict = {
-                    column.name: getattr(settings, column.name)
-                    for column in settings.__table__.columns
-                }
-                self._settings = SChatBotSettings(**settings_dict)
-                self.initialized = True
+            settings = await db.chatbot.settings.get_settings()
+            settings_dict = {
+                column.name: getattr(settings, column.name)
+                for column in settings.__table__.columns
+            }
+            self._settings = SChatBotSettings(**settings_dict)
+            self._chatbot_enabled = self._settings.enabled
+            self.initialized = True
 
         except Exception as ex:
-            logger.error(f"Ошибка загрузки настроек: {ex}")
-            raise ex
+            logger.exception(ex)
+
+    @property
+    def enabled(self) -> bool:
+        return self._chatbot_enabled
 
     async def get_settings(self) -> SChatBotSettings:
         """
@@ -44,7 +50,7 @@ class ChatBotSettingsManager:
         """
 
         if not self.initialized:
-            await self.initialize()
+            raise RuntimeError("Настройки не загружены")
 
         return self._settings
 
@@ -75,12 +81,11 @@ class ChatBotSettingsManager:
         """
 
         try:
-            async with self.db_manager as db:
-                await db.chatbot.settings.update_settings(settings)
-                await db.commit()
-
+            await self.db.chatbot.settings.update_settings(settings)
+            await self.db.commit()
             self._settings = settings
+            self._chatbot_enabled = settings.enabled
 
         except Exception as ex:
-            logger.error(f"Ошибка обновления настроек: {ex}")
+            logger.exception(f"Ошибка обновления настроек: {ex}")
             raise ex
