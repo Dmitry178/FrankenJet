@@ -68,24 +68,23 @@ class DBManager:
 
         return self
 
-    async def __aexit__(self, exc_type, *_):  # exc_val, exc_tb
-        try:
-            # if exc_type is not None:
-            #     # откатываем транзакция при except
-            #     await self.session.rollback()
-            await self.session.rollback()
-        finally:
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if exc_type is not None:
             try:
-                await self.session.close()
-            except IllegalStateChangeError:
-                # Игнорируем ошибку состояния, так как сессия уже закрывается или находится в промежуточном состоянии
-                pass
+                await self.session.rollback()
+                logger.info("Откат транзакции при ошибке")
             except Exception as ex:
-                logger.exception("Error closing session", extra={"error": str(ex)})
+                logger.exception(ex)
+
+        try:
+            await self.session.close()
+        except IllegalStateChangeError:
+            logger.error("Ошибка IllegalStateChangeError, сессия уже закрыта")
+        except Exception as ex:
+            logger.exception(ex)
 
     async def commit(self):
         await self.session.commit()
 
     async def rollback(self):
         await self.session.rollback()
-        await self.session.close()
