@@ -3,75 +3,20 @@ import secrets
 import signal
 import uvicorn
 
-from contextlib import asynccontextmanager
-from datetime import datetime
-
 from fastapi import FastAPI, Request
 from starlette.middleware.cors import CORSMiddleware
 
 from app.api import router
 from app.config.env import settings, AppMode
 from app.consumers.startup import run_consumers
-from app.core import rmq_manager, cache_manager, es_manager
+from app.core.api_settings import get_api_params, lifespan
 from app.core.logs import logger
-from app.core.logs_handlers import add_logging_handler
 from app.core.shutdown import shutdown_event
 from app.exceptions.api import csrf_token_error
-from app.services.bot import bot_services
 
+api_params = get_api_params()
 
-@asynccontextmanager
-async def lifespan(fastapi_app: FastAPI):  # noqa
-    """
-    Точка входа при запуске и завершении FastAPI
-    """
-
-    if rmq_manager.url:
-        await rmq_manager.start()
-        logger.info("RabbitMQ connected")
-        bot_services.rmq = rmq_manager
-        await add_logging_handler(logger, bot_services)
-
-    if cache_manager.url:
-        await cache_manager.start()
-        logger.info("Redis connected")
-
-    if es_manager.url:
-        await es_manager.start()
-        logger.info("Elasticsearch connected")
-
-    message = f"App started at: {datetime.now()}"
-    logger.info(message)
-    await bot_services.send_info("Сервис запущен 🟢")
-
-    yield
-
-    if es_manager.url:
-        await es_manager.close()
-        logger.info("Elasticsearch stopped")
-
-    if cache_manager.url:
-        await cache_manager.close()
-        logger.info("Redis disconnected")
-
-    if rmq_manager.url:
-        await bot_services.send_info("Сервис остановлен 🔴")
-        await rmq_manager.close()
-        logger.info("RabbitMQ disconnected")
-
-    message = f"App stopped at: {datetime.now()}"
-    logger.info(message)
-
-
-if settings.APP_MODE == AppMode.production and settings.SWAGGER_AVAILABLE_IN_PROD:
-    prefix = settings.SWAGGER_URL_PREFIX if settings.SWAGGER_URL_PREFIX else ""
-    app_params = {"docs_url": f"/{prefix}docs", "redoc_url": f"/{prefix}redoc", "openapi_url": f"/{prefix}openapi"}
-elif settings.APP_MODE == AppMode.production:
-    app_params = {"docs_url": None, "redoc_url": None, "openapi_url": None}
-else:
-    app_params = {}
-
-app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, **app_params)
+app = FastAPI(title=settings.APP_NAME, lifespan=lifespan, **api_params)
 
 # установка CORS
 if settings.get_cors:
