@@ -6,7 +6,7 @@ from app.api.app import app_router
 from app.api.articles import articles_router
 from app.api.auth import auth_router
 from app.api.bot import tgbot_router
-from app.api.chat_bot import chat_bot_router
+from app.api.chatbot import chat_bot_router
 from app.api.countries import countries_router
 from app.api.facts import facts_router
 from app.api.local import index_local_router
