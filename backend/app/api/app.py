@@ -17,7 +17,7 @@ async def get_app_settings():
     """
 
     try:
-        data = await AppServices.get_settings()
+        data = AppServices.get_settings()
         return {**status_ok, "data": data}
 
     except (AttributeError, TypeError, Exception) as ex:
