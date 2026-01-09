@@ -3,215 +3,79 @@
     <v-card>
       <v-card-title>Настройки чат-бота</v-card-title>
       <v-card-text>
-        <v-alert
-          v-if="error"
-          type="error"
-          title="Ошибка"
-          class="mb-4"
-        >
-          Не удалось загрузить настройки чат-бота.
-          <div class="mt-2">
-            <v-btn @click="fetchSettings" color="error" variant="text" size="small">
-              Попробовать снова
-            </v-btn>
-          </div>
-        </v-alert>
+        <v-tabs v-model="activeTab">
+          <v-tab value="bot">Настройки бота</v-tab>
+          <v-tab value="prompts">Промпты</v-tab>
+          <v-tab value="rag">RAG база знаний</v-tab>
+        </v-tabs>
 
-        <!-- Форма настроек -->
-        <div v-else class="settings-content">
-          <v-form @submit.prevent="saveSettings">
+        <v-window v-model="activeTab" class="mt-4">
+          <v-window-item value="bot">
+            <BotSettingsTab
+              v-if="botSettingsData"
+              :initial-settings="botSettingsData"
+              ref="botSettingsTabRef"
+            />
+          </v-window-item>
 
-            <v-row>
-              <v-col cols="12">
-                <v-switch
-                  v-model="editedSettings.enabled"
-                  label="Активировать чат-бота"
-                  color="primary"
-                  class="mb-4"
-                ></v-switch>
-              </v-col>
-            </v-row>
+          <v-window-item value="prompts">
+            <PromptsSettingsTab
+              v-if="promptsSettingsData"
+              :initial-settings="promptsSettingsData"
+              ref="promptsSettingsTabRef"
+            />
+          </v-window-item>
 
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-textarea
-                  v-model="editedSettings.model"
-                  label="Модель ИИ"
-                  placeholder="Введите название модели"
-                  variant="outlined"
-                  density="comfortable"
-                  auto-grow
-                  :rows="1"
-                  :rules="[rules.required, rules.maxLength(32)]"
-                  class="mb-4"
-                ></v-textarea>
-
-                <v-textarea
-                  v-model="editedSettings.scope"
-                  label="Область применения"
-                  placeholder="Введите область применения"
-                  variant="outlined"
-                  density="comfortable"
-                  auto-grow
-                  :rows="1"
-                  :rules="[rules.required, rules.maxLength(32)]"
-                  class="mb-4"
-                ></v-textarea>
-              </v-col>
-
-              <v-col cols="12" md="6">
-                <v-textarea
-                  v-model.number="editedSettings.user_daily_tokens"
-                  label="Ежедневный лимит токенов на пользователя"
-                  type="number"
-                  min="0"
-                  variant="outlined"
-                  density="comfortable"
-                  auto-grow
-                  :rows="1"
-                  :rules="[rules.required]"
-                  class="mb-4"
-                ></v-textarea>
-
-                <v-textarea
-                  v-model.number="editedSettings.total_daily_tokens"
-                  label="Общий ежедневный лимит токенов"
-                  type="number"
-                  min="0"
-                  variant="outlined"
-                  density="comfortable"
-                  auto-grow
-                  :rows="1"
-                  :rules="[rules.required]"
-                  class="mb-4"
-                ></v-textarea>
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="editedSettings.system_prompt"
-                  label="Системный промпт"
-                  placeholder="Введите системный промт для чат-бота..."
-                  rows="6"
-                  auto-grow
-                  prepend-inner-icon="mdi-script-text"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="[rules.required, rules.maxLength(2000)]"
-                  class="mb-4"
-                ></v-textarea>
-
-                <v-textarea
-                  v-model="editedSettings.rag_prompt"
-                  label="RAG промпт"
-                  placeholder="Введите промт для поиска по документам..."
-                  rows="4"
-                  auto-grow
-                  prepend-inner-icon="mdi-file-search"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="[rules.required, rules.maxLength(2000)]"
-                  class="mb-4"
-                ></v-textarea>
-
-                <v-textarea
-                  v-model="editedSettings.feedback"
-                  label="Шаблон обратной связи"
-                  placeholder="Введите шаблон для сбора обратной связи (до 3 строк)..."
-                  rows="3"
-                  auto-grow
-                  prepend-inner-icon="mdi-comment-text"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="[rules.required, rules.maxLength(128)]"
-                  class="mb-4"
-                ></v-textarea>
-              </v-col>
-            </v-row>
-          </v-form>
-
-          <div class="d-flex gap-2 mt-6">
-            <v-btn
-              color="success"
-              variant="elevated"
-              @click="saveSettings"
-              :loading="saving"
-              :disabled="!formValid || !hasChanges"
-            >
-              <v-icon start>mdi-content-save</v-icon>
-              Сохранить изменения
-            </v-btn>
-
-            <v-btn
-              color="primary"
-              variant="outlined"
-              @click="resetForm"
-              :disabled="saving || !hasChanges"
-            >
-              <v-icon start>mdi-reload</v-icon>
-              Сбросить
-            </v-btn>
-          </div>
-
-        </div>
+          <v-window-item value="rag">
+            <RagTab />
+          </v-window-item>
+        </v-window>
       </v-card-text>
     </v-card>
   </v-container>
 </template>
 
 <script setup lang="ts">
+import { ref, watch } from 'vue';
+import BotSettingsTab from './BotSettingsTab.vue';
+import PromptsSettingsTab from './PromptsSettingsTab.vue';
+import RagTab from './RagTab.vue';
 import { useBotSettings } from '@/composables/useBotSettings';
 
-// Используем composable
-const {
-  settings,
-  editedSettings,
-  saving,
-  error,
-  rules,
-  hasChanges,
-  formValid,
-  fetchSettings,
-  resetForm,
-  saveSettings
-} = useBotSettings();
+const activeTab = ref('bot');
+
+const { fullSettings } = useBotSettings();
+
+// настройки табов
+const botSettingsData = ref(null);
+const promptsSettingsData = ref(null);
+
+// ссылки на дочерние компоненты
+const botSettingsTabRef = ref();
+const promptsSettingsTabRef = ref();
+
+// обновление данных при изменении полных настроек
+watch(fullSettings, (newSettings) => {
+  if (newSettings) {
+    botSettingsData.value = {
+      enabled: newSettings.enabled,
+      model: newSettings.model,
+      scope: newSettings.scope,
+      feedback: newSettings.feedback,
+      user_daily_tokens: newSettings.user_daily_tokens,
+      total_daily_tokens: newSettings.total_daily_tokens
+    };
+
+    promptsSettingsData.value = {
+      system_prompt: newSettings.system_prompt,
+      rag_prompt: newSettings.rag_prompt
+    };
+  }
+}, { immediate: true });
 </script>
 
 <style scoped>
-.settings-content {
-  padding: 16px 0;
-}
-
-.gap-2 {
-  gap: 0.5rem;
-}
-
-:deep(.v-text-field),
-:deep(.v-textarea) {
-  margin-bottom: 16px;
-}
-
-:deep(.v-textarea:last-child) {
-  margin-bottom: 0;
-}
-
-@media (max-width: 768px) {
-  .settings-content {
-    padding: 8px 0;
-  }
-
-  .d-flex {
-    flex-direction: column;
-  }
-
-  .d-flex > .v-btn {
-    margin-bottom: 8px;
-  }
-
-  .d-flex > .v-btn:last-child {
-    margin-bottom: 0;
-  }
+.v-window {
+  min-height: 400px;
 }
 </style>
