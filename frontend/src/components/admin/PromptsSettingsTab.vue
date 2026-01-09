@@ -65,6 +65,7 @@
           <v-btn
             color="primary"
             variant="outlined"
+            class="no-shadow"
             @click="resetForm"
             :disabled="saving || !hasChanges"
           >
@@ -133,6 +134,14 @@ defineExpose({
 
 :deep(.v-textarea:last-child) {
   margin-bottom: 0;
+}
+
+.no-shadow {
+  box-shadow: none !important;
+}
+
+.no-shadow:hover {
+  box-shadow: none !important;
 }
 
 @media (max-width: 768px) {

@@ -108,6 +108,7 @@
           <v-btn
             color="success"
             variant="elevated"
+            class="no-shadow"
             @click="saveSettings"
             :loading="saving"
             :disabled="!formValid || !hasChanges"
@@ -209,5 +210,15 @@ defineExpose({
   .d-flex > .v-btn:last-child {
     margin-bottom: 0;
   }
+}
+</style>
+
+<style scoped>
+.no-shadow {
+  box-shadow: none !important;
+}
+
+.no-shadow:hover {
+  box-shadow: none !important;
 }
 </style>
