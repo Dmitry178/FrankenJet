@@ -159,7 +159,7 @@ import { onMounted, ref, watch } from 'vue';
 import { createRouter as router, useRoute, useRouter } from 'vue-router';
 import axios from 'axios';
 import DOMPurify from "dompurify";
-import AirplaneSVG from "@/components/AirplaneSVG.vue";
+import AirplaneSVG from "@/components/icons/AirplaneSVG.vue";
 
 export default {
   name: 'Search',

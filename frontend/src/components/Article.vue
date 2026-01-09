@@ -129,8 +129,8 @@ import { useRoute, useRouter } from 'vue-router';
 import { onMounted, onUnmounted, ref, computed, nextTick } from 'vue';
 import { marked } from 'marked';
 import DOMPurify from 'dompurify';
-import AirplaneSVG from "@/components/AirplaneSVG.vue";
-import Aircraft from '@/components/Aircraft.vue';
+import AirplaneSVG from "@/components/icons/AirplaneSVG.vue";
+import Aircraft from '@/components/articles/Aircraft.vue';
 import ArticleSources from '@/components/ArticleSources.vue';
 
 export default {

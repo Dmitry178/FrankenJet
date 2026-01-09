@@ -3,7 +3,7 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/auth';
 import { useSettingsStore } from '@/stores/settings';
 import { useSnackbar } from '@/composables/useSnackbar';
-import { loginWithEmailAndPassword, loginWithGoogle, loginWithVK } from '@/services/authServices';
+import { loginWithEmailAndPassword, loginWithGoogle, loginWithVK } from '@/services/authService.js';
 
 export const useAuth = () => {
   const authStore = useAuthStore();
