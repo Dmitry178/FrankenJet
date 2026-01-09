@@ -49,8 +49,8 @@ class DBManager:
         def __init__(self, session):
             self.session = session
 
-            self.settings = ChatBotSettingsRepository(self.session)
             self.history = ChatBotHistoryRepository(self.session)
+            self.settings = ChatBotSettingsRepository(self.session)
 
     async def __aenter__(self):
         self.session = self.session_factory()
