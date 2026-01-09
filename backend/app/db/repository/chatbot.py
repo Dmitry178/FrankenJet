@@ -1,8 +1,6 @@
-from sqlalchemy import select, text, func
+from sqlalchemy import select, text, func, update
 from sqlalchemy.dialects.postgresql import insert
 from uuid import UUID
-
-from sqlalchemy.exc import IntegrityError
 
 from app.db.models import ChatBotSettings, Chat
 from app.db.repository.base import BaseEmptyRepository, BaseRepository
@@ -87,58 +85,28 @@ class ChatBotSettingsRepository(BaseEmptyRepository):
     Репозиторий настроек чат-бота
     """
 
-    model = ChatBotSettings
-
-    async def _get_settings(self):
+    async def get_settings(self):
         """
         Чтение настроек чат-бота
         """
 
-        query = select(self.model).limit(1)
+        query = select(ChatBotSettings).where(ChatBotSettings.id == 1)
         return (await self.session.execute(query)).scalars().one_or_none()
-
-    async def get_settings(self):
-        """
-        Чтение, либо создание настроек чат-бота
-        """
-
-        if result := await self._get_settings():
-            return result
-
-        try:
-            stmt = insert(self.model).values(id=1).returning(self.model)
-            result = await self.session.execute(stmt)
-            await self.session.commit()
-            return result.scalars().one()
-
-        except IntegrityError:
-            await self.session.rollback()
-            return await self._get_settings()
-
-        except Exception as ex:
-            raise ex
 
     async def update_settings(self, settings: SChatBotSettings, exclude_unset=False, commit=False):
         """
         Запись настроек чат-бота
         """
 
-        index_elements = ["id"]
-        values = settings.model_dump(exclude_unset=exclude_unset)
-        set_ = {key: text(f"EXCLUDED.{key}") for key in values.keys()}
-        values["id"] = 1
-
         stmt = (
-            insert(ChatBotSettings)
-            .values(**values)
-            .on_conflict_do_update(
-                index_elements=index_elements,
-                set_=set_
-            )
+            update(ChatBotSettings)
+            .values(settings.model_dump(exclude_unset=exclude_unset))
+            .where(ChatBotSettings.id == 1)
             .returning(ChatBotSettings)
         )
+        result = await self.session.execute(stmt)
 
         if commit:
             await self.session.commit()
 
-        return (await self.session.execute(stmt)).scalars().one_or_none()
+        return result.scalars().one_or_none()
