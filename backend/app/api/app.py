@@ -8,6 +8,7 @@ from app.exceptions.api import settings_error, http_error_500
 from app.exceptions.base import BaseCustomException
 from app.schemas.chatbot import SChatBotSettings
 from app.services.app import AppServices
+from app.services.chatbot_settings import ChatBotSettingsServices
 from app.types import status_ok
 
 app_router = APIRouter(tags=["App"])
@@ -49,13 +50,13 @@ async def get_bot_settings(db: DDB):
 
 
 @app_router.put("/bot-settings", summary="Сохранение настроек бота", dependencies=[Depends(get_auth_admin_id)])
-async def save_bot_settings_put(data: SChatBotSettings):
+async def save_bot_settings_put(db: DDB, data: SChatBotSettings):
     """
     Сохранение настроек чат-бота (PUT)
     """
 
     try:
-        await chatbot_settings.update_bot_settings(data)
+        await ChatBotSettingsServices(db).update_settings(data, chatbot_settings, exclude_unset=True)
         return status_ok
 
     except BaseCustomException as ex:
@@ -68,13 +69,13 @@ async def save_bot_settings_put(data: SChatBotSettings):
 
 
 @app_router.patch("/bot-settings", summary="Сохранение настроек бота", dependencies=[Depends(get_auth_admin_id)])
-async def save_bot_settings_patch(data: SChatBotSettings):
+async def save_bot_settings_patch(db: DDB, data: SChatBotSettings):
     """
     Сохранение настроек чат-бота (PATCH)
     """
 
     try:
-        await chatbot_settings.update_bot_settings(data, exclude_unset=True)
+        await ChatBotSettingsServices(db).update_settings(data, chatbot_settings, exclude_unset=True)
         return status_ok
 
     except BaseCustomException as ex:
