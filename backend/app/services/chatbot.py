@@ -196,6 +196,9 @@ class ChatBotServices:
         """
 
         try:
+            if not self.bot_settings.bot_enabled:
+                raise ValueError("⚠️ Сервис отключен")
+
             # ответ от LLM
             giga_chat_answer = await self._get_llm_answer(chat_id, message)
             answer = giga_chat_answer.answer
@@ -222,7 +225,7 @@ class ChatBotServices:
 
             if not giga_chat_answer.answer:
                 logger.warning("Пустой ответ для передачи пользователю")
-                giga_chat_answer.answer = "⚠️ Ошибка сервиса"
+                raise ValueError("⚠️ Ошибка сервиса")
 
             # отметка вопроса, ответа, темы и токенов в базе
             await self.db.chatbot.history.insert_one(
@@ -236,9 +239,11 @@ class ChatBotServices:
             # отправка ответа через websocket
             await self.ws_manager.send_message_to_connection(chat_id, giga_chat_answer.answer)
 
+        except ValueError as ex:
+            await self.ws_manager.send_message_to_connection(chat_id, str(ex))
+
         except Exception as ex:
             logger.exception(ex)
-            await self.db.rollback()
             await self.ws_manager.send_message_to_connection(chat_id, "⚠️ Ошибка сервиса")
 
         return None
