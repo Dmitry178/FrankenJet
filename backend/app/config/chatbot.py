@@ -2,7 +2,6 @@ from typing import Any
 
 from app.core.db_manager import DBManager
 from app.core.logs import logger
-from app.db import async_session_maker
 from app.schemas.chatbot import SChatBotSettings
 
 
@@ -17,6 +16,19 @@ class ChatBotSettingsManager:
         self._settings: SChatBotSettings | None = None
         self.initialized = False
 
+    @staticmethod
+    async def get_bot_settings(db: DBManager) -> SChatBotSettings:
+        """
+        Чтение настроек бота из базы
+        """
+
+        settings = await db.chatbot.settings.get_settings()
+        settings_dict = {
+            column.name: getattr(settings, column.name)
+            for column in settings.__table__.columns
+        }
+        return SChatBotSettings(**settings_dict)
+
     async def initialize(self, db: DBManager):
         """
         Загрузка настроек из базы данных при инициализации приложения
@@ -28,12 +40,7 @@ class ChatBotSettingsManager:
         self.db = db
 
         try:
-            settings = await db.chatbot.settings.get_settings()
-            settings_dict = {
-                column.name: getattr(settings, column.name)
-                for column in settings.__table__.columns
-            }
-            self._settings = SChatBotSettings(**settings_dict)
+            self._settings = await self.get_bot_settings(self.db)
             self._chatbot_enabled = self._settings.enabled
             self.initialized = True
 
@@ -41,7 +48,7 @@ class ChatBotSettingsManager:
             logger.exception(ex)
 
     @property
-    def enabled(self) -> bool:
+    def bot_enabled(self) -> bool:
         return self._chatbot_enabled
 
     async def get_settings(self) -> SChatBotSettings:
@@ -75,10 +82,13 @@ class ChatBotSettingsManager:
 
         return getattr(self._settings, field, default)
 
-    async def update(self, settings: SChatBotSettings):
+    async def update_bot_settings(self, settings: SChatBotSettings):
         """
         Обновление настроек, сохранение в базу данных
         """
+
+        if not self.initialized:
+            raise RuntimeError("Настройки не загружены")
 
         try:
             await self.db.chatbot.settings.update_settings(settings)
@@ -87,5 +97,5 @@ class ChatBotSettingsManager:
             self._chatbot_enabled = settings.enabled
 
         except Exception as ex:
-            logger.exception(f"Ошибка обновления настроек: {ex}")
+            logger.exception("Ошибка обновления настроек", extra={"error": str(ex)})
             raise ex
