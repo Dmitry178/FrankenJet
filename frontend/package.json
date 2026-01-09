@@ -22,8 +22,13 @@
     "vuetify": "^3.10.12"
   },
   "devDependencies": {
+    "@types/node": "^25.0.3",
+    "@types/vue": "^1.0.31",
     "@vitejs/plugin-vue": "^6.0.3",
+    "@vue/runtime-core": "^3.5.26",
+    "typescript": "^5.9.3",
     "vite": "7.1.11",
-    "vite-plugin-vuetify": "^2.1.2"
+    "vite-plugin-vuetify": "^2.1.2",
+    "vue-tsc": "^3.2.2"
   }
 }
