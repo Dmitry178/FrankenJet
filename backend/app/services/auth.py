@@ -125,7 +125,7 @@ class AuthServices:
 
         return await self.prepare_user_data(user, jti=jti)
 
-    async def get_user_info(self, user_id: int) -> dict:
+    async def get_user_info(self, user_id: UUID) -> dict:
         """
         Получение информации о пользователе по его id
         """
