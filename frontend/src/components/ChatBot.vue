@@ -138,7 +138,7 @@ import { useChatStore } from '@/stores/chat';
 import { useWebSocketStore } from '@/stores/websocket';
 import { useDisplay } from 'vuetify';
 import axios from 'axios';
-import RobotIcon from '@/components/RobotIcon.vue';
+import RobotIcon from '@/components/icons/RobotIcon.vue';
 
 const isOpen = ref(false);
 const userInput = ref('');
@@ -163,10 +163,10 @@ const toggleChat = () => {
   }
 };
 
-const welcomeMessage = () => {
+const welcomeMessage = (text) => {
   messages.value = [{
     sender: 'bot',
-    text: 'Привет! Я - Авиабот, я могу отвечать по вопросам авиации'
+    text: text || 'Привет! Я - Авиабот, я могу отвечать по вопросам авиации'
   }];
 };
 
@@ -199,11 +199,11 @@ const loadChatHistory = async (chatId) => {
       await nextTick(() => scrollToBottom());
     } else {
       console.error('Ошибка при получении истории чата:', response.data);
-      welcomeMessage();
+      welcomeMessage('⚠️ Ошибка при получении истории чата');
     }
   } catch (error) {
     console.error('Ошибка при загрузке истории чата:', error);
-    welcomeMessage();
+    welcomeMessage('⚠️ Ошибка при загрузке истории чата');
   }
 };
 
