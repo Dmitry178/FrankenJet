@@ -1,14 +1,15 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from "@/stores/auth.js";
 import { useSettingsStore } from "@/stores/settings.js";
-import Home from '../components/Home.vue';
-import AuthGoogle from '../components/oauth2/LoginGoogle.vue';
-import Register from '../components/Register.vue';
-import ResetPassword from '../components/ResetPassword.vue';
-import Profile from '../components/profile/Profile.vue';
-import Articles from '../components/Articles.vue';
-import Article from '../components/Article.vue';
-import Search from '../components/Search.vue';
+import Home from '@/components/Home.vue';
+import AuthGoogle from '@/components/auth/LoginGoogle.vue';
+import Register from '@/components/Register.vue';
+import ResetPassword from '@/components/ResetPassword.vue';
+import Profile from '@/components/profile/Profile.vue';
+import Articles from '@/components/articles/Articles.vue';
+import Article from '@/components/Article.vue';
+import Search from '@/components/Search.vue';
+import BotSettings from "@/components/admin/BotSettings.vue";
 
 const routes = [
   {
@@ -64,6 +65,14 @@ const routes = [
     path: '/search',
     component: Search,
     name: 'Search'
+  },
+  {
+    path: '/settings',
+    component: BotSettings,
+    name: 'BotSettings',
+    meta: {
+      requiresAuth: true
+    }
   },
 ];
 
