@@ -118,13 +118,13 @@ class ChatBotSettingsRepository(BaseEmptyRepository):
         except Exception as ex:
             raise ex
 
-    async def update_settings(self, settings: SChatBotSettings):
+    async def update_settings(self, settings: SChatBotSettings, exclude_unset=False, commit=False):
         """
         Запись настроек чат-бота
         """
 
         index_elements = ["id"]
-        values = settings.model_dump(exclude_unset=True)
+        values = settings.model_dump(exclude_unset=exclude_unset)
         set_ = {key: text(f"EXCLUDED.{key}") for key in values.keys()}
         values["id"] = 1
 
@@ -138,4 +138,7 @@ class ChatBotSettingsRepository(BaseEmptyRepository):
             .returning(ChatBotSettings)
         )
 
-        return (await self.session.execute(stmt)).mappings().one_or_none()
+        if commit:
+            await self.session.commit()
+
+        return (await self.session.execute(stmt)).scalars().one_or_none()
