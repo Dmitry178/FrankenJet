@@ -113,7 +113,7 @@ class GigaChatAPIContextManager:
         Загрузка настроек
         """
 
-        self.chatbot_enabled = self.bot_settings.enabled
+        self.chatbot_enabled = self.bot_settings.bot_enabled
         self.system_prompt = self.bot_settings.get("system_prompt")
         self.rag_prompt = self.bot_settings.get("rag_prompt")
         self.feedback = self.bot_settings.get("feedback")

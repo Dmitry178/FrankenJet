@@ -33,7 +33,7 @@ class AppServices:
         }
 
         if settings.GIGACHAT_AUTH_KEY and settings.GIGACHAT_SCOPE:
-            chat_bot = chatbot_settings.enabled
+            chat_bot = chatbot_settings.bot_enabled
         else:
             chat_bot = False
 
