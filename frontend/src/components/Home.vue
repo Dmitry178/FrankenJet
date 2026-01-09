@@ -70,7 +70,7 @@
 <script>
 import axios from 'axios';
 import { useRouter } from 'vue-router';
-import AirplaneSVG from "@/components/AirplaneSVG.vue";
+import AirplaneSVG from "@/components/icons/AirplaneSVG.vue";
 
 export default {
   components: {
