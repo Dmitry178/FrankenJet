@@ -90,21 +90,14 @@ class ChatBotSettingsManager:
         if not self.initialized:
             raise RuntimeError("Настройки не загружены")
 
-        try:
-            await self.db.chatbot.settings.update_settings(settings, exclude_unset=exclude_unset, commit=True)
+        if exclude_unset:
+            # частичное обновление настроек
+            updated_data = settings.model_dump(exclude_unset=True)
+            current_settings_dict = self._settings.model_dump()
+            current_settings_dict.update(updated_data)
+            self._settings = SChatBotSettings(**current_settings_dict)
+        else:
+            # полное обновление настроек
+            self._settings = settings
 
-            if exclude_unset:
-                # частичное обновление настроек
-                updated_data = settings.model_dump(exclude_unset=True)
-                current_settings_dict = self._settings.model_dump()
-                current_settings_dict.update(updated_data)
-                self._settings = SChatBotSettings(**current_settings_dict)
-            else:
-                # полное обновление настроек
-                self._settings = settings
-
-            self._chatbot_enabled = self._settings.enabled
-
-        except Exception as ex:
-            logger.exception("Ошибка обновления настроек", extra={"error": str(ex)})
-            raise ex
+        self._chatbot_enabled = self._settings.enabled
