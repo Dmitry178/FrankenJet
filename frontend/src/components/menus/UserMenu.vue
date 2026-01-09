@@ -20,11 +20,19 @@
         {{ authStore.user.firstName || authStore.user.fullName || '' }}
       </v-card-title>
       <v-card-actions class="d-flex flex-column">
+
         <v-btn variant="text" block :to="{ name: 'Profile' }">
           Профиль
         </v-btn>
+
+        <v-btn variant="text" block :to="{ name: 'BotSettings' }">
+          Настройки бота
+        </v-btn>
+
         <v-divider style="width: 100%; margin: 0;"></v-divider>
+
         <v-btn color="error" block @click="logout">Выйти</v-btn>
+
       </v-card-actions>
     </v-card>
   </v-menu>
