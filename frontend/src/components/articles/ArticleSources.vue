@@ -32,10 +32,32 @@ const renderedSources = computed(() => {
   if (!props.sources) return '';
 
   const html = marked(props.sources);
-  return DOMPurify.sanitize(html, {
-    USE_PROFILES: { html: true },
-    ADD_ATTR: ['target', 'rel'],
+
+  // настройка DOMPurify для добавления target="_blank" и rel="noopener noreferrer" к ссылкам
+  const cleanHtml = DOMPurify.sanitize(html, {
+    USE_PROFILES: {html: true},
+    ADD_ATTR: ['target', 'rel'], // позволяет атрибуты target и rel
+    CUSTOM_ELEMENT_HANDLING: {
+      tagNameCheck: null,
+      attributeNameCheck: null,
+      allowCustomizedBuiltInElements: false,
+    },
+    RETURN_DOM_FRAGMENT: false,
+    RETURN_DOM: false,
   });
+
+  // после очистки, добавляем атрибуты к ссылкам программно
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = cleanHtml;
+
+  // находим все ссылки и добавляем атрибуты
+  const links = tempDiv.querySelectorAll('a');
+  links.forEach(link => {
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+  });
+
+  return tempDiv.innerHTML;
 });
 </script>
 
@@ -63,6 +85,7 @@ const renderedSources = computed(() => {
 .sources-content :deep(a) {
   font-size: 0.95rem;
 }
+
 .sources-content :deep(a:hover) {
   text-decoration: underline;
 }
