@@ -25,32 +25,13 @@
           </v-img>
 
           <!-- Модальное окно -->
-          <v-dialog v-model="imageDialog" max-width="900">
-            <v-card>
-              <v-img
-                :src="articleImage"
-                :alt="article.aircraft.name || 'Изображение воздушного судна'"
-                max-height="80vh"
-                contain
-              />
-              <v-card-text v-if="imageCaption.title || imageCaption.description" class="pt-2 pb-0">
-                <div class="modal-image-caption">
-                  <h4 v-if="imageCaption.title" class="text-h6 font-weight-medium mb-1">
-                    {{ imageCaption.title }}
-                  </h4>
-                  <p v-if="imageCaption.description" class="text-body-2 text--secondary mb-0">
-                    {{ imageCaption.description }}
-                  </p>
-                </div>
-              </v-card-text>
-              <v-card-actions>
-                <v-spacer></v-spacer>
-                <v-btn @click="closeImageDialog" icon>
-                  <v-icon>mdi-close</v-icon>
-                </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
+          <ArticleImageModal
+            v-model="imageDialog"
+            :src="articleImage"
+            :alt="imageCaption.alt"
+            :caption-title="imageCaption.title"
+            :caption-description="imageCaption.description"
+          />
 
           <!-- Технические характеристики воздушного судна -->
           <Aircraft :aircraft="article.aircraft" />
@@ -65,21 +46,10 @@
 
           <!-- Список тегов -->
           <v-card-text class="pt-0">
-            <div v-if="article.tags && article.tags.length > 0" class="mt-4">
-              <h4 class="text-h6 mb-2">Теги</h4>
-              <div class="tag-chips-wrapper">
-                <v-chip
-                  v-for="tag in article.tags"
-                  :key="tag"
-                  class="mr-2 mb-2 tag-chip"
-                  size="small"
-                  variant="outlined"
-                  @click="setTagAndNavigate(tag)"
-                >
-                  {{ tag }}
-                </v-chip>
-              </div>
-            </div>
+            <ArticleTagsList
+              :tags="article.tags"
+              @tag-click="setTagAndNavigate"
+            />
           </v-card-text>
 
         </v-card>
@@ -94,28 +64,11 @@
       </div>
 
       <!-- Оглавление -->
-      <div v-if="toc.length > 0" class="toc-wrapper">
-        <v-card
-          class="toc-card"
-          elevation=0
-        >
-          <v-card-title>Содержание</v-card-title>
-          <v-card-text>
-            <ul class="toc-list">
-              <li
-                v-for="item in toc"
-                :key="item.id"
-                :class="{ 'active': activeTocItem === item.id }"
-                @click="scrollToSection(item.id)"
-              >
-                <a href="#" @click.prevent="scrollToSection(item.id)">
-                  {{ item.text }}
-                </a>
-              </li>
-            </ul>
-          </v-card-text>
-        </v-card>
-      </div>
+      <ArticleTableOfContents
+        :items="toc"
+        :active-id="activeTocItem"
+        @item-click="scrollToSection"
+      />
     </div>
 
     <v-meta v-if="article" :title="article.article.meta_title" :description="article.article.meta_description" :keywords="article.article.seo_keywords"></v-meta>
@@ -131,13 +84,20 @@ import { marked } from 'marked';
 import DOMPurify from 'dompurify';
 import AirplaneSVG from "@/components/icons/AirplaneSVG.vue";
 import Aircraft from '@/components/articles/Aircraft.vue';
-import ArticleSources from '@/components/ArticleSources.vue';
+import ArticleSources from '@/components/articles/ArticleSources.vue';
+import ArticleImageModal from '@/components/articles/ArticleImageModal.vue';
+import ArticleTagsList from '@/components/articles/ArticleTagsList.vue';
+import ArticleTableOfContents from '@/components/articles/ArticleTOC.vue';
 
 export default {
+  name: 'Article',
   components: {
     AirplaneSVG,
     Aircraft,
     ArticleSources,
+    ArticleImageModal,
+    ArticleTagsList,
+    ArticleTableOfContents,
     'v-meta': {
       props: ['title', 'description', 'keywords'],
       template: `
@@ -174,7 +134,7 @@ export default {
 
     const breadcrumbs = computed(() => [
       { title: 'Главная', href: '/' },
-      { title: 'Статьи',href: '/articles'},
+      { title: 'Статьи', href: '/articles' },
       { title: article.value?.article.title || 'Статья не найдена', disabled: true },
     ]);
 
@@ -188,7 +148,7 @@ export default {
     });
 
     const articleImage = computed(() => {
-      if (!article.value.article) return '';
+      if (!article.value?.article) return '';
       return article.value.aircraft.image_url;
     });
 
@@ -202,24 +162,24 @@ export default {
       imageDialog.value = true;
     };
 
-    const closeImageDialog = () => {
-      imageDialog.value = false;
-    };
-
     // заголовок изображения в модалке
     const imageCaption = computed(() => {
       const { name, original_name, image_description } = article.value.aircraft || {};
       let title = '';
+      let alt = 'Изображение воздушного судна';
 
       if (name && original_name && name !== original_name) {
         title = `${name} (${original_name})`;
+        alt = `${name} (${original_name})`;
       } else if (name) {
         title = name;
+        alt = name;
       }
 
       return {
         title,
-        description: image_description || null
+        description: image_description || null,
+        alt,
       };
     });
 
@@ -374,7 +334,7 @@ export default {
       }
 
       // инициализируем observer после загрузки статьи
-      await nextTick(); // ждём обновления DOM
+      await nextTick();  // ждём обновления DOM
       initObserver();
 
       activeTocItem.value = 'top';
@@ -402,7 +362,6 @@ export default {
       toc,
       activeTocItem,
       openImageDialog,
-      closeImageDialog,
       setTagAndNavigate,
       scrollToTop,
       scrollToSection,
@@ -420,20 +379,6 @@ export default {
   cursor: pointer;
 }
 
-.modal-image-caption {
-  text-align: center;
-  padding: 0.5rem 0 0 0;
-}
-
-.modal-image-caption h4 {
-  margin: 0;
-}
-
-.modal-image-caption p {
-  margin: 0;
-  opacity: 0.8;
-}
-
 .article-container {
   display: flex;
   gap: 1rem;
@@ -441,54 +386,6 @@ export default {
 
 .article-content {
   flex: 1;
-}
-
-.toc-wrapper {
-  position: sticky;
-  top: 64px; /* высота тулбара */
-  height: calc(100vh - 64px);
-  width: 300px;
-  overflow-y: auto;
-  padding: 0;
-}
-
-.toc-card {
-  padding: 0;
-  font-size: 1.1rem;
-  font-weight: bold;
-}
-
-.toc-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
-.toc-list li {
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.toc-list li:hover {
-  text-decoration: underline;
-}
-
-.toc-list li.active a {
-  font-weight: bold;
-}
-
-.toc-list a {
-  text-decoration: none;
-  color: inherit;
-  display: block;
-  padding: 4px 0;
-}
-
-.scroll-top-btn {
-  position: fixed !important;
-  bottom: 23px !important;
-  right: 23px !important;
-  z-index: 9999;
 }
 
 @media (min-width: 768px) {
@@ -516,10 +413,6 @@ export default {
     height: auto !important;
     margin-top: 0.5rem !important;
     margin-bottom: 1rem !important;
-  }
-
-  .toc-wrapper {
-    display: none !important;
   }
 }
 </style>
