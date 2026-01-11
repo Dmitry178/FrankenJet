@@ -7,7 +7,7 @@ import Register from '@/components/Register.vue';
 import ResetPassword from '@/components/ResetPassword.vue';
 import Profile from '@/components/profile/Profile.vue';
 import Articles from '@/components/articles/Articles.vue';
-import Article from '@/components/Article.vue';
+import Article from '@/components/articles/Article.vue';
 import Search from '@/components/Search.vue';
 import BotSettings from "@/components/admin/BotSettings.vue";
 
