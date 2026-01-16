@@ -23,7 +23,7 @@ class SecurityService:
         return bcrypt.checkpw(pwd_bytes, hash_bytes)
 
     @staticmethod
-    def create_jwt_token(payload_data: dict, expire: int) -> str:
+    def create_jwt_token(payload_data: dict, expire: int | datetime) -> str:
         """
         Создание JWT-токена
 
@@ -32,7 +32,14 @@ class SecurityService:
         """
 
         iat = datetime.now(timezone.utc)
-        expire_date = iat + timedelta(minutes=expire)
+
+        if isinstance(expire, int):
+            expire_date = iat + timedelta(minutes=expire)
+        elif isinstance(expire, datetime):
+            expire_date = expire
+        else:
+            raise TypeError("Ошибка типа expire")
+
         payload = {**payload_data, "iat": iat, "exp": expire_date}
         encoded_jwt = jwt.encode(payload=payload, key=settings.JWT_SECRET_KEY, algorithm=JWT_ALGORITHM)
 
@@ -48,7 +55,8 @@ class SecurityService:
             payload = jwt.decode(jwt=token, key=settings.JWT_SECRET_KEY, algorithms=JWT_ALGORITHM)
             return payload
 
-        except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidTokenError):
+        except (jwt.ExpiredSignatureError, jwt.InvalidSignatureError, jwt.DecodeError, jwt.InvalidTokenError) as ex:
+            logger.warning(ex)
             return {}
 
         except Exception as ex:
