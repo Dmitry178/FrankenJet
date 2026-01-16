@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useAuthStore } from '@/stores/auth';
+import { useAuthStore } from '@/stores/auth.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
@@ -12,11 +12,12 @@ function getCookie(name) {
 export function setupAxios() {
   axios.defaults.baseURL = API_BASE_URL;
 
-  const authStore = useAuthStore();
-
   // Request interceptor
   axios.interceptors.request.use(
     (config) => {
+      // получаем актуальный экземпляр store внутри interceptor
+      const authStore = useAuthStore();
+
       // добавление заголовка Authorization, если есть токен авторизации
       if (authStore.accessToken) {
         config.headers.Authorization = `Bearer ${authStore.accessToken}`;
@@ -44,11 +45,14 @@ export function setupAxios() {
         if (!originalRequest._retry) {
           originalRequest._retry = true;
 
+          const authStore = useAuthStore();
           const success = await authStore.refreshToken();
           if (success) {
             originalRequest.headers.Authorization = `Bearer ${authStore.accessToken}`;
             return axios(originalRequest);
           } else {
+            const authStoreForLogout = useAuthStore();
+            authStoreForLogout.logout();
             return Promise.reject(error);
           }
         }
