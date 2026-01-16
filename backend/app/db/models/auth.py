@@ -1,4 +1,8 @@
+from datetime import datetime
+
+from sqlalchemy import DateTime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from typing import TYPE_CHECKING
 
 from app.db import Base
@@ -27,6 +31,7 @@ class RefreshTokens(Base):
     user_id: Mapped[fk_user] = mapped_column(index=True)
     jti: Mapped[uid] = mapped_column(unique=True)
     issued_at: Mapped[datetime_now]
+    expired_at: Mapped[datetime] = mapped_column(DateTime)
     user_agent: Mapped[str_256 | None]
 
     user: Mapped["Users"] = relationship(back_populates="refresh_tokens")
