@@ -7,7 +7,7 @@ from app.core.logs import logger
 from app.dependencies.auth import DAuthUserId, DAuthToken
 from app.dependencies.db import DDB
 from app.dependencies.rmq import DRmq
-from app.exceptions.api import http_error_500
+from app.exceptions.api import http_error_500, forbidden_403
 from app.exceptions.auth import UserNotFoundEx, PasswordIncorrectEx, UserExistsEx, TokenTypeErrorEx, TokenInvalidEx, \
     UserCreationErrorEx, UserNotActiveEx, RegistrationNotAllowedEx
 from app.schemas.auth import SLoginUser
@@ -80,7 +80,7 @@ async def refresh_tokens(refresh_token: DAuthToken, db: DDB):
         return {**status_ok, "data": data}
 
     except (TokenInvalidEx, TokenTypeErrorEx, UserNotFoundEx) as ex:
-        raise ex.http_exception
+        return forbidden_403
 
     except Exception as ex:
         logger.exception(ex)
