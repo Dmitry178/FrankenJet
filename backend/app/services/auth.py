@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta, timezone
+
 from fastapi import Request
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from uuid import uuid4, UUID
@@ -47,7 +49,8 @@ class AuthServices:
         refresh_token = SecurityService().create_jwt_token(refresh_payload, JWT_REFRESH_EXPIRE_MINUTES)
 
         # регистрация токена
-        await self.register_user_jti(user_id, new_jti)
+        expired_at = datetime.now() + timedelta(minutes=JWT_REFRESH_EXPIRE_MINUTES)
+        await self.register_user_jti(user_id, new_jti, expired_at)
 
         # отзыв токена
         if jti:
@@ -61,11 +64,10 @@ class AuthServices:
         """
 
         roles = [role.role for role in user.roles]  # список ролей пользователя
-        user_data = {
-            "tokens": (await self.issue_tokens(user.id, user.email, roles, jti)).model_dump()
-        } if tokens else {}
-
-        picture = settings.S3_DIRECT_URL + user.picture if user.picture else None
+        user_name = user.first_name or user.full_name or None
+        token = (await self.issue_tokens(user.id, user.email, roles, user_name, jti)).model_dump()
+        user_data = {"tokens": token} if tokens else {}
+        picture = (settings.S3_DIRECT_URL + user.picture) if user.picture else None
 
         user_data |= {
             "user": {
@@ -136,14 +138,14 @@ class AuthServices:
 
         return await self.prepare_user_data(user, tokens=False)
 
-    async def register_user_jti(self, user_id: UUID, jti: UUID) -> bool:
+    async def register_user_jti(self, user_id: UUID, jti: UUID, expired_at: datetime) -> bool:
         """
         Регистрация refresh-токена (jti) в базе
         """
 
         try:
             await self.db.auth.refresh_tokens.insert_one(
-                user_id=user_id, jti=jti
+                user_id=user_id, jti=jti, expired_at=expired_at
             )
             await self.db.commit()
             return True
