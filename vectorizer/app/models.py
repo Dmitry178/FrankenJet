@@ -1,4 +1,5 @@
 import math
+import numpy as np
 
 from fastembed import TextEmbedding
 from sentence_transformers import SentenceTransformer
@@ -44,13 +45,13 @@ class EmbeddingModel:
         Векторизация текста
         """
 
-        if self.model_lib == ModelLib.fastembed:
+        if self.model_lib == ModelLib.fastembed.name:
             embeddings = list(self.model.embed([text]))
             return embeddings[0].tolist()
 
-        elif self.model_lib == ModelLib.sentence_transformers:
+        elif self.model_lib == ModelLib.sentence_transformers.name:
             embedding = self.model.encode([text], convert_to_numpy=True)[0]
-            return embedding.tolist()
+            return np.array(embedding).tolist()
 
         else:
             return []
@@ -60,12 +61,13 @@ class EmbeddingModel:
         Пакетная векторизация текста
         """
 
-        if self.model_lib == ModelLib.fastembed:
+        if self.model_lib == ModelLib.fastembed.name:
             embeddings_generator = self.model.embed(texts)
             return [embedding.tolist() for embedding in embeddings_generator]
 
-        elif self.model_lib == ModelLib.sentence_transformers:
+        elif self.model_lib == ModelLib.sentence_transformers.name:
             embeddings = self.model.encode(texts, convert_to_numpy=True)
+            embeddings = np.array(embeddings)
             return [embedding.tolist() for embedding in embeddings]
 
         else:
