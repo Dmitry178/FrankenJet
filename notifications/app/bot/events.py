@@ -15,7 +15,7 @@ async def start_bot() -> None:
     Сообщение администраторам о запуске бота
     """
 
-    text = f"<b>{bot_settings.APP_NAME}</b>. Бот запущен"
+    text = f"<b>{bot_settings.APP_NAME}</b>. Бот запущен 🟢"
     await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=text)
     return None
 
@@ -25,7 +25,7 @@ async def stop_bot() -> None:
     Сообщение администраторам об остановке бота
     """
 
-    text = f"<b>{bot_settings.APP_NAME}</b>. Бот остановлен"
+    text = f"<b>{bot_settings.APP_NAME}</b>. Бот остановлен 🔴"
     await bot.send_message(chat_id=bot_settings.TELEGRAM_ADMIN_ID, text=text)
     return None
 
@@ -40,7 +40,7 @@ async def send_response_and_update_message(message: dict, callback_query: Callba
         bot_logger.info("Решение по модерации отправлено в RabbitMQ")
 
     except Exception as ex:
-        bot_logger.exception(f"Ошибка отправки сообщения: {ex}")
+        bot_logger.exception("Ошибка отправки сообщения", extra={"error": str(ex)})
         await bot.answer_callback_query(callback_query.id, text="Ошибка отправки ответа")
         return
 
@@ -63,10 +63,12 @@ async def handle_callback(callback_query: CallbackQuery):
     if action == "admin_auth":
         # отправка решения по аутентификации админа в бэкенде
         user_id = parts[1]
-        result = parts[2]
+        user = parts[2]
+        result = parts[3]
         message = {
             "type": "admin_auth_response",
-            "id": user_id,  # jti, user_id
+            "id": user_id,
+            "user": user,
             "result": result
         }
         await send_response_and_update_message(message, callback_query)
