@@ -1,5 +1,5 @@
 .idea
-.venv
+.venv*
 _*
 !__init__.py
 *.env
