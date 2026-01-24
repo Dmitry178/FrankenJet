@@ -2,19 +2,19 @@ from aiogram import types
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 
-def get_admin_auth_keyboard(ip_address: str):
+def get_admin_auth_keyboard(id_: str, user: str):
     builder = InlineKeyboardBuilder()
     builder.add(types.InlineKeyboardButton(
         text="OK ✅",
-        callback_data=f"admin_auth:{ip_address}:ok")
+        callback_data=f"admin_auth:{id_}:{user}:ok")
     )
     builder.add(types.InlineKeyboardButton(
         text="Logout ❌",
-        callback_data=f"admin_auth:{ip_address}:logout")
+        callback_data=f"admin_auth:{id_}:{user}:logout")
     )
     builder.add(types.InlineKeyboardButton(
         text="Block 🚫",
-        callback_data=f"admin_auth:{ip_address}:block")
+        callback_data=f"admin_auth:{id_}:{user}:block")
     )
     return builder.as_markup()
 
