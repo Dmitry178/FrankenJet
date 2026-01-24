@@ -2,8 +2,9 @@ from enum import Enum
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # очереди RabbitMQ
-RMQ_FJ_OUTPUT_QUEUE = "fj_output"  # очередь для приёма сообщений ботом от бэкенда
-RMQ_FJ_INPUT_QUEUE = "fj_input"  # очередь для приёма сообщения бэкендом от бота
+RMQ_FJ_OUTPUT_QUEUE = "fj_output"  # очередь для приёма сообщений ботом от бэкенда FrankenJet
+RMQ_FJ_INPUT_QUEUE = "fj_input"  # очередь для приёма сообщения бэкендом FrankenJet от бота
+RMQ_VECTORIZER_QUEUE = "vectorizer"  # очередь для приёма сообщений ботом от проекта Vectorizer
 
 
 class BotAppMode(str, Enum):
